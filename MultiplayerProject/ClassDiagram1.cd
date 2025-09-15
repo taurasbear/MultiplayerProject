@@ -1,0 +1,683 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="MultiplayerProject.Application">
+    <Position X="5.5" Y="7.75" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+      <Compartment Name="Methods" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>BASAAAkACQIIE0AAUECAAEQAAAAwAAgCEIAAAAIgAQU=</HashCode>
+      <FileName>Source\Application.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="_client" />
+      <Field Name="_server" />
+      <Field Name="_mainMenu" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="MultiplayerProject.NotConnectedException" Collapsed="true">
+    <Position X="39.5" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Source\Networking\Client\Client.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MultiplayerProject.Client" Collapsed="true">
+    <Position X="12.75" Y="8.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAEAAAAAAAAAggQAAAAFAIAAAAAAAACEIAQAAMAAQJI=</HashCode>
+      <FileName>Source\Networking\Client\Client.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MultiplayerProject.Server" BaseTypeListCollapsed="true">
+    <Position X="9.5" Y="12.25" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+      <Compartment Name="Properties" Collapsed="true" />
+      <Compartment Name="Methods" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AAQAAAAgACAQAAgAAgAAAAAAAAEABAAiJAAAAEAAAEA=</HashCode>
+      <FileName>Source\Networking\Server\Server.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="_waitingRoom" />
+    </ShowAsAssociation>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="MultiplayerProject.ServerConnection" Collapsed="true">
+    <Position X="29" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAgAAAAAAAAgAAEEAABABQAgAAIAABAABAAAHEAACA=</HashCode>
+      <FileName>Source\Networking\Server\ServerConnection.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MultiplayerProject.Program" Collapsed="true">
+    <Position X="3.25" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAA=</HashCode>
+      <FileName>Source\Program.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MultiplayerProject.Source.ClientApplication">
+    <Position X="10" Y="7.75" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+      <Compartment Name="Methods" Collapsed="true" />
+      <Compartment Name="Events" Collapsed="true" />
+    </Compartments>
+    <AssociationLine Name="_currentScene" Type="MultiplayerProject.Source.IScene" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="10.75" Y="9.18" />
+        <Point X="10.75" Y="9.555" />
+        <Point X="12.594" Y="9.555" />
+        <Point X="12.594" Y="10" />
+      </Path>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>AASAAAAAAACAAkAAAgAAAABAABAgQAAggACAAIAQEAA=</HashCode>
+      <FileName>Source\ClientApplication.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="_client" />
+      <Field Name="_currentScene" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="MultiplayerProject.Source.CollisionManager" Collapsed="true">
+    <Position X="19.25" Y="7.25" Width="1.5" />
+    <NestedTypes>
+      <Enum Name="MultiplayerProject.Source.CollisionManager.CollisionType" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Source\Collisions\CollisionManager.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+      <Struct Name="MultiplayerProject.Source.CollisionManager.Collision" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Source\Collisions\CollisionManager.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Struct>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAgAAAAAAAAAAAAAAAACAAAAAAAAAAAA=</HashCode>
+      <FileName>Source\Collisions\CollisionManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MultiplayerProject.Source.Utilities" Collapsed="true">
+    <Position X="39.5" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Source\Collisions\CollisionManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MultiplayerProject.Source.Animation" Collapsed="true">
+    <Position X="24.5" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAACIAII4AgBAAQAABAACEAAEAgAAAAAAAACCA=</HashCode>
+      <FileName>Source\Effects\Animation.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MultiplayerProject.Source.BackgroundManager">
+    <Position X="16.5" Y="10" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+      <Compartment Name="Methods" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>CAQAAAAAQAAAAgAAAAAAAAAAgAAAQAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Source\Effects\BackgroundManager.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="_bgLayer1" />
+      <Field Name="_bgLayer2" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="MultiplayerProject.Source.ExplosionManager">
+    <Position X="12.75" Y="6.25" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+      <Compartment Name="Methods" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AAQAoAAAAAAAAgAAAAAAAAAAAAAgQAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Source\Effects\ExplosionManager.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Field Name="_explosions" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="MultiplayerProject.Source.ParallaxingBackground">
+    <Position X="14.25" Y="10" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+      <Compartment Name="Methods" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AAQIAAAAAQAAAwAAAAAAAAAAAACAQAAABAIAAAAAAAE=</HashCode>
+      <FileName>Source\Effects\ParallaxingBackground.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MultiplayerProject.Source.Enemy">
+    <Position X="19.75" Y="4" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+      <Compartment Name="Properties" Collapsed="true" />
+      <Compartment Name="Methods" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AAQACACABCAAQwAgAAAAAEAAAAAAABAgAAAgAoAQAAA=</HashCode>
+      <FileName>Source\GameObjects\Enemy.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="EnemyAnimation" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="MultiplayerProject.Source.EnemyManager">
+    <Position X="16.75" Y="4" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+      <Compartment Name="Properties" Collapsed="true" />
+      <Compartment Name="Methods" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AAQAAEAAAQAAAgAAIAAAAAAAABEAyAAAAAAAAAAAAAE=</HashCode>
+      <FileName>Source\GameObjects\EnemyManager.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Field Name="_enemies" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="MultiplayerProject.Source.Explosion">
+    <Position X="16.75" Y="6.25" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+      <Compartment Name="Properties" Collapsed="true" />
+      <Compartment Name="Methods" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AAQAAAAABIAAAwAAAAAAAEAAAAAQAAAgAAAAgAAAAAA=</HashCode>
+      <FileName>Source\GameObjects\Explosion.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="_explosionAnimation" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="MultiplayerProject.Source.Laser">
+    <Position X="21" Y="8" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+      <Compartment Name="Properties" Collapsed="true" />
+      <Compartment Name="Methods" Collapsed="true" />
+    </Compartments>
+    <AssociationLine Name="LaserAnimation" Type="MultiplayerProject.Source.Animation" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="22.5" Y="8.715" />
+        <Point X="25.736" Y="8.715" />
+        <Point X="25.736" Y="5.241" />
+        <Point X="25.75" Y="5.241" />
+        <Point X="25.75" Y="5.062" />
+      </Path>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>AAQAAAAgBAAAA4AgIQAAAEAAAAgAAAAgAAAAAAAAQQA=</HashCode>
+      <FileName>Source\GameObjects\Laser.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="LaserAnimation" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="MultiplayerProject.Source.LaserManager" BaseTypeListCollapsed="true">
+    <Position X="18.25" Y="8" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+      <Compartment Name="Properties" Collapsed="true" />
+      <Compartment Name="Methods" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AAQAAAAACCIAQgAAAAAQAQAAAAAAQIQEhAAAAAIBIAA=</HashCode>
+      <FileName>Source\GameObjects\LaserManager.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Field Name="_laserBeams" />
+    </ShowAsCollectionAssociation>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="MultiplayerProject.Source.Player" Collapsed="true">
+    <Position X="1.75" Y="3.5" Width="1.5" />
+    <NestedTypes>
+      <Struct Name="MultiplayerProject.Source.Player.ObjectState" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Source\GameObjects\Player.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Struct>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AQQACBgABAgAA4AgAAAAAEAAYAIAAAEgAAAAAAAAIAA=</HashCode>
+      <FileName>Source\GameObjects\Player.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="MultiplayerProject.Source.Logger" Collapsed="true">
+    <Position X="34.25" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAFAAAAIAAAAQ4AIAQAAChBAAARAQBAAQAAAAEAEAAA=</HashCode>
+      <FileName>Source\Helpers\Logger.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MultiplayerProject.Source.LocalPlayer" Collapsed="true">
+    <Position X="0.5" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Source\Networking\Client\LocalPlayer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MultiplayerProject.Source.RemotePlayer">
+    <Position X="2.75" Y="4.75" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Methods" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AAAAAIAAAAIAAAAAEAAAQAAAAAAIAAAAAAAAACAgAgA=</HashCode>
+      <FileName>Source\Networking\Client\RemotePlayer.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="_updatePacket" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="MultiplayerProject.Source.BasePacket" Collapsed="true">
+    <Position X="14" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAEACAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Source\Networking\NetworkConsts.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MultiplayerProject.Source.StringPacket" Collapsed="true">
+    <Position X="19.75" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Source\Networking\NetworkConsts.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MultiplayerProject.Source.IntPacket" Collapsed="true">
+    <Position X="24.25" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAA=</HashCode>
+      <FileName>Source\Networking\NetworkConsts.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MultiplayerProject.Source.RoomInformation" Collapsed="true">
+    <Position X="1.75" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAQAAACAAAQAAAAAAAAAAAAABAAAAAAAAAAQBEAAAA=</HashCode>
+      <FileName>Source\Networking\NetworkConsts.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MultiplayerProject.Source.WaitingRoomInformation" Collapsed="true">
+    <Position X="6.25" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAACAAAAQAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Source\Networking\NetworkConsts.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MultiplayerProject.Source.GameInstanceInformation" Collapsed="true">
+    <Position X="10.75" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAIAAAAABAAAAAgAAAAAAAAAEAAAAIAAAA=</HashCode>
+      <FileName>Source\Networking\NetworkConsts.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MultiplayerProject.Source.PlayerUpdatePacket" Collapsed="true">
+    <Position X="15.25" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAAAAAAAAABAAIABAAgAAAAhEAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Source\Networking\NetworkConsts.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MultiplayerProject.Source.KeyboardMovementInput" Collapsed="true">
+    <Position X="39.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAEAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAQSA=</HashCode>
+      <FileName>Source\Networking\NetworkConsts.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MultiplayerProject.Source.PlayerColour" Collapsed="true">
+    <Position X="32.5" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAEAAQA=</HashCode>
+      <FileName>Source\Networking\NetworkConsts.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MultiplayerProject.Source.PlayerFiredPacket" Collapsed="true">
+    <Position X="17.5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IABAAAAAAABAAIAAAAAAAAAhAAAAAAAAAAAAAAAAQAA=</HashCode>
+      <FileName>Source\Networking\NetworkConsts.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MultiplayerProject.Source.EnemySpawnedPacket" Collapsed="true">
+    <Position X="22" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IABAAAAAACBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Source\Networking\NetworkConsts.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MultiplayerProject.Source.EnemyDefeatedPacket" Collapsed="true">
+    <Position X="26.5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AgAAAAAAAAAAAAgAAIAAAAAAAAAAAAAAAAAAAAAAAAE=</HashCode>
+      <FileName>Source\Networking\NetworkConsts.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MultiplayerProject.Source.PlayerDefeatedPacket" Collapsed="true">
+    <Position X="4" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAgAAAAABAAAAAAAAACAAAAAAAAAAAA=</HashCode>
+      <FileName>Source\Networking\NetworkConsts.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MultiplayerProject.Source.LeaderboardPacket" Collapsed="true">
+    <Position X="8.5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAIAAAAABAAAAAAAAAAAAAAAAAAAAIAAIA=</HashCode>
+      <FileName>Source\Networking\NetworkConsts.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MultiplayerProject.Source.LeaderboardUpdatePacket" Collapsed="true">
+    <Position X="13" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAQABAAAAAAAAQAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Source\Networking\NetworkConsts.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MultiplayerProject.Source.NetworkPacketFactory" Collapsed="true">
+    <Position X="37.75" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABEECAAIgBAAAgAAAAAAABAAAABYAAAAQIAABEQAAAE=</HashCode>
+      <FileName>Source\Networking\NetworkPacketFactory.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MultiplayerProject.Source.Package" Collapsed="true">
+    <Position X="29" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAgAAAABAAAAACAIAAAAAAEAAAQAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Source\Networking\Package.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MultiplayerProject.Source.GameInstance" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="29" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AARAxIAAAAAQEUoBAAAAAIAAARAAJACABQAAAAABQIA=</HashCode>
+      <FileName>Source\Networking\Server\GameInstance.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="MultiplayerProject.Source.GameRoom" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="30.75" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAAAAwkBgJEAAAgBAAAAAABABAJAABQBAAAAg=</HashCode>
+      <FileName>Source\Networking\Server\GameRoom.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="MultiplayerProject.Source.ServerLeaderboard" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="30.75" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAIAAAAQAAgIAAAAABAAAAIANAAABAAAAAAAAAA=</HashCode>
+      <FileName>Source\Networking\Server\ServerLeaderboard.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="MultiplayerProject.Source.WaitingRoom" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="12.5" Y="12.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAEAgAAYAAgIAAABAAAAIAAABABgBAEhAAAAAAA=</HashCode>
+      <FileName>Source\Networking\Server\WaitingRoom.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="MultiplayerProject.Source.GameScene" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="34.25" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AgQAAIAQIAAIAgABCAjAAAAAETAgSAAIAAAAAAACQFQ=</HashCode>
+      <FileName>Source\Scenes\Client\Game\GameScene.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="MultiplayerProject.Source.GameSceneGUI" Collapsed="true">
+    <Position X="36" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AABAgIAAAICAAgAAAAAAAAAAABCAQAAAAAAAAAAAQAA=</HashCode>
+      <FileName>Source\Scenes\Client\Game\GameSceneGUI.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MultiplayerProject.Source.DisconnectedFromServerScene" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="30.75" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAAAAAAgAAAAAAAAAAAACgwAAIAAAAAAAAAEQ=</HashCode>
+      <FileName>Source\Scenes\Client\Menus\DisconnectedFromServerScene.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="MultiplayerProject.Source.LeaderboardScene" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="32.5" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>YCQAAAAgACKBAgAEQAAAAACAghCywAQIAAAAAAEAQEQ=</HashCode>
+      <FileName>Source\Scenes\Client\Menus\LeaderboardScene.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="MultiplayerProject.Source.GameRoomUIItem" Collapsed="true">
+    <Position X="32.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAgAAAAAAAAACBAAAABAAAACAAAAAA=</HashCode>
+      <FileName>Source\Scenes\Client\Menus\WaitingRoomScene.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MultiplayerProject.Source.WaitingRoomScene" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="30.75" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQiAAAAAAIAAggEAAQACAAACgGg0AAIEFIAEAEQAEQ=</HashCode>
+      <FileName>Source\Scenes\Client\Menus\WaitingRoomScene.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="MultiplayerProject.Source.MainMenu" Collapsed="true">
+    <Position X="6.5" Y="9.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQEAgABAQgADgBEAACAAAQAAMigwAAAAAAAAAUAIAA=</HashCode>
+      <FileName>Source\Scenes\MainMenu.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MultiplayerProject.Source.ServerScene">
+    <Position X="7.75" Y="12.25" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+      <Compartment Name="Properties" Collapsed="true" />
+      <Compartment Name="Methods" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AAQAAAAADICCAkAEAAABAEAAAACgwAAAAAAAAAEAAAA=</HashCode>
+      <FileName>Source\Scenes\Server\ServerScene.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MultiplayerProject.Source.ServerApplication">
+    <Position X="8.25" Y="8.5" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+      <Compartment Name="Methods" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AASAAAAAAAAAAgAAQAAAAABAAAAgQAAgAAAAAIAAAAA=</HashCode>
+      <FileName>Source\ServerApplication.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="_currentScene" />
+      <Field Name="_server" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="BackwardReader" Collapsed="true">
+    <Position X="34.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAQAAAAACAAAAAAAAAEAAAIAAAACAAAA=</HashCode>
+      <FileName>Source\Helpers\BackwardReader.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MonoGame_Textbox.Cursor" Collapsed="true">
+    <Position X="29" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAwAAAAAACAAAgACEAAAABAIAAAAEAAgAAAAiAEIQAA=</HashCode>
+      <FileName>Source\MonoGame\TextBox\Cursor.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MonoGame_Textbox.Extensions" Collapsed="true">
+    <Position X="39.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAABCAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Source\MonoGame\TextBox\Extensions.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MonoGame_Textbox.KeyboardInput" Collapsed="true">
+    <Position X="37.75" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAQAAEAQADAAwRAAAAgCCBAAAAAAAAAohAAAAQBABAA=</HashCode>
+      <FileName>Source\MonoGame\TextBox\KeyboardInput.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MonoGame_Textbox.Text" Collapsed="true">
+    <Position X="34.25" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAQAAAAAAAAAEAQEAAAABAKIAAAAAAAQARAIAAACA=</HashCode>
+      <FileName>Source\MonoGame\TextBox\Text.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MonoGame_Textbox.TextBox" Collapsed="true">
+    <Position X="36" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAMSAAAgAAAAABAAAIABIAAAAgAACFCQBAAQA=</HashCode>
+      <FileName>Source\MonoGame\TextBox\TextBox.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MonoGame_Textbox.TextRenderer" Collapsed="true">
+    <Position X="37.75" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ACQAAAAAACAAAgAAIAAAAkACAAAAAEAIAAABgQUDYAA=</HashCode>
+      <FileName>Source\MonoGame\TextBox\TextRenderer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NetworkPrediction.RollingAverage" Collapsed="true">
+    <Position X="36" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAQAAACAEAAAQAAAAACAAAAAAAAAIAAAAAAAAA=</HashCode>
+      <FileName>Source\Networking\Client\RollingAverage.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Struct Name="MultiplayerProject.Source.InputInformation" Collapsed="true">
+    <Position X="29" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAABAEAAAAAAAAAAAAAAAAAAAAAAAxAAAAAAAAAACAA=</HashCode>
+      <FileName>Source\Networking\NetworkConsts.cs</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Interface Name="MultiplayerProject.Source.INetworkedObject" Collapsed="true">
+    <Position X="30.75" Y="9" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAA=</HashCode>
+      <FileName>Source\Networking\Client\INetworkedObject.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="MultiplayerProject.Source.IMessageable" Collapsed="true">
+    <Position X="29" Y="9" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAAAAQAAgAAAAAAAAAAAAABAAABAAAAAAAAAA=</HashCode>
+      <FileName>Source\Networking\Server\IMessageable.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="MultiplayerProject.Source.IScene">
+    <Position X="12.5" Y="10" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAAAAAAgAAAAAAAAAAAAAgQAAIAAAAAAAAAEQ=</HashCode>
+      <FileName>Source\Scenes\IScene.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Client" />
+    </ShowAsAssociation>
+  </Interface>
+  <Enum Name="MultiplayerProject.Source.ApplicationType" Collapsed="true">
+    <Position X="29" Y="10" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgEAAAQ=</HashCode>
+      <FileName>Source\Networking\NetworkConsts.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="MultiplayerProject.Source.MessageableComponent" Collapsed="true">
+    <Position X="34.25" Y="10" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAEAAAAAAAIAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAgA=</HashCode>
+      <FileName>Source\Networking\NetworkConsts.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="MultiplayerProject.Source.MessageType" Collapsed="true">
+    <Position X="36" Y="10" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ECQBAhQBCAGQAAAAAAEcAAEAABiBAAAAFED0AMEAAAA=</HashCode>
+      <FileName>Source\Networking\NetworkConsts.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="MultiplayerProject.Source.GameRoomState" Collapsed="true">
+    <Position X="30.75" Y="10" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAQAAACAA=</HashCode>
+      <FileName>Source\Networking\NetworkConsts.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="MultiplayerProject.Source.LeaderboardSceneState" Collapsed="true">
+    <Position X="32.5" Y="10" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAgAAAACAEAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Source\Scenes\Client\Menus\LeaderboardScene.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="MultiplayerProject.Source.WaitingRoomState" Collapsed="true">
+    <Position X="37.75" Y="10" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAADAAAAAAAAEQAAAAAAAAAAAAAAAAAAEAAAAA=</HashCode>
+      <FileName>Source\Scenes\Client\Menus\WaitingRoomScene.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Delegate Name="MultiplayerProject.Source.EmptyDelegate" Collapsed="true">
+    <Position X="30.75" Y="11" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Source\Networking\NetworkConsts.cs</FileName>
+    </TypeIdentifier>
+  </Delegate>
+  <Delegate Name="MultiplayerProject.Source.StringDelegate" Collapsed="true">
+    <Position X="36" Y="11" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Source\Networking\NetworkConsts.cs</FileName>
+    </TypeIdentifier>
+  </Delegate>
+  <Delegate Name="MultiplayerProject.Source.IntDelegate" Collapsed="true">
+    <Position X="32.5" Y="11" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Source\Networking\NetworkConsts.cs</FileName>
+    </TypeIdentifier>
+  </Delegate>
+  <Delegate Name="MultiplayerProject.Source.BasePacketDelegate" Collapsed="true">
+    <Position X="29" Y="11" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Source\Networking\NetworkConsts.cs</FileName>
+    </TypeIdentifier>
+  </Delegate>
+  <Delegate Name="MultiplayerProject.Source.ServerConnectionDelegate" Collapsed="true">
+    <Position X="34.25" Y="11" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAABAgAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Source\Networking\NetworkConsts.cs</FileName>
+    </TypeIdentifier>
+  </Delegate>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
