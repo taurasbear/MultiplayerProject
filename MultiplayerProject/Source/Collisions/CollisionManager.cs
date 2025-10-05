@@ -2,11 +2,18 @@
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
+//using MultiplayerProject.Source.Networking.Server;
 
 namespace MultiplayerProject.Source
 {
     class CollisionManager
     {
+        private GameInstance _game; // store the instance
+
+        public CollisionManager(GameInstance game)
+        {
+            _game = game;
+        }
         public enum CollisionType
         {
             LaserToPlayer,
@@ -63,7 +70,12 @@ namespace MultiplayerProject.Source
                         //var explosion = explosionSound.CreateInstance();
                         //explosion.Play();
 
-                        explosionManager.AddExplosion(lb.Position);
+                        // Get the color of the player who fired this laser
+                        var pc = _game.GetPlayerByID(lb.PlayerFiredID).Colour;
+                        Color playerColor = new Color(pc.R, pc.G, pc.B);
+
+                        // Trigger the explosion with the player's color
+                        explosionManager.AddExplosion(lb.Position, playerColor);
 
                         // kill off the enemy
                         e.Health = 0;

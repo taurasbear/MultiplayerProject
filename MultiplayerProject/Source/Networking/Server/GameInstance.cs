@@ -1,7 +1,8 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
+using MultiplayerProject.Source.Helpers.Factories;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Xna.Framework;
 
 namespace MultiplayerProject.Source
 {
@@ -39,6 +40,10 @@ namespace MultiplayerProject.Source
         private TimeSpan _enemySpawnTime;
         private TimeSpan _previousEnemySpawnTime;
         private int framesSinceLastSend;
+        public Player GetPlayerByID(string id)
+        {
+            return _players.ContainsKey(id) ? _players[id] : null;
+        }
 
         public GameInstance(List<ServerConnection> clients, string gameRoomID)
         {
@@ -53,7 +58,7 @@ namespace MultiplayerProject.Source
             _playerColours = new Dictionary<string, Color>();
             _players = new Dictionary<string, Player>();
 
-            _collisionManager = new CollisionManager();
+            _collisionManager = new CollisionManager(this);
 
             _enemyManager = new EnemyManager();
             _previousEnemySpawnTime = TimeSpan.Zero;
@@ -72,12 +77,37 @@ namespace MultiplayerProject.Source
                 _playerNames[ComponentClients[i].ID] = ComponentClients[i].Name;
                 _playerColours[ComponentClients[i].ID] = playerColours[i];
 
-                Player player = new Player();
+                // Use factory pattern to create players based on color
+                Player player = CreatePlayerFromColor(playerColours[i]);
                 player.NetworkID = ComponentClients[i].ID;
-                 _players[ComponentClients[i].ID] = player;             
+                _players[ComponentClients[i].ID] = player;
             }
         }
+        private Player CreatePlayerFromColor(Color color)
+        {
+            GameObjectFactory factory;
 
+            // Determine which factory to use based on color
+            if (color == Color.Red)
+            {
+                factory = new RedFactory();
+            }
+            else if (color == Color.Blue)
+            {
+                factory = new BlueFactory();
+            }
+            else if (color == Color.Green)
+            {
+                factory = new GreenFactory();
+            }
+            else
+            {
+                // Default to Red factory for any other colors
+                factory = new RedFactory();
+            }
+
+            return (Player)factory.GetPlayer();
+        }
         public void RecieveClientMessage(ServerConnection client, BasePacket recievedPacket)
         {
             switch ((MessageType)recievedPacket.MessageType)
@@ -292,7 +322,7 @@ namespace MultiplayerProject.Source
                 switch(i)
                 {
                     case 0:
-                        returnList.Add(Color.White);
+                        returnList.Add(Color.Green);
                         break;
                     case 1:
                         returnList.Add(Color.Red);
@@ -304,10 +334,10 @@ namespace MultiplayerProject.Source
                         returnList.Add(Color.Green);
                         break;
                     case 4:
-                        returnList.Add(Color.Aqua);
+                        returnList.Add(Color.Red);
                         break;
                     case 5:
-                        returnList.Add(Color.Pink);
+                        returnList.Add(Color.Blue);
                         break;
                 }
             }

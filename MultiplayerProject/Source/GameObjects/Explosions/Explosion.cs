@@ -1,10 +1,11 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using MultiplayerProject.Source.GameObjects;
 
 namespace MultiplayerProject.Source
 {
-    class Explosion
+    public class Explosion : GameObject
     {
         public int Width
         {
@@ -16,7 +17,7 @@ namespace MultiplayerProject.Source
             get { return _explosionAnimation.FrameWidth; }
         }
 
-        public bool Active;
+        public override bool Active { get; set; }
 
         private Animation _explosionAnimation;
         private Vector2 _position;      
@@ -31,7 +32,7 @@ namespace MultiplayerProject.Source
             Active = true;
         }
 
-        public void Update(GameTime gameTime)
+        public override void Update(GameTime gameTime)
         {
             _explosionAnimation.Update(gameTime);
 
@@ -43,7 +44,7 @@ namespace MultiplayerProject.Source
             }
         }
 
-        public void Draw(SpriteBatch spriteBatch)
+        public override void Draw(SpriteBatch spriteBatch)
         {
             _explosionAnimation.Draw(spriteBatch);
         }

@@ -33,7 +33,7 @@ namespace MultiplayerProject.Source
             }
         }
 
-        public void AddExplosion(Vector2 enemyPosition)
+        public void AddExplosion(Vector2 enemyPosition, Color color)
         {
             Animation explosionAnimation = new Animation();
 
@@ -44,7 +44,7 @@ namespace MultiplayerProject.Source
                 134,
                 12,
                 30,
-                Color.White,
+                color,
                 1.0f,
                 true);
 

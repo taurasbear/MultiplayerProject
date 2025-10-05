@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using MultiplayerProject.Source.Helpers.Factories;
 using System;
 using System.Collections.Generic;
 
@@ -41,19 +42,40 @@ namespace MultiplayerProject.Source
                 Player player;
                 if (playerIDs[i] == localClientID)
                 {
-                    var locPlay = new LocalPlayer();
-                    _localPlayer = locPlay;
-                    player = locPlay;
+                    // Use factory to create local player
+                    player = CreatePlayerFromColor(playerColours[i]);
+                    _localPlayer = player as LocalPlayer;
+
+                    // If the factory didn't create a LocalPlayer, wrap it
+                    if (_localPlayer == null)
+                    {
+                        _localPlayer = new LocalPlayer();
+                        _localPlayer.NetworkID = playerIDs[i];
+                        _localPlayer.Colour = playerColours[i];
+                        player = _localPlayer;
+                    }
                 }
                 else
                 {
-                    var remPlay = new RemotePlayer();
-                    _remotePlayers.Add(remPlay);
-                    player = remPlay;
+                    // Use factory to create remote player
+                    player = CreatePlayerFromColor(playerColours[i]);
+                    var remotePlayer = player as RemotePlayer;
+
+                    // If the factory didn't create a RemotePlayer, wrap it
+                    if (remotePlayer == null)
+                    {
+                        remotePlayer = new RemotePlayer();
+                        remotePlayer.NetworkID = playerIDs[i];
+                        remotePlayer.Colour = playerColours[i];
+                        player = remotePlayer;
+                    }
+
+                    _remotePlayers.Add(remotePlayer);
                 }
 
                 player.NetworkID = playerIDs[i];
-                _playerColours.Add(playerIDs[i], playerColours[i]);
+                player.Colour = playerColours[i];
+                _playerColours[player.NetworkID] = playerColours[i];
 
                 _players.Add(player.NetworkID, player);
             }
@@ -68,12 +90,41 @@ namespace MultiplayerProject.Source
 
             _explosionManager = new ExplosionManager();
         }
+        private Player CreatePlayerFromColor(PlayerColour colour)
+        {
+            GameObjectFactory factory;
+
+            // Determine which factory to use based on color
+            // Convert PlayerColour to Color for comparison
+            var color = new Color(colour.R, colour.G, colour.B);
+
+            if (color == Color.Red)
+            {
+                factory = new RedFactory();
+            }
+            else if (color == Color.Blue)
+            {
+                factory = new BlueFactory();
+            }
+            else if (color == Color.Green)
+            {
+                factory = new GreenFactory();
+            }
+            else
+            {
+                // Default to Red factory for any other colors
+                factory = new RedFactory();
+            }
+
+            return (Player)factory.GetPlayer();
+        }
 
         public void Initalise(ContentManager content, GraphicsDevice graphicsDevice)
         {
             foreach (KeyValuePair<string, Player> player in _players)
             {
-                player.Value.Initialize(content, _playerColours[player.Key]);
+                //player.Value.Initialize(content, _playerColours[player.Key]);
+                player.Value.Initialize(content);
             }
 
             _GUI.Initalise(content);
@@ -89,7 +140,7 @@ namespace MultiplayerProject.Source
             for (int i = 0; i < _remotePlayers.Count; i++)
             {
                 _remotePlayers[i].UpdateRemote(Application.CLIENT_UPDATE_RATE, (float)gameTime.ElapsedGameTime.TotalSeconds);
-                _remotePlayers[i].UpdateAnimation(gameTime);
+                _remotePlayers[i].Update(gameTime);
             }
 
             _backgroundManager.Update(gameTime);
@@ -191,7 +242,7 @@ namespace MultiplayerProject.Source
                 _localPlayer.ApplyInputToPlayer(input, (float)gameTime.ElapsedGameTime.TotalSeconds);
                 _localPlayer.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
             }
-            _localPlayer.UpdateAnimation(gameTime);
+            _localPlayer.Update(gameTime);
 
             return input;
         }
@@ -279,7 +330,11 @@ namespace MultiplayerProject.Source
             _laserManager.DeactivateLaser(enemyDefeatedPacket.CollidedLaserID);
 
             var enemy = _enemyManager.DeactivateAndReturnEnemy(enemyDefeatedPacket.CollidedEnemyID);
-            _explosionManager.AddExplosion(enemy.Position);
+
+            // Use the color of the player who fired the laser
+            PlayerColour pc = _playerColours[packet.AttackingPlayerID];
+            Color playerColor = new Color(pc.R, pc.G, pc.B);
+            _explosionManager.AddExplosion(enemy.Position, playerColor);
         }
 
         private void ClientMessenger_OnPlayerDefeatedPacket(BasePacket packet)
@@ -292,7 +347,10 @@ namespace MultiplayerProject.Source
 
             var player = _players[playerDefeatedPacket.CollidedPlayerID];
 
-            _explosionManager.AddExplosion(player.Position);
+            // Use the color of the player who fired the laser
+            PlayerColour pc = _playerColours[playerDefeatedPacket.CollidedPlayerID];
+            Color playerColor = new Color(pc.R, pc.G, pc.B);
+            _explosionManager.AddExplosion(player.Position, playerColor);
         }
 
         private PlayerUpdatePacket GetUpdateAtSequenceNumber(int sequenceNumber)

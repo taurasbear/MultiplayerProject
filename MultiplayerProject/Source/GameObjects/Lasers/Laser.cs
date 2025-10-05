@@ -1,10 +1,11 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using MultiplayerProject.Source.GameObjects;
 
 namespace MultiplayerProject.Source
 {
-    public class Laser
+    public class Laser : GameObject
     {
         // animation the represents the laser animation.
         public Animation LaserAnimation;
@@ -15,7 +16,7 @@ namespace MultiplayerProject.Source
         public float Rotation;
 
         // set the laser to active
-        public bool Active;
+        public override bool Active { get; set; }
 
         // the width of the laser image.
         public int Width
@@ -30,6 +31,7 @@ namespace MultiplayerProject.Source
         }
 
         public string PlayerFiredID { get; set; }
+        public Color LaserColor;
         public string LaserID { get; set; }
 
         // the speed the laser travels
@@ -59,7 +61,7 @@ namespace MultiplayerProject.Source
             Active = true;
         }
 
-        public void Update(GameTime gameTime)
+        public override void Update(GameTime gameTime)
         {
             Update((float)gameTime.ElapsedGameTime.TotalSeconds);
 
@@ -83,7 +85,7 @@ namespace MultiplayerProject.Source
             }
         }
 
-        public void Draw(SpriteBatch spriteBatch)
+        public override void Draw(SpriteBatch spriteBatch)
         {
             LaserAnimation.Draw(spriteBatch);
         }
