@@ -2,13 +2,15 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using MultiplayerProject.Source.GameObjects;
 
 namespace MultiplayerProject.Source
 {
-    public class Player : INetworkedObject
+    public class Player : GameObject, INetworkedObject
     {
-        public bool Active;
+        public override bool Active { get; set; }
         public int Health;
+        public PlayerColour Colour { get; set; }  
 
         public int Width { get; set; }
         public int Height { get; set; }
@@ -52,18 +54,29 @@ namespace MultiplayerProject.Source
             // Set the player health
             Health = Application.PLAYER_STARTING_HEALTH;
         }
-
-        public void Initialize(ContentManager content, PlayerColour colour)
+        public Player(PlayerColour colour) : this()
         {
-            // Load the player resources
+            Colour = colour;
+        }
+        public void Initialize(ContentManager content)
+        {
             Animation playerAnimation = new Animation();
             Texture2D playerTexture = content.Load<Texture2D>("shipAnimation");
-            playerAnimation.Initialize(playerTexture, Vector2.Zero, 0, Width, Height, 8, 30, new Color(colour.R, colour.G, colour.B), 1f, true);
+            playerAnimation.Initialize(playerTexture, Vector2.Zero, 0, Width, Height, 8, 30,
+                new Color(Colour.R, Colour.G, Colour.B), 1f, true);
 
             PlayerAnimation = playerAnimation;
         }
 
-        public void UpdateAnimation(GameTime gameTime)
+        // Keep the old Initialize for backward compatibility with existing code
+        public void Initialize(ContentManager content, PlayerColour colour)
+        {
+            Colour = colour;
+            Initialize(content);
+        }
+
+
+        public override void Update(GameTime gameTime) // was Update
         {
             if (PlayerAnimation != null)
             {
@@ -99,7 +112,7 @@ namespace MultiplayerProject.Source
             state.Position.Y = MathHelper.Clamp(state.Position.Y, 0, Application.WINDOW_HEIGHT);
         }
 
-        public void Draw(SpriteBatch spriteBatch)
+        public override void Draw(SpriteBatch spriteBatch)
         {
             PlayerAnimation.Draw(spriteBatch);
         }

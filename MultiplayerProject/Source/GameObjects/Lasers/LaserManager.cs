@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using MultiplayerProject.Source.Helpers.Factories;
 using System;
 using System.Collections.Generic;
 
@@ -62,6 +63,10 @@ namespace MultiplayerProject.Source
             for (int i = 0; i < _laserBeams.Count; i++)
             {
                 _laserBeams[i].Draw(spriteBatch);
+                //Laser laser = _laserBeams[i];
+                //Texture2D texture = new Texture2D(spriteBatch.GraphicsDevice, laser.Width, laser.Height);
+                //texture.CreateBorder(1, laser.LaserColor);  // <-- use the laser's color
+                //spriteBatch.Draw(texture, laser.Position, Color.White);
             }
         }
 
@@ -112,6 +117,8 @@ namespace MultiplayerProject.Source
 
         public Laser AddLaser(Vector2 position, float rotation, string laserID, string playerFiredID, PlayerColour colour)
         {
+            Laser laser = CreateLaserFromColor(colour, laserID, playerFiredID);
+
             Animation laserAnimation = new Animation();
             // Initlize the laser animation
             laserAnimation.Initialize(_laserTexture,
@@ -125,11 +132,11 @@ namespace MultiplayerProject.Source
                 1f,
                 true);
 
-            Laser laser;
-            if (string.IsNullOrEmpty(laserID))
-                laser = new Laser();
-            else
-                laser = new Laser(laserID, playerFiredID);
+            //Laser laser;
+            //if (string.IsNullOrEmpty(laserID))
+            //    laser = new Laser();
+            //else
+            //    laser = new Laser(laserID, playerFiredID);
 
             Vector2 direction = new Vector2((float)Math.Cos(rotation),
                                      (float)Math.Sin(rotation));
@@ -141,7 +148,49 @@ namespace MultiplayerProject.Source
 
             // Init the laser
             laser.Initialize(laserAnimation, laserPostion, rotation);
+            laser.LaserColor = new Color(colour.R, colour.G, colour.B);  // <-- store in laser
+            laser.PlayerFiredID = playerFiredID;
             _laserBeams.Add(laser);
+
+            return laser;
+        }
+        private Laser CreateLaserFromColor(PlayerColour colour, string laserID, string playerFiredID)
+        {
+            GameObjectFactory factory;
+
+            // Determine which factory to use based on color
+            var color = new Color(colour.R, colour.G, colour.B);
+
+            if (color == Color.Red)
+            {
+                factory = new RedFactory();
+            }
+            else if (color == Color.Blue)
+            {
+                factory = new BlueFactory();
+            }
+            else if (color == Color.Green)
+            {
+                factory = new GreenFactory();
+            }
+            else
+            {
+                // Default to Red factory for any other colors
+                factory = new RedFactory();
+            }
+
+            // Get laser from factory and cast to Laser
+            Laser laser = (Laser)factory.GetLaser();
+
+            // Set the IDs if they were provided
+            if (!string.IsNullOrEmpty(laserID))
+            {
+                laser.LaserID = laserID;
+            }
+            if (!string.IsNullOrEmpty(playerFiredID))
+            {
+                laser.PlayerFiredID = playerFiredID;
+            }
 
             return laser;
         }

@@ -60,17 +60,32 @@
   <ItemGroup>
     <Compile Include="Source\ClientApplication.cs" />
     <Compile Include="Source\Effects\Animation.cs" />
-    <Compile Include="Source\GameObjects\Enemy.cs" />
-    <Compile Include="Source\GameObjects\Explosion.cs" />
-    <Compile Include="Source\GameObjects\Laser.cs" />
+    <Compile Include="Source\GameObjects\Enemy\Enemy.cs" />
+    <Compile Include="Source\GameObjects\Explosions\BlueExplosion.cs" />
+    <Compile Include="Source\GameObjects\Explosions\Explosion.cs" />
+    <Compile Include="Source\GameObjects\Explosions\GreenExplosion.cs" />
+    <Compile Include="Source\GameObjects\Explosions\RedExplosion.cs" />
+    <Compile Include="Source\GameObjects\GameObject.cs" />
+    <Compile Include="Source\GameObjects\Lasers\BlueLaser.cs" />
+    <Compile Include="Source\GameObjects\Lasers\GreenLaser.cs" />
+    <Compile Include="Source\GameObjects\Lasers\Laser.cs" />
     <Compile Include="Source\Effects\BackgroundManager.cs" />
     <Compile Include="Source\Collisions\CollisionManager.cs" />
-    <Compile Include="Source\GameObjects\EnemyManager.cs" />
+    <Compile Include="Source\GameObjects\Enemy\EnemyManager.cs" />
     <Compile Include="Source\Effects\ExplosionManager.cs" />
-    <Compile Include="Source\GameObjects\LaserManager.cs" />
+    <Compile Include="Source\GameObjects\Lasers\LaserManager.cs" />
     <Compile Include="Source\Application.cs" />
+    <Compile Include="Source\GameObjects\Lasers\RedLaser.cs" />
+    <Compile Include="Source\GameObjects\Players\BluePlayer.cs" />
+    <Compile Include="Source\GameObjects\Players\GreenPlayer.cs" />
+    <Compile Include="Source\GameObjects\Players\RedPlayer.cs" />
     <Compile Include="Source\Helpers\BackwardReader.cs" />
+    <Compile Include="Source\Helpers\Factories\BlueFactory.cs" />
+    <Compile Include="Source\Helpers\Factories\GameObjectFactory.cs" />
+    <Compile Include="Source\Helpers\Factories\GreenFactory.cs" />
+    <Compile Include="Source\Helpers\Factories\RedFactory.cs" />
     <Compile Include="Source\Helpers\Logger.cs" />
+    <Compile Include="Source\Helpers\PlayerColour.cs" />
     <Compile Include="Source\MonoGame\TextBox\Cursor.cs" />
     <Compile Include="Source\MonoGame\TextBox\Extensions.cs" />
     <Compile Include="Source\MonoGame\TextBox\KeyboardInput.cs" />
@@ -93,7 +108,7 @@
     <Compile Include="Source\Networking\Server\ServerConnection.cs" />
     <Compile Include="Source\Networking\Server\Server.cs" />
     <Compile Include="Source\Effects\ParallaxingBackground.cs" />
-    <Compile Include="Source\GameObjects\Player.cs" />
+    <Compile Include="Source\GameObjects\Players\Player.cs" />
     <Compile Include="Source\Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Source\Scenes\Client\Menus\LeaderboardScene.cs" />
@@ -139,6 +154,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <None Include="ClassDiagram1.cd" />
+    <None Include="ClassDiagramAbstractFactory.cd" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
