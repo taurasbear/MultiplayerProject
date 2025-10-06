@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace MultiplayerProject.Source
 {
-    class Enemy
+    abstract class Enemy
     {
         public Animation EnemyAnimation;
         public Vector2 Position;
@@ -14,7 +14,7 @@ namespace MultiplayerProject.Source
         public int Damage; // The amount of damage the enemy inflicts on the player ship
         public int Value;  // The amount of score the enemy will give to the player
 
-        public Vector2 CentrePosition { get { return new Vector2(Position.X - Width/2, Position.Y - Height / 2); } }
+        public Vector2 CentrePosition { get { return new Vector2(Position.X - Width / 2, Position.Y - Height / 2); } }
         public int Width { get; set; }
         public int Height { get { return EnemyAnimation.FrameHeight; } }
 
@@ -26,19 +26,8 @@ namespace MultiplayerProject.Source
         const int ENEMY_DAMAGE = 10;
         const int ENEMY_DEATH_SCORE_INCREASE = 100;
 
-        public Enemy()
-        {
-            EnemyID = Guid.NewGuid().ToString();
-            Width = 47;
-        }
-
-        public Enemy(string ID)
-        {
-            EnemyID = ID;
-        }
-
         public void Initialize(Animation animation, Vector2 position)
-        {    
+        {
             EnemyAnimation = animation;
 
             Position = position;

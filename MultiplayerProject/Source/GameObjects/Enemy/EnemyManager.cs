@@ -12,7 +12,7 @@ namespace MultiplayerProject.Source
 
         private Texture2D _enemyTexture;
 
-        private List<Enemy> _enemies;
+        protected List<Enemy> _enemies;
 
         private Random _random;
         private float _width;
