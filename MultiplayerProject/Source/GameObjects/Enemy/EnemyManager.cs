@@ -12,10 +12,12 @@ namespace MultiplayerProject.Source
 
         private Texture2D _enemyTexture;
 
-        protected List<Enemy> _enemies;
+        private List<Enemy> _enemies;
 
         private Random _random;
         private float _width;
+
+        private EnemyFactory _enemyFactory;
 
         public EnemyManager()
         {
@@ -26,6 +28,18 @@ namespace MultiplayerProject.Source
             _random = new Random();
 
             _width = 47;
+
+            SetEnemyType(EnemyType.Regular);
+        }
+
+        public void SetEnemyType(EnemeType enemyType)
+        {
+            _enemyFactory = enemyType switch
+            {
+                EnemyType.Big => new BigEnemyFactory(),
+                EnemyType.Small => new SmallEnemyFactory(),
+                _ => null,
+            };
         }
 
         public void Initalise(ContentManager content)
@@ -71,7 +85,7 @@ namespace MultiplayerProject.Source
                 _random.Next(100, Application.WINDOW_HEIGHT - 100));
 
             // Create an enemy
-            Enemy enemy = new Enemy();
+            Enemy enemy = _enemyFactory?.CreateEnemy() ?? new Enemy();
 
             // Initialize the enemy
             enemy.Initialize(enemyAnimation, position);
@@ -91,7 +105,7 @@ namespace MultiplayerProject.Source
             enemyAnimation.Initialize(_enemyTexture, Vector2.Zero, 0, 47, 61, 8, 30, Color.White, 1f, true);
 
             // Create an enemy
-            Enemy enemy = new Enemy(enemyID);
+            Enemy enemy = _enemyFactory?.CreateEnemy(enemyID) ?? new Enemy(enemyID);
 
             // Initialize the enemy
             enemy.Initialize(enemyAnimation, position);

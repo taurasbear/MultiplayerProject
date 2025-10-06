@@ -2,15 +2,14 @@ namespace MultiplayerProject.Source
 {
     class SmallEnemy : Enemy
     {
-        public SmallEnemy()
+        public SmallEnemy() : base()
         {
-            EnemyID = Guid.NewGuid().ToString();
             Width = 30;
         }
 
-        public SmallEnemy(string ID)
+        public SmallEnemy(string ID) : base(ID)
         {
-            EnemyID = ID;
+            Width = 30;
         }
     }
 }

@@ -2,15 +2,14 @@ namespace MultiplayerProject.Source
 {
     class BigEnemy : Enemy
     {
-        public BigEnemy()
+        public BigEnemy() : base()
         {
-            EnemyID = Guid.NewGuid().ToString();
-            Width = 47;
+            Width = 70;
         }
 
-        public BigEnemy(string ID)
+        public BigEnemy(string ID) : base(ID)
         {
-            EnemyID = ID;
+            Width = 70;
         }
     }
 }

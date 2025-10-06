@@ -61,6 +61,10 @@ namespace MultiplayerProject.Source
             _collisionManager = new CollisionManager(this);
 
             _enemyManager = new EnemyManager();
+            var enemyTypes = new[] { EnemyType.Regular, EnemyType.Big, EnemyType.Small };
+            var randomType = enemyTypes[new Random().Next(enemyTypes.Length)];
+            _enemyManager.SetEnemyType(randomType);
+
             _previousEnemySpawnTime = TimeSpan.Zero;
             _enemySpawnTime = TimeSpan.FromSeconds(1.0f);
 
@@ -160,7 +164,7 @@ namespace MultiplayerProject.Source
             ApplyPlayerInput(gameTime);
 
             UpdateEnemies(gameTime);
-            
+
             CheckCollisions();
 
             if (sendPacketThisFrame)
@@ -222,7 +226,7 @@ namespace MultiplayerProject.Source
                     _playerLasers[collisions[iCollision].AttackingPlayerID].DeactivateLaser(collisions[iCollision].LaserID); // Deactivate collided laser
 
                     if (collisions[iCollision].CollisionType == CollisionManager.CollisionType.LaserToEnemy)
-                    {                      
+                    {
                         _enemyManager.DeactivateEnemy(collisions[iCollision].DefeatedEnemyID); // Deactivate collided enemy
 
                         // INCREMENT PLAYER SCORE HERE
@@ -319,7 +323,7 @@ namespace MultiplayerProject.Source
             var returnList = new List<Color>();
             for (int i = 0; i < playerCount && i < WaitingRoom.MAX_PEOPLE_PER_ROOM; i++)
             {
-                switch(i)
+                switch (i)
                 {
                     case 0:
                         returnList.Add(Color.Green);
@@ -349,7 +353,7 @@ namespace MultiplayerProject.Source
             List<Laser> lasers = new List<Laser>();
 
             foreach (KeyValuePair<string, LaserManager> laserManager in _playerLasers)
-            { 
+            {
                 lasers.AddRange(laserManager.Value.Lasers);
             }
 
