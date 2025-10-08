@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using MultiplayerProject.Source.Helpers;
 using System;
 using System.Collections.Generic;
 //using MultiplayerProject.Source.Networking.Server;
@@ -66,9 +67,8 @@ namespace MultiplayerProject.Source
                     // test the bounds of the laer and enemy
                     if (laserRectangle.Intersects(rectangle2))
                     {
-                        // play the sound of explosion.
-                        //var explosion = explosionSound.CreateInstance();
-                        //explosion.Play();
+                        // play the sound of explosion using AudioManager singleton
+                        AudioManager.Instance.PlayExplosionSound();
 
                         // Get the color of the player who fired this laser
                         var pc = _game.GetPlayerByID(lb.PlayerFiredID).Colour;

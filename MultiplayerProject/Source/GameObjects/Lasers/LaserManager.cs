@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using MultiplayerProject.Source.Helpers;
 using MultiplayerProject.Source.Helpers.Factories;
 using System;
 using System.Collections.Generic;
@@ -76,6 +77,10 @@ namespace MultiplayerProject.Source
             if (gameTime.TotalGameTime - _previousLaserSpawnTime > _laserSpawnTime)
             {
                 _previousLaserSpawnTime = gameTime.TotalGameTime;
+                
+                // Play laser sound using AudioManager singleton
+                AudioManager.Instance.PlayLaserSound();
+                
                 // Add the laer to our list.
                 return AddLaser(position, rotation, "", "", colour);
             }

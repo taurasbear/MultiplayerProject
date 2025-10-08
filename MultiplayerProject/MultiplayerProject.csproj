@@ -80,6 +80,7 @@
     <Compile Include="Source\GameObjects\Players\GreenPlayer.cs" />
     <Compile Include="Source\GameObjects\Players\RedPlayer.cs" />
     <Compile Include="Source\Helpers\BackwardReader.cs" />
+    <Compile Include="Source\Helpers\AudioManager.cs" />
     <Compile Include="Source\Helpers\Factories\BlueFactory.cs" />
     <Compile Include="Source\Helpers\Factories\GameObjectFactory.cs" />
     <Compile Include="Source\Helpers\Factories\GreenFactory.cs" />

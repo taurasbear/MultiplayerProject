@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
 using MultiplayerProject.Source;
+using MultiplayerProject.Source.Helpers;
 using System;
 
 namespace MultiplayerProject
@@ -95,12 +96,21 @@ namespace MultiplayerProject
 
             _mainMenu.Initalise(Content, _graphics.GraphicsDevice);
 
+            // Initialize AudioManager singleton
+            MultiplayerProject.Source.Helpers.AudioManager.Instance.Initialize(Content);
+            
+            // Start background music immediately
+            MultiplayerProject.Source.Helpers.AudioManager.Instance.PlayBackgroundMusic();
+
             base.LoadContent();
         }
 
         protected override void Update(GameTime gameTime)
         {
             ProcessInput(gameTime);
+            
+            // Update AudioManager for manual music looping
+            MultiplayerProject.Source.Helpers.AudioManager.Instance.Update();
 
             switch(_appType)
             {
@@ -136,6 +146,13 @@ namespace MultiplayerProject
             _inputInformation.CurrentKeyboardState = Keyboard.GetState();
             _inputInformation.CurrentGamePadState = GamePad.GetState(PlayerIndex.One);
             _inputInformation.CurrentMouseState = Mouse.GetState();
+
+            // Toggle background music with M key
+            if (_inputInformation.CurrentKeyboardState.IsKeyDown(Keys.M) && 
+                !_inputInformation.PreviousKeyboardState.IsKeyDown(Keys.M))
+            {
+                MultiplayerProject.Source.Helpers.AudioManager.Instance.ToggleBackgroundMusic();
+            }
 
             switch (_appType)
             {
@@ -192,6 +209,17 @@ namespace MultiplayerProject
                 case ApplicationType.Server:
                     _server.OnExiting();
                     break;
+            }
+
+            // Clean up AudioManager with both methods for safety
+            try
+            {
+                MultiplayerProject.Source.Helpers.AudioManager.Instance.Dispose();
+            }
+            catch
+            {
+                // If instance disposal fails, try force cleanup
+                MultiplayerProject.Source.Helpers.AudioManager.ForceCleanup();
             }
 
             base.OnExiting(sender, args);

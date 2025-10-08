@@ -58,3 +58,27 @@
 /processor:
 /build:shipAnimation.xnb
 
+#begin backgroundMusic.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:backgroundMusic.ogg
+
+#begin explosionSound.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:explosionSound.wav
+
+#begin laserSound.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:laserSound.wav
+
+#begin enemyHitSound.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:enemyHitSound.wav
+
