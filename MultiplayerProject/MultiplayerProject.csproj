@@ -61,6 +61,11 @@
     <Compile Include="Source\ClientApplication.cs" />
     <Compile Include="Source\Effects\Animation.cs" />
     <Compile Include="Source\GameObjects\Enemy\Enemy.cs" />
+    <Compile Include="Source\GameObjects\Enemy\IMoveAlgorithm.cs" />
+    <Compile Include="Source\GameObjects\Enemy\VerticalPacing.cs" />
+    <Compile Include="Source\GameObjects\Enemy\ZigZag.cs" />
+    <Compile Include="Source\GameObjects\Enemy\Spinning.cs" />
+    <Compile Include="Source\GameObjects\Enemy\FlyLeft.cs" />
     <Compile Include="Source\GameObjects\Explosions\BlueExplosion.cs" />
     <Compile Include="Source\GameObjects\Explosions\Explosion.cs" />
     <Compile Include="Source\GameObjects\Explosions\GreenExplosion.cs" />

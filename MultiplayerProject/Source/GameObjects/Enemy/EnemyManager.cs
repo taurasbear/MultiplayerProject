@@ -9,6 +9,7 @@ namespace MultiplayerProject.Source
     class EnemyManager
     {
         public List<Enemy> Enemies { get { return _enemies; } }
+        public float Width { get { return _width; } }
 
         private Texture2D _enemyTexture;
 
@@ -124,6 +125,26 @@ namespace MultiplayerProject.Source
             }
 
             return null;
+        }
+
+        public void DamageEnemy(string enemyID, int damage)
+        {
+            for (int i = 0; i < _enemies.Count; i++)
+            {
+                if (_enemies[i].EnemyID == enemyID)
+                {
+                    _enemies[i].TakeDamage(damage);
+                    return;
+                }
+            }
+        }
+
+        public void DamageAllEnemies(int damage)
+        {
+            for (int i = 0; i < _enemies.Count; i++)
+            {
+                _enemies[i].TakeDamage(damage);
+            }
         }
     }
 }

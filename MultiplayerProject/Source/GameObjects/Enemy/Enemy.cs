@@ -20,6 +20,9 @@ namespace MultiplayerProject.Source
 
         public string EnemyID { get; set; }
 
+        private IMoveAlgorithm _moveAlgorithm;
+        private int _maxHealth;
+
         const float ENEMY_MOVE_SPEED = 6f;
 
         const int ENEMY_STARTING_HEALTH = 10;
@@ -46,15 +49,74 @@ namespace MultiplayerProject.Source
             Active = true;
 
             Health = ENEMY_STARTING_HEALTH;
+            _maxHealth = ENEMY_STARTING_HEALTH;
 
             Damage = ENEMY_DAMAGE;
 
             Value = ENEMY_DEATH_SCORE_INCREASE;
+
+            // Set initial movement strategy
+            SetMovementAlgorithm(new VerticalPacing());
+        }
+
+        public void SetMovementAlgorithm(IMoveAlgorithm algorithm)
+        {
+            _moveAlgorithm = algorithm;
+        }
+
+        public void MoveDirection(string direction)
+        {
+            _moveAlgorithm?.BehaveDifferently();
+        }
+
+        public void TakeDamage(int damageAmount)
+        {
+            Health -= damageAmount;
+            UpdateStrategyBasedOnDamage();
+        }
+
+        private void UpdateStrategyBasedOnDamage()
+        {
+            float healthPercentage = (float)Health / _maxHealth;
+            
+            if (healthPercentage > 0.75f)
+            {
+                SetMovementAlgorithm(new VerticalPacing());
+            }
+            else if (healthPercentage > 0.5f)
+            {
+                SetMovementAlgorithm(new ZigZag());
+            }
+            else if (healthPercentage > 0.25f)
+            {
+                SetMovementAlgorithm(new Spinning());
+            }
+            else
+            {
+                SetMovementAlgorithm(new FlyLeft());
+            }
         }
 
         public void Update(GameTime gameTime)
         {
-            Update();
+            // Use strategy pattern for movement with GameTime
+            if (_moveAlgorithm != null)
+            {
+                _moveAlgorithm.Move(ref Position, gameTime);
+            }
+            else
+            {
+                // Fallback to default movement if no strategy is set
+                Position.X -= ENEMY_MOVE_SPEED;
+            }
+
+            // If the enemy is past the screen or its health reaches 0 then deactivate it
+            if (Position.X < -Width || Health <= 0)
+            {
+                // By setting the Active flag to false, the game will remove this objet from the
+                // active game list
+                Active = false;
+            }
 
             // Update the position of the Animation
             EnemyAnimation.Position = Position;
@@ -65,8 +127,16 @@ namespace MultiplayerProject.Source
 
         public void Update()
         {
-            // The enemy always moves to the left so decrement its x position
-            Position.X -= ENEMY_MOVE_SPEED;
+            // Use strategy pattern for movement
+            if (_moveAlgorithm != null)
+            {
+                _moveAlgorithm.Move(ref Position, null);
+            }
+            else
+            {
+                // Fallback to default movement if no strategy is set
+                Position.X -= ENEMY_MOVE_SPEED;
+            }
 
             // If the enemy is past the screen or its health reaches 0 then deactivate it
             if (Position.X < -Width || Health <= 0)
