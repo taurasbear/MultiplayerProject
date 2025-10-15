@@ -53,6 +53,11 @@
 /processor:
 /build:birdAnimation.xnb
 
+#begin blackbirdAnimation.xnb
+/importer:
+/processor:
+/build:blackbirdAnimation.xnb
+
 #begin player.xnb
 /importer:
 /processor:
