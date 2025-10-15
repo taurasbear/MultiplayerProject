@@ -131,12 +131,9 @@ namespace MultiplayerProject.Source.Helpers.Audio
 
         /// <summary>
         /// Transition to a new music tier
-        /// NOTE: This is disabled for now since we're using the regular background music
         /// </summary>
         private void TransitionToTier(int tier)
         {
-            // For now, just log the tier change
-            // The actual music transition is disabled to avoid conflicts with the main background music
             Logger.Instance.Info($"Would transition to tier {tier} (feature disabled - using main background music)");
         }
 
@@ -182,7 +179,6 @@ namespace MultiplayerProject.Source.Helpers.Audio
 
             BuildMusicProgression();
             
-            // Don't transition to tier 0 - let the main background music play instead
             Logger.Instance.Info("ScoreBasedAudioController started (using main background music)");
         }
 
