@@ -161,6 +161,7 @@
     </Content>
     <None Include="ClassDiagram1.cd" />
     <None Include="ClassDiagramAbstractFactory.cd" />
+    <None Include="Content\birdAnimation.xnb" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
