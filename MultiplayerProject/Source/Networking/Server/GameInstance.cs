@@ -40,7 +40,7 @@ namespace MultiplayerProject.Source
         private TimeSpan _enemySpawnTime;
         private TimeSpan _previousEnemySpawnTime;
         private int framesSinceLastSend;
-        private EnemyType[] _enemyTypes = new[] { EnemyType.Regular, EnemyType.Big, EnemyType.Small };
+        private EnemyType[] _enemyTypes = new[] { EnemyType.Mine, EnemyType.Bird, EnemyType.Blackbird };
         public Player GetPlayerByID(string id)
         {
             return _players.ContainsKey(id) ? _players[id] : null;

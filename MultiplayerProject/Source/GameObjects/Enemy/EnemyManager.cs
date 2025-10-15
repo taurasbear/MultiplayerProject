@@ -41,10 +41,10 @@ namespace MultiplayerProject.Source
 
             switch(enemyType)
             {
-                case EnemyType.Big:
+                case EnemyType.Bird:
                     enemyFactory = new BirdEnemyFactory();
                     break;
-                case EnemyType.Small:
+                case EnemyType.Blackbird:
                     enemyFactory = new BlackbirdEnemyFactory();
                     break;
             }

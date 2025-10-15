@@ -2,10 +2,10 @@ namespace MultiplayerProject.Source
 {
     public enum EnemyType
     {
-        Regular,
+        Mine,
 
-        Big,
+        Bird,
 
-        Small,
+        Blackbird,
     }
 }
