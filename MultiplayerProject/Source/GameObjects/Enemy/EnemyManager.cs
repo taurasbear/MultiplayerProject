@@ -10,12 +10,19 @@ namespace MultiplayerProject.Source
     {
         public List<Enemy> Enemies { get { return _enemies; } }
 
-        private Texture2D _enemyTexture;
+        private Texture2D _mineTexture;
+
+        private Texture2D _birdTexture;
+
+        private Texture2D _blackbirdTexture;
 
         private List<Enemy> _enemies;
 
         private Random _random;
+
         private float _width;
+
+        private EnemyFactory _enemyFactory;
 
         public EnemyManager()
         {
@@ -28,9 +35,28 @@ namespace MultiplayerProject.Source
             _width = 47;
         }
 
+        public void SetEnemyType(EnemyType enemyType)
+        {
+            EnemyFactory enemyFactory = null;
+
+            switch(enemyType)
+            {
+                case EnemyType.Bird:
+                    enemyFactory = new BirdEnemyFactory();
+                    break;
+                case EnemyType.Blackbird:
+                    enemyFactory = new BlackbirdEnemyFactory();
+                    break;
+            }
+
+            _enemyFactory = enemyFactory;
+        }
+
         public void Initalise(ContentManager content)
         {
-            _enemyTexture = content.Load<Texture2D>("mineAnimation");
+            _mineTexture = content.Load<Texture2D>("mineAnimation");
+            _birdTexture = content.Load<Texture2D>("birdAnimation");
+            _blackbirdTexture = content.Load<Texture2D>("blackbirdAnimation");
         }
 
         public void Update(GameTime gameTime)
@@ -63,15 +89,25 @@ namespace MultiplayerProject.Source
             // Create the animation object
             Animation enemyAnimation = new Animation();
 
-            // Initialize the animation with the correct animation information
-            enemyAnimation.Initialize(_enemyTexture, Vector2.Zero, 0, 47, 61, 8, 30, Color.White, 1f, true);
-
             // Randomly generate the position of the enemy
             Vector2 position = new Vector2(Application.WINDOW_WIDTH + _width / 2,
                 _random.Next(100, Application.WINDOW_HEIGHT - 100));
 
             // Create an enemy
-            Enemy enemy = new Enemy();
+            Enemy enemy = _enemyFactory?.CreateEnemy() ?? new Enemy();
+
+            if(enemy is BirdEnemy)
+            {
+                enemyAnimation.Initialize(_birdTexture, Vector2.Zero, 0, 68, 68, 7, 30, Color.White, 1f, true);
+            }
+            else if(enemy is BlackbirdEnemy)
+            {
+                enemyAnimation.Initialize(_blackbirdTexture, Vector2.Zero, 0, 16, 18, 8, 30, Color.White, 1f, true);
+            }
+            else
+            {
+                enemyAnimation.Initialize(_mineTexture, Vector2.Zero, 0, 47, 61, 8, 30, Color.White, 1f, true);
+            }
 
             // Initialize the enemy
             enemy.Initialize(enemyAnimation, position);
@@ -87,11 +123,21 @@ namespace MultiplayerProject.Source
             // Create the animation object
             Animation enemyAnimation = new Animation();
 
-            // Initialize the animation with the correct animation information
-            enemyAnimation.Initialize(_enemyTexture, Vector2.Zero, 0, 47, 61, 8, 30, Color.White, 1f, true);
-
             // Create an enemy
-            Enemy enemy = new Enemy(enemyID);
+            Enemy enemy = _enemyFactory?.CreateEnemy(enemyID) ?? new Enemy(enemyID);
+
+            if (enemy is BirdEnemy)
+            {
+                enemyAnimation.Initialize(_birdTexture, Vector2.Zero, 0, 68, 68, 7, 30, Color.White, 1f, true);
+            }
+            else if (enemy is BlackbirdEnemy)
+            {
+                enemyAnimation.Initialize(_blackbirdTexture, Vector2.Zero, 0, 16, 18, 8, 30, Color.White, 1f, true);
+            }
+            else
+            {
+                enemyAnimation.Initialize(_mineTexture, Vector2.Zero, 0, 47, 61, 8, 30, Color.White, 1f, true);
+            }
 
             // Initialize the enemy
             enemy.Initialize(enemyAnimation, position);

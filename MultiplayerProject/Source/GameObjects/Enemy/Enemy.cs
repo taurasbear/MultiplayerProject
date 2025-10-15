@@ -1,6 +1,7 @@
-﻿using System;
+﻿using Google.Protobuf.WellKnownTypes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
 
 namespace MultiplayerProject.Source
 {
@@ -14,9 +15,11 @@ namespace MultiplayerProject.Source
         public int Damage; // The amount of damage the enemy inflicts on the player ship
         public int Value;  // The amount of score the enemy will give to the player
 
-        public Vector2 CentrePosition { get { return new Vector2(Position.X - Width/2, Position.Y - Height / 2); } }
+        public Vector2 CentrePosition { get { return new Vector2(Position.X - Width / 2, Position.Y - Height / 2); } }
         public int Width { get; set; }
         public int Height { get { return EnemyAnimation.FrameHeight; } }
+
+        public float Scale { get; set; }
 
         public string EnemyID { get; set; }
 
@@ -30,15 +33,17 @@ namespace MultiplayerProject.Source
         {
             EnemyID = Guid.NewGuid().ToString();
             Width = 47;
+            Scale = 1f;
         }
 
         public Enemy(string ID)
         {
             EnemyID = ID;
+            Scale = 1f;
         }
 
         public void Initialize(Animation animation, Vector2 position)
-        {    
+        {
             EnemyAnimation = animation;
 
             Position = position;

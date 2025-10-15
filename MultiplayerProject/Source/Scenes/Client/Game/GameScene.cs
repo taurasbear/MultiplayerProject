@@ -318,6 +318,7 @@ namespace MultiplayerProject.Source
         private void ClientMessenger_OnEnemySpawnedPacket(BasePacket packet)
         {
             EnemySpawnedPacket enemySpawn = (EnemySpawnedPacket)packet;
+            _enemyManager.SetEnemyType(enemySpawn.EnemyType);
             _enemyManager.AddEnemy(new Vector2(enemySpawn.XPosition, enemySpawn.YPosition), enemySpawn.EnemyID);
         }
 

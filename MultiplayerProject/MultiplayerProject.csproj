@@ -60,7 +60,13 @@
   <ItemGroup>
     <Compile Include="Source\ClientApplication.cs" />
     <Compile Include="Source\Effects\Animation.cs" />
+    <Compile Include="Source\GameObjects\Enemy\BirdEnemy.cs" />
+    <Compile Include="Source\GameObjects\Enemy\BirdEnemyFactory.cs" />
     <Compile Include="Source\GameObjects\Enemy\Enemy.cs" />
+    <Compile Include="Source\GameObjects\Enemy\EnemyFactory.cs" />
+    <Compile Include="Source\GameObjects\Enemy\EnemyType.cs" />
+    <Compile Include="Source\GameObjects\Enemy\BlackbirdEnemy.cs" />
+    <Compile Include="Source\GameObjects\Enemy\BlackbirdEnemyFactory.cs" />
     <Compile Include="Source\GameObjects\Explosions\BlueExplosion.cs" />
     <Compile Include="Source\GameObjects\Explosions\Explosion.cs" />
     <Compile Include="Source\GameObjects\Explosions\GreenExplosion.cs" />
@@ -147,6 +153,12 @@
     <Content Include="Content\mineAnimation.xnb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Content\birdAnimation.xnb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\blackbirdAnimation.xnb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Content\networkpackages.proto">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -177,6 +189,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Content\mineAnimation.xnb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\birdAnimation.xnb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\blackbirdAnimation.xnb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Content\player.xnb">

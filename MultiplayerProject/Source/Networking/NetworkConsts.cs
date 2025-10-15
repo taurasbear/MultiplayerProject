@@ -272,6 +272,8 @@ namespace MultiplayerProject.Source
         public float YPosition { get; set; }
         [ProtoMember(4)]
         public string EnemyID { get; set; }
+        [ProtoMember(5)]
+        public EnemyType EnemyType { get; set; }
     }
 
     [ProtoContract]

@@ -40,6 +40,7 @@ namespace MultiplayerProject.Source
         private TimeSpan _enemySpawnTime;
         private TimeSpan _previousEnemySpawnTime;
         private int framesSinceLastSend;
+        private EnemyType[] _enemyTypes = new[] { EnemyType.Mine, EnemyType.Bird, EnemyType.Blackbird };
         public Player GetPlayerByID(string id)
         {
             return _players.ContainsKey(id) ? _players[id] : null;
@@ -61,6 +62,10 @@ namespace MultiplayerProject.Source
             _collisionManager = new CollisionManager(this);
 
             _enemyManager = new EnemyManager();
+            var randomType = _enemyTypes[new Random().Next(_enemyTypes.Length)];
+            Logger.Instance.Info($"----> Setting enemy type to {randomType}");
+            _enemyManager.SetEnemyType(randomType);
+
             _previousEnemySpawnTime = TimeSpan.Zero;
             _enemySpawnTime = TimeSpan.FromSeconds(1.0f);
 
@@ -160,7 +165,7 @@ namespace MultiplayerProject.Source
             ApplyPlayerInput(gameTime);
 
             UpdateEnemies(gameTime);
-            
+
             CheckCollisions();
 
             if (sendPacketThisFrame)
@@ -197,11 +202,14 @@ namespace MultiplayerProject.Source
             {
                 _previousEnemySpawnTime = gameTime.TotalGameTime;
 
+                var randomType = _enemyTypes[new Random().Next(_enemyTypes.Length)];
+                Logger.Instance.Info($"----> Setting enemy type to {randomType}");
+                _enemyManager.SetEnemyType(randomType);
                 var enemy = _enemyManager.AddEnemy();
 
                 for (int i = 0; i < ComponentClients.Count; i++) // Send the enemy spawn to all clients
                 {
-                    EnemySpawnedPacket packet = NetworkPacketFactory.Instance.MakeEnemySpawnedPacket(enemy.Position.X, enemy.Position.Y, enemy.EnemyID);
+                    EnemySpawnedPacket packet = NetworkPacketFactory.Instance.MakeEnemySpawnedPacket(enemy.Position.X, enemy.Position.Y, enemy.EnemyID, randomType);
                     packet.TotalGameTime = (float)gameTime.TotalGameTime.TotalSeconds;
 
                     ComponentClients[i].SendPacketToClient(packet, MessageType.GI_ServerSend_EnemySpawn);
@@ -222,7 +230,7 @@ namespace MultiplayerProject.Source
                     _playerLasers[collisions[iCollision].AttackingPlayerID].DeactivateLaser(collisions[iCollision].LaserID); // Deactivate collided laser
 
                     if (collisions[iCollision].CollisionType == CollisionManager.CollisionType.LaserToEnemy)
-                    {                      
+                    {
                         _enemyManager.DeactivateEnemy(collisions[iCollision].DefeatedEnemyID); // Deactivate collided enemy
 
                         // INCREMENT PLAYER SCORE HERE
@@ -319,7 +327,7 @@ namespace MultiplayerProject.Source
             var returnList = new List<Color>();
             for (int i = 0; i < playerCount && i < WaitingRoom.MAX_PEOPLE_PER_ROOM; i++)
             {
-                switch(i)
+                switch (i)
                 {
                     case 0:
                         returnList.Add(Color.Green);
@@ -349,7 +357,7 @@ namespace MultiplayerProject.Source
             List<Laser> lasers = new List<Laser>();
 
             foreach (KeyValuePair<string, LaserManager> laserManager in _playerLasers)
-            { 
+            {
                 lasers.AddRange(laserManager.Value.Lasers);
             }
 
