@@ -60,8 +60,8 @@
   <ItemGroup>
     <Compile Include="Source\ClientApplication.cs" />
     <Compile Include="Source\Effects\Animation.cs" />
-    <Compile Include="Source\GameObjects\Enemy\BigEnemy.cs" />
-    <Compile Include="Source\GameObjects\Enemy\BigEnemyFactory.cs" />
+    <Compile Include="Source\GameObjects\Enemy\BirdEnemy.cs" />
+    <Compile Include="Source\GameObjects\Enemy\BirdEnemyFactory.cs" />
     <Compile Include="Source\GameObjects\Enemy\Enemy.cs" />
     <Compile Include="Source\GameObjects\Enemy\EnemyFactory.cs" />
     <Compile Include="Source\GameObjects\Enemy\EnemyType.cs" />

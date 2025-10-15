@@ -42,7 +42,7 @@ namespace MultiplayerProject.Source
             switch(enemyType)
             {
                 case EnemyType.Big:
-                    enemyFactory = new BigEnemyFactory();
+                    enemyFactory = new BirdEnemyFactory();
                     break;
                 case EnemyType.Small:
                     enemyFactory = new SmallEnemyFactory();
@@ -96,7 +96,7 @@ namespace MultiplayerProject.Source
             // Create an enemy
             Enemy enemy = _enemyFactory?.CreateEnemy() ?? new Enemy();
 
-            if(enemy is BigEnemy)
+            if(enemy is BirdEnemy)
             {
                 enemyAnimation.Initialize(_birdTexture, Vector2.Zero, 0, 68, 68, 7, 30, Color.White, 1f, true);
             }
@@ -126,7 +126,7 @@ namespace MultiplayerProject.Source
             // Create an enemy
             Enemy enemy = _enemyFactory?.CreateEnemy(enemyID) ?? new Enemy(enemyID);
 
-            if (enemy is BigEnemy)
+            if (enemy is BirdEnemy)
             {
                 enemyAnimation.Initialize(_birdTexture, Vector2.Zero, 0, 68, 68, 7, 30, Color.White, 1f, true);
             }

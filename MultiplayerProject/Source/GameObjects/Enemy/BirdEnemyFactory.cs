@@ -1,15 +1,15 @@
 namespace MultiplayerProject.Source
 {
-    class BigEnemyFactory : EnemyFactory
+    class BirdEnemyFactory : EnemyFactory
     {
         public override Enemy CreateEnemy()
         {
-            return new BigEnemy();
+            return new BirdEnemy();
         }
 
         public override Enemy CreateEnemy(string enemyId)
         {
-            return new BigEnemy(enemyId);
+            return new BirdEnemy(enemyId);
         }
     }
 }
