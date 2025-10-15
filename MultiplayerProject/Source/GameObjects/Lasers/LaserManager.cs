@@ -73,15 +73,18 @@ namespace MultiplayerProject.Source
 
         public Laser FireLocalLaserClient(GameTime gameTime, Vector2 position, float rotation, PlayerColour colour)
         {
-            // Govern the rate of fire for our lasers
             if (gameTime.TotalGameTime - _previousLaserSpawnTime > _laserSpawnTime)
             {
                 _previousLaserSpawnTime = gameTime.TotalGameTime;
                 
-                // Play laser sound using AudioManager singleton
-                AudioManager.Instance.PlayLaserSound();
+                // Use builder pattern for laser sound with dynamic properties
+                // Note: You'll need to pass current score from GameScene
+                AudioManager.Instance.CreateAudioBuilder()
+                    .WithSound("laser")
+                    .WithVolume(0.6f)
+                    .WithPitch(0.0f)
+                    .BuildAndPlay();
                 
-                // Add the laer to our list.
                 return AddLaser(position, rotation, "", "", colour);
             }
 

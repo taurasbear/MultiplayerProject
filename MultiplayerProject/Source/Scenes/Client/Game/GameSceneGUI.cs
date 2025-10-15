@@ -69,5 +69,17 @@ namespace MultiplayerProject.Source
         {
             _playerScores[playerID] = newScore;
         }
+
+        /// <summary>
+        /// Get a player's current score
+        /// </summary>
+        public int GetPlayerScore(string playerID)
+        {
+            if (_playerScores.ContainsKey(playerID))
+            {
+                return _playerScores[playerID];
+            }
+            return 0;
+        }
     }
 }

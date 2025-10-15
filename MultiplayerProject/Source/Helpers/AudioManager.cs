@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Diagnostics;
+using MultiplayerProject.Source.Helpers.Audio;
 
 namespace MultiplayerProject.Source.Helpers
 {
@@ -599,5 +600,21 @@ namespace MultiplayerProject.Source.Helpers
             }
         }
         #endregion
+
+        /// <summary>
+        /// Create a new audio builder for complex audio configurations
+        /// </summary>
+        public AudioBuilder CreateAudioBuilder()
+        {
+            return new AudioBuilder();
+        }
+
+        /// <summary>
+        /// Try to get a sound effect by name (for builder pattern)
+        /// </summary>
+        internal bool TryGetSoundEffect(string soundName, out SoundEffect soundEffect)
+        {
+            return _soundEffects.TryGetValue(soundName, out soundEffect);
+        }
     }
 }

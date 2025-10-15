@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MultiplayerProject.Source.Helpers.Factories;
+using MultiplayerProject.Source.Helpers.Audio;
 using System;
 using System.Collections.Generic;
 
@@ -28,6 +29,9 @@ namespace MultiplayerProject.Source
         private Queue<PlayerUpdatePacket> _updatePackets;
 
         public Client Client { get; set; }
+
+        private ScoreBasedAudioController _audioController;
+        private int _localPlayerScore;
 
         public GameScene(int width, int height, int playerCount, string[] playerIDs, string[] playerNames, PlayerColour[] playerColours, string localClientID, Client client)
         {
@@ -89,6 +93,9 @@ namespace MultiplayerProject.Source
             _backgroundManager = new BackgroundManager();
 
             _explosionManager = new ExplosionManager();
+
+            _audioController = new ScoreBasedAudioController();
+            _localPlayerScore = 0;
         }
         private Player CreatePlayerFromColor(PlayerColour colour)
         {
@@ -133,6 +140,9 @@ namespace MultiplayerProject.Source
             _laserManager.Initalise(content);
             _explosionManager.Initalise(content);
             _backgroundManager.Initalise(content);
+
+            // Start score-based audio
+            _audioController.Start();
         }
 
         public void Update(GameTime gameTime)
@@ -147,6 +157,17 @@ namespace MultiplayerProject.Source
             _enemyManager.Update(gameTime);
             _laserManager.Update(gameTime);
             _explosionManager.Update(gameTime);
+
+            // Update audio based on local player's score
+            if (_localPlayer != null)
+            {
+                int currentScore = _GUI.GetPlayerScore(_localPlayer.NetworkID);
+                if (currentScore != _localPlayerScore)
+                {
+                    _localPlayerScore = currentScore;
+                    _audioController.Update(_localPlayerScore);
+                }
+            }
         }
 
         public void Draw(SpriteBatch spriteBatch)
