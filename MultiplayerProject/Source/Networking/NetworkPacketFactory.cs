@@ -162,13 +162,14 @@ namespace MultiplayerProject.Source
             return packet;
         }
 
-        public EnemySpawnedPacket MakeEnemySpawnedPacket(float xPos, float yPos, string enemyID)
+        public EnemySpawnedPacket MakeEnemySpawnedPacket(float xPos, float yPos, string enemyID, EnemyType enemyType)
         {
             EnemySpawnedPacket packet = new EnemySpawnedPacket
             {
                 XPosition = xPos,
                 YPosition = yPos,
-                EnemyID = enemyID
+                EnemyID = enemyID,
+                EnemyType = enemyType,
             };
             return packet;
         }

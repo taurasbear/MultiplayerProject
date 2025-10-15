@@ -19,7 +19,7 @@ namespace MultiplayerProject.Source
         public int Width { get; set; }
         public int Height { get { return EnemyAnimation.FrameHeight; } }
 
-        public float Scale { get; set; } = 2f;
+        public float Scale { get; set; }
 
         public string EnemyID { get; set; }
 
@@ -33,16 +33,17 @@ namespace MultiplayerProject.Source
         {
             EnemyID = Guid.NewGuid().ToString();
             Width = 47;
+            Scale = 1f;
         }
 
         public Enemy(string ID)
         {
             EnemyID = ID;
+            Scale = 1f;
         }
 
         public void Initialize(Animation animation, Vector2 position)
         {
-            animation.Scale = Scale;
             EnemyAnimation = animation;
 
             Position = position;
@@ -86,7 +87,6 @@ namespace MultiplayerProject.Source
             if (EnemyAnimation != null)
             {
                 // Draw the animation
-                Logger.Instance.Info($"Animation scale: {EnemyAnimation.Scale}");
                 EnemyAnimation.Draw(spriteBatch);
             }
         }

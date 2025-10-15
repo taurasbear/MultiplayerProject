@@ -29,8 +29,6 @@ namespace MultiplayerProject.Source
             _random = new Random();
 
             _width = 47;
-
-            SetEnemyType(EnemyType.Regular);
         }
 
         public void SetEnemyType(EnemyType enemyType)
@@ -76,6 +74,7 @@ namespace MultiplayerProject.Source
         {
             for (int i = 0; i < _enemies.Count; i++)
             {
+                Console.WriteLine($"-> I'm drawing stupid enemy with stupid animation scale at: {_enemies[i].EnemyAnimation.Scale}");
                 _enemies[i].Draw(spriteBatch);
             }
         }
@@ -86,7 +85,7 @@ namespace MultiplayerProject.Source
             Animation enemyAnimation = new Animation();
 
             // Initialize the animation with the correct animation information
-            enemyAnimation.Initialize(_enemyTexture, Vector2.Zero, 0, 47, 61, 8, 30, Color.White, 3f, true);
+            //enemyAnimation.Initialize(_enemyTexture, Vector2.Zero, 0, 47, 61, 8, 30, Color.White, 3f, true);
 
             // Randomly generate the position of the enemy
             Vector2 position = new Vector2(Application.WINDOW_WIDTH + _width / 2,
@@ -94,6 +93,22 @@ namespace MultiplayerProject.Source
 
             // Create an enemy
             Enemy enemy = _enemyFactory?.CreateEnemy() ?? new Enemy();
+
+            if(enemy is BigEnemy)
+            {
+                Console.WriteLine("---> I'm a stupid BIG enemy");
+                enemyAnimation.Initialize(_enemyTexture, Vector2.Zero, 0, 47, 61, 8, 30, Color.White, 4f, true);
+            }
+            else if(enemy is SmallEnemy)
+            {
+                Console.WriteLine("---> I'm a stupid SMALL enemy");
+                enemyAnimation.Initialize(_enemyTexture, Vector2.Zero, 0, 47, 61, 8, 30, Color.White, 3f, true);
+            }
+            else
+            {
+                Console.WriteLine("---> I'm a stupid REGULAR enemy");
+                enemyAnimation.Initialize(_enemyTexture, Vector2.Zero, 0, 47, 61, 8, 30, Color.White, 1f, true);
+            }
 
             // Initialize the enemy
             enemy.Initialize(enemyAnimation, position);
@@ -110,10 +125,26 @@ namespace MultiplayerProject.Source
             Animation enemyAnimation = new Animation();
 
             // Initialize the animation with the correct animation information
-            enemyAnimation.Initialize(_enemyTexture, Vector2.Zero, 0, 47, 61, 8, 30, Color.White, 4f, true);
+            //enemyAnimation.Initialize(_enemyTexture, Vector2.Zero, 0, 47, 61, 8, 30, Color.White, 4f, true);
 
             // Create an enemy
             Enemy enemy = _enemyFactory?.CreateEnemy(enemyID) ?? new Enemy(enemyID);
+
+            if (enemy is BigEnemy)
+            {
+                Console.WriteLine("---> I'm a stupid BIG enemy");
+                enemyAnimation.Initialize(_enemyTexture, Vector2.Zero, 0, 47, 61, 8, 30, Color.White, 4f, true);
+            }
+            else if (enemy is SmallEnemy)
+            {
+                Console.WriteLine("---> I'm a stupid SMALL enemy");
+                enemyAnimation.Initialize(_enemyTexture, Vector2.Zero, 0, 47, 61, 8, 30, Color.White, 3f, true);
+            }
+            else
+            {
+                Console.WriteLine("---> I'm a stupid REGULAR enemy");
+                enemyAnimation.Initialize(_enemyTexture, Vector2.Zero, 0, 47, 61, 8, 30, Color.White, 1f, true);
+            }
 
             // Initialize the enemy
             enemy.Initialize(enemyAnimation, position);
