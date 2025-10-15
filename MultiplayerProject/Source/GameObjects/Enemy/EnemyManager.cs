@@ -45,7 +45,7 @@ namespace MultiplayerProject.Source
                     enemyFactory = new BirdEnemyFactory();
                     break;
                 case EnemyType.Small:
-                    enemyFactory = new SmallEnemyFactory();
+                    enemyFactory = new BlackbirdEnemyFactory();
                     break;
             }
 
@@ -100,7 +100,7 @@ namespace MultiplayerProject.Source
             {
                 enemyAnimation.Initialize(_birdTexture, Vector2.Zero, 0, 68, 68, 7, 30, Color.White, 1f, true);
             }
-            else if(enemy is SmallEnemy)
+            else if(enemy is BlackbirdEnemy)
             {
                 enemyAnimation.Initialize(_blackbirdTexture, Vector2.Zero, 0, 16, 18, 8, 30, Color.White, 1f, true);
             }
@@ -130,7 +130,7 @@ namespace MultiplayerProject.Source
             {
                 enemyAnimation.Initialize(_birdTexture, Vector2.Zero, 0, 68, 68, 7, 30, Color.White, 1f, true);
             }
-            else if (enemy is SmallEnemy)
+            else if (enemy is BlackbirdEnemy)
             {
                 enemyAnimation.Initialize(_blackbirdTexture, Vector2.Zero, 0, 16, 18, 8, 30, Color.White, 1f, true);
             }

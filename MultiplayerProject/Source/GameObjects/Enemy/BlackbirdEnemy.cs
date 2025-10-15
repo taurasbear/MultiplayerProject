@@ -1,14 +1,14 @@
 namespace MultiplayerProject.Source
 {
-    class SmallEnemy : Enemy
+    class BlackbirdEnemy : Enemy
     {
-        public SmallEnemy() : base()
+        public BlackbirdEnemy() : base()
         {
             Width = 30;
             Scale = 4f;
         }
 
-        public SmallEnemy(string ID) : base(ID)
+        public BlackbirdEnemy(string ID) : base(ID)
         {
             Width = 30;
             Scale = 4f;

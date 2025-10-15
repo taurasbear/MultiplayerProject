@@ -65,8 +65,8 @@
     <Compile Include="Source\GameObjects\Enemy\Enemy.cs" />
     <Compile Include="Source\GameObjects\Enemy\EnemyFactory.cs" />
     <Compile Include="Source\GameObjects\Enemy\EnemyType.cs" />
-    <Compile Include="Source\GameObjects\Enemy\SmallEnemy.cs" />
-    <Compile Include="Source\GameObjects\Enemy\SmallEnemyFactory.cs" />
+    <Compile Include="Source\GameObjects\Enemy\BlackbirdEnemy.cs" />
+    <Compile Include="Source\GameObjects\Enemy\BlackbirdEnemyFactory.cs" />
     <Compile Include="Source\GameObjects\Explosions\BlueExplosion.cs" />
     <Compile Include="Source\GameObjects\Explosions\Explosion.cs" />
     <Compile Include="Source\GameObjects\Explosions\GreenExplosion.cs" />
