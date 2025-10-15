@@ -1,10 +1,11 @@
-﻿using System;
+﻿using Google.Protobuf.WellKnownTypes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
 
 namespace MultiplayerProject.Source
 {
-    abstract class Enemy
+    class Enemy
     {
         public Animation EnemyAnimation;
         public Vector2 Position;
@@ -18,6 +19,8 @@ namespace MultiplayerProject.Source
         public int Width { get; set; }
         public int Height { get { return EnemyAnimation.FrameHeight; } }
 
+        public float Scale { get; set; } = 2f;
+
         public string EnemyID { get; set; }
 
         const float ENEMY_MOVE_SPEED = 6f;
@@ -26,8 +29,20 @@ namespace MultiplayerProject.Source
         const int ENEMY_DAMAGE = 10;
         const int ENEMY_DEATH_SCORE_INCREASE = 100;
 
+        public Enemy()
+        {
+            EnemyID = Guid.NewGuid().ToString();
+            Width = 47;
+        }
+
+        public Enemy(string ID)
+        {
+            EnemyID = ID;
+        }
+
         public void Initialize(Animation animation, Vector2 position)
         {
+            animation.Scale = Scale;
             EnemyAnimation = animation;
 
             Position = position;
@@ -71,6 +86,7 @@ namespace MultiplayerProject.Source
             if (EnemyAnimation != null)
             {
                 // Draw the animation
+                Logger.Instance.Info($"Animation scale: {EnemyAnimation.Scale}");
                 EnemyAnimation.Draw(spriteBatch);
             }
         }

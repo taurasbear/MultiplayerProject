@@ -1,6 +1,6 @@
 namespace MultiplayerProject.Source
 {
-    class EnemyFactory
+    abstract class EnemyFactory
     {
         public abstract Enemy CreateEnemy();
 

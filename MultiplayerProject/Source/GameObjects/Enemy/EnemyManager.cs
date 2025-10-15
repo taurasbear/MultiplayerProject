@@ -15,6 +15,7 @@ namespace MultiplayerProject.Source
         private List<Enemy> _enemies;
 
         private Random _random;
+
         private float _width;
 
         private EnemyFactory _enemyFactory;
@@ -32,14 +33,21 @@ namespace MultiplayerProject.Source
             SetEnemyType(EnemyType.Regular);
         }
 
-        public void SetEnemyType(EnemeType enemyType)
+        public void SetEnemyType(EnemyType enemyType)
         {
-            _enemyFactory = enemyType switch
+            EnemyFactory enemyFactory = null;
+
+            switch(enemyType)
             {
-                EnemyType.Big => new BigEnemyFactory(),
-                EnemyType.Small => new SmallEnemyFactory(),
-                _ => null,
-            };
+                case EnemyType.Big:
+                    enemyFactory = new BigEnemyFactory();
+                    break;
+                case EnemyType.Small:
+                    enemyFactory = new SmallEnemyFactory();
+                    break;
+            }
+
+            _enemyFactory = enemyFactory;
         }
 
         public void Initalise(ContentManager content)
@@ -78,7 +86,7 @@ namespace MultiplayerProject.Source
             Animation enemyAnimation = new Animation();
 
             // Initialize the animation with the correct animation information
-            enemyAnimation.Initialize(_enemyTexture, Vector2.Zero, 0, 47, 61, 8, 30, Color.White, 1f, true);
+            enemyAnimation.Initialize(_enemyTexture, Vector2.Zero, 0, 47, 61, 8, 30, Color.White, 3f, true);
 
             // Randomly generate the position of the enemy
             Vector2 position = new Vector2(Application.WINDOW_WIDTH + _width / 2,
@@ -102,7 +110,7 @@ namespace MultiplayerProject.Source
             Animation enemyAnimation = new Animation();
 
             // Initialize the animation with the correct animation information
-            enemyAnimation.Initialize(_enemyTexture, Vector2.Zero, 0, 47, 61, 8, 30, Color.White, 1f, true);
+            enemyAnimation.Initialize(_enemyTexture, Vector2.Zero, 0, 47, 61, 8, 30, Color.White, 4f, true);
 
             // Create an enemy
             Enemy enemy = _enemyFactory?.CreateEnemy(enemyID) ?? new Enemy(enemyID);

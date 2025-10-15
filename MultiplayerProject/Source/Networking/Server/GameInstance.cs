@@ -40,6 +40,7 @@ namespace MultiplayerProject.Source
         private TimeSpan _enemySpawnTime;
         private TimeSpan _previousEnemySpawnTime;
         private int framesSinceLastSend;
+        private EnemyType[] _enemyTypes = new[] { EnemyType.Regular, EnemyType.Big, EnemyType.Small };
         public Player GetPlayerByID(string id)
         {
             return _players.ContainsKey(id) ? _players[id] : null;
@@ -61,8 +62,8 @@ namespace MultiplayerProject.Source
             _collisionManager = new CollisionManager(this);
 
             _enemyManager = new EnemyManager();
-            var enemyTypes = new[] { EnemyType.Regular, EnemyType.Big, EnemyType.Small };
-            var randomType = enemyTypes[new Random().Next(enemyTypes.Length)];
+            var randomType = _enemyTypes[new Random().Next(_enemyTypes.Length)];
+            Logger.Instance.Info($"----> Setting enemy type to {randomType}");
             _enemyManager.SetEnemyType(randomType);
 
             _previousEnemySpawnTime = TimeSpan.Zero;
@@ -201,6 +202,9 @@ namespace MultiplayerProject.Source
             {
                 _previousEnemySpawnTime = gameTime.TotalGameTime;
 
+                var randomType = _enemyTypes[new Random().Next(_enemyTypes.Length)];
+                Logger.Instance.Info($"----> Setting enemy type to {randomType}");
+                _enemyManager.SetEnemyType(randomType);
                 var enemy = _enemyManager.AddEnemy();
 
                 for (int i = 0; i < ComponentClients.Count; i++) // Send the enemy spawn to all clients

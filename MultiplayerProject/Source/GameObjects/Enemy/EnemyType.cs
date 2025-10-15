@@ -1,10 +1,11 @@
-namespace MultiplayerProject.Source;
-
-public enum EnemyType
+namespace MultiplayerProject.Source
 {
-    Regular,
+    public enum EnemyType
+    {
+        Regular,
 
-    Big,
+        Big,
 
-    Small,
+        Small,
+    }
 }

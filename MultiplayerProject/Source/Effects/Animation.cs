@@ -25,11 +25,11 @@ namespace MultiplayerProject.Source
         // Rotation of the animation
         public float Rotation;
 
+        // The scale used to display the sprite strip
+        public float Scale;
+
         // The image representing the collection of images used for animation
         private Texture2D _spriteStrip;
-
-        // The scale used to display the sprite strip
-        private float _scale;
 
         // The time since we last updated the frame
         private int _elapsedTime;
@@ -58,7 +58,7 @@ namespace MultiplayerProject.Source
             _color = color;
             _frameCount = frameCount;
             _frameTime = frametime;
-            _scale = scale;
+            Scale = scale;
 
             FrameWidth = frameWidth;
             FrameHeight = frameHeight;
@@ -109,10 +109,11 @@ namespace MultiplayerProject.Source
             _sourceRect = new Rectangle(_currentFrame * FrameWidth, 0, FrameWidth, FrameHeight);
 
             // Grab the correct frame in the image strip by multiplying the currentFrame index by the frame width
-            _destinationRect = new Rectangle((int)Position.X - (int)(FrameWidth * _scale) / 2,
-                (int)Position.Y - (int)(FrameHeight * _scale) / 2,
-                (int)(FrameWidth * _scale),
-                (int)(FrameHeight * _scale));
+            //Logger.Instance.Warning($"--> Animation scale: {Scale}");
+            _destinationRect = new Rectangle((int)Position.X - (int)(FrameWidth * Scale) / 2,
+                (int)Position.Y - (int)(FrameHeight * Scale) / 2,
+                (int)(FrameWidth * Scale),
+                (int)(FrameHeight * Scale));
         }
 
         public void Draw(SpriteBatch spriteBatch)
@@ -123,7 +124,7 @@ namespace MultiplayerProject.Source
                 try // This try-catch is here in an attempt to catch an intermittent error
                 {
                     Vector2 origin = new Vector2(FrameWidth / 2, FrameHeight / 2);
-                    spriteBatch.Draw(_spriteStrip, Position, _sourceRect, _color, Rotation, origin, 1, SpriteEffects.None, 0);
+                    spriteBatch.Draw(_spriteStrip, _destinationRect, _sourceRect, _color, Rotation, Vector2.Zero, SpriteEffects.None, 0);
                 }
                 catch (Exception e)
                 {
