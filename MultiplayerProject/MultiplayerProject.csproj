@@ -65,7 +65,7 @@
     <Compile Include="Source\GameObjects\Enemy\VerticalPacing.cs" />
     <Compile Include="Source\GameObjects\Enemy\ZigZag.cs" />
     <Compile Include="Source\GameObjects\Enemy\Spinning.cs" />
-    <Compile Include="Source\GameObjects\Enemy\FlyLeft.cs" />
+    <Compile Include="Source\GameObjects\Enemy\FlyRight.cs" />
     <Compile Include="Source\GameObjects\Explosions\BlueExplosion.cs" />
     <Compile Include="Source\GameObjects\Explosions\Explosion.cs" />
     <Compile Include="Source\GameObjects\Explosions\GreenExplosion.cs" />

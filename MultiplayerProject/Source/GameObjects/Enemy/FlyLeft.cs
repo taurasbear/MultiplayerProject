@@ -2,7 +2,7 @@ using Microsoft.Xna.Framework;
 
 namespace MultiplayerProject.Source
 {
-    class FlyLeft : IMoveAlgorithm
+    class FlyRight : IMoveAlgorithm
     {
         public float Health { get; set; }
         public float Speed { get; set; }
@@ -12,13 +12,13 @@ namespace MultiplayerProject.Source
 
         public void BehaveDifferently()
         {
-            // FlyLeft behavior - enemy moves quickly to the left in desperation
+            // FlyRight behavior - enemy moves quickly to the right
         }
 
         public void Move(ref Vector2 position, GameTime gameTime)
         {
-            // Move left faster when low on health
-            position.X -= FAST_SPEED;
+            // Move right faster 
+            position.X += FAST_SPEED;
         }
     }
 }

@@ -17,6 +17,12 @@ namespace MultiplayerProject.Source
 
         private Random _random;
         private float _width;
+        
+        // Time-based movement changes
+        private double _totalGameTime;
+        private double _lastMovementChangeTime;
+        private const double SECONDS_PER_MOVEMENT_CHANGE = 5.0;
+        private int _currentMovementIndex;
 
         public EnemyManager()
         {
@@ -27,6 +33,11 @@ namespace MultiplayerProject.Source
             _random = new Random();
 
             _width = 47;
+            
+            // Initialize time-based movement change tracking
+            _totalGameTime = 0.0;
+            _lastMovementChangeTime = 0.0;
+            _currentMovementIndex = 0;
         }
 
         public void Initalise(ContentManager content)
@@ -36,6 +47,16 @@ namespace MultiplayerProject.Source
 
         public void Update(GameTime gameTime)
         {
+            // Track total game time
+            _totalGameTime += gameTime.ElapsedGameTime.TotalSeconds;
+            
+            // Check if we should change enemy movements based on time
+            if (_totalGameTime - _lastMovementChangeTime >= SECONDS_PER_MOVEMENT_CHANGE)
+            {
+                _lastMovementChangeTime = _totalGameTime;
+                ChangeAllEnemyMovements();
+            }
+            
             // Update the Enemies
             for (int i = _enemies.Count - 1; i >= 0; i--)
             {
@@ -77,6 +98,9 @@ namespace MultiplayerProject.Source
             // Initialize the enemy
             enemy.Initialize(enemyAnimation, position);
 
+            // Set the current movement pattern
+            SetCurrentMovementPattern(enemy);
+
             // Add the enemy to the active enemies list
             _enemies.Add(enemy);
 
@@ -96,6 +120,9 @@ namespace MultiplayerProject.Source
 
             // Initialize the enemy
             enemy.Initialize(enemyAnimation, position);
+
+            // Set the current movement pattern
+            SetCurrentMovementPattern(enemy);
 
             // Add the enemy to the active enemies list
             _enemies.Add(enemy);
@@ -145,6 +172,62 @@ namespace MultiplayerProject.Source
             {
                 _enemies[i].TakeDamage(damage);
             }
+        }
+
+        public void OnEnemyKilled()
+        {
+            // This method can be kept for other purposes if needed,
+            // but movement changes are now handled by time-based system in Update()
+        }
+        
+        private void SetCurrentMovementPattern(Enemy enemy)
+        {
+            // Create ordered list of movement algorithms (same as in ChangeAllEnemyMovements)
+            var movementTypes = new Type[] 
+            {
+                typeof(VerticalPacing),  // 0
+                typeof(ZigZag),          // 1  
+                typeof(Spinning),        // 2
+                typeof(FlyRight)         // 3
+            };
+            
+            // Get the current movement type (use previous index since ChangeAllEnemyMovements increments it)
+            int currentIndex = _currentMovementIndex == 0 ? movementTypes.Length - 1 : _currentMovementIndex - 1;
+            Type currentMovementType = movementTypes[currentIndex];
+            
+            // Create and set the movement algorithm
+            IMoveAlgorithm movement = (IMoveAlgorithm)Activator.CreateInstance(currentMovementType);
+            enemy.SetMovementAlgorithm(movement);
+        }
+        
+        private void ChangeAllEnemyMovements()
+        {
+            if (_enemies.Count == 0) return;
+            
+            // Create ordered list of movement algorithms (pacing -> zigzag -> spinning -> right)
+            var movementTypes = new Type[] 
+            {
+                typeof(VerticalPacing),  // 0
+                typeof(ZigZag),          // 1  
+                typeof(Spinning),        // 2
+                typeof(FlyRight)         // 3
+            };
+            
+            // Get the current movement type based on cycle
+            Type currentMovementType = movementTypes[_currentMovementIndex];
+            
+            // Change movement for ALL enemies to the same pattern
+            for (int i = 0; i < _enemies.Count; i++)
+            {
+                Enemy enemy = _enemies[i];
+                
+                // Create and set the new movement algorithm
+                IMoveAlgorithm newMovement = (IMoveAlgorithm)Activator.CreateInstance(currentMovementType);
+                enemy.SetMovementAlgorithm(newMovement);
+            }
+            
+            // Move to next movement in cycle
+            _currentMovementIndex = (_currentMovementIndex + 1) % movementTypes.Length;
         }
     }
 }

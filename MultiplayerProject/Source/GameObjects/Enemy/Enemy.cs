@@ -23,7 +23,7 @@ namespace MultiplayerProject.Source
         private IMoveAlgorithm _moveAlgorithm;
         private int _maxHealth;
 
-        const float ENEMY_MOVE_SPEED = 6f;
+        const float ENEMY_MOVE_SPEED = 4f;
 
         const int ENEMY_STARTING_HEALTH = 10;
         const int ENEMY_DAMAGE = 10;
@@ -72,29 +72,6 @@ namespace MultiplayerProject.Source
         public void TakeDamage(int damageAmount)
         {
             Health -= damageAmount;
-            UpdateStrategyBasedOnDamage();
-        }
-
-        private void UpdateStrategyBasedOnDamage()
-        {
-            float healthPercentage = (float)Health / _maxHealth;
-            
-            if (healthPercentage > 0.75f)
-            {
-                SetMovementAlgorithm(new VerticalPacing());
-            }
-            else if (healthPercentage > 0.5f)
-            {
-                SetMovementAlgorithm(new ZigZag());
-            }
-            else if (healthPercentage > 0.25f)
-            {
-                SetMovementAlgorithm(new Spinning());
-            }
-            else
-            {
-                SetMovementAlgorithm(new FlyLeft());
-            }
         }
 
         public void Update(GameTime gameTime)
