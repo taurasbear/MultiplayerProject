@@ -10,7 +10,11 @@ namespace MultiplayerProject.Source
     {
         public List<Enemy> Enemies { get { return _enemies; } }
 
-        private Texture2D _enemyTexture;
+        private Texture2D _mineTexture;
+
+        private Texture2D _birdTexture;
+
+        private Texture2D _blackbirdTexture;
 
         private List<Enemy> _enemies;
 
@@ -50,7 +54,9 @@ namespace MultiplayerProject.Source
 
         public void Initalise(ContentManager content)
         {
-            _enemyTexture = content.Load<Texture2D>("blackbirdAnimation");
+            _mineTexture = content.Load<Texture2D>("mineAnimation");
+            _birdTexture = content.Load<Texture2D>("birdAnimation");
+            _blackbirdTexture = content.Load<Texture2D>("blackbirdAnimation");
         }
 
         public void Update(GameTime gameTime)
@@ -92,15 +98,15 @@ namespace MultiplayerProject.Source
 
             if(enemy is BigEnemy)
             {
-                enemyAnimation.Initialize(_enemyTexture, Vector2.Zero, 0, 16, 18, 8, 30, Color.White, 2f, true);
+                enemyAnimation.Initialize(_birdTexture, Vector2.Zero, 0, 68, 68, 7, 30, Color.White, 1f, true);
             }
             else if(enemy is SmallEnemy)
             {
-                enemyAnimation.Initialize(_enemyTexture, Vector2.Zero, 0, 16, 18, 8, 30, Color.White, 1f, true);
+                enemyAnimation.Initialize(_blackbirdTexture, Vector2.Zero, 0, 16, 18, 8, 30, Color.White, 1f, true);
             }
             else
             {
-                enemyAnimation.Initialize(_enemyTexture, Vector2.Zero, 0, 16, 18, 8, 30, Color.White, 1f, true);
+                enemyAnimation.Initialize(_mineTexture, Vector2.Zero, 0, 47, 61, 8, 30, Color.White, 1f, true);
             }
 
             // Initialize the enemy
@@ -122,17 +128,15 @@ namespace MultiplayerProject.Source
 
             if (enemy is BigEnemy)
             {
-                //enemyAnimation.Initialize(_enemyTexture, Vector2.Zero, 0, 47, 61, 8, 30, Color.White, 4f, true);
-                //enemyAnimation.Initialize(_enemyTexture, Vector2.Zero, 0, 68, 68, 7, 30, Color.White, 2f, true);
-                enemyAnimation.Initialize(_enemyTexture, Vector2.Zero, 0, 16, 18, 8, 30, Color.White, 2f, true);
+                enemyAnimation.Initialize(_birdTexture, Vector2.Zero, 0, 68, 68, 7, 30, Color.White, 1f, true);
             }
             else if (enemy is SmallEnemy)
             {
-                enemyAnimation.Initialize(_enemyTexture, Vector2.Zero, 0, 16, 18, 8, 30, Color.White, 1f, true);
+                enemyAnimation.Initialize(_blackbirdTexture, Vector2.Zero, 0, 16, 18, 8, 30, Color.White, 1f, true);
             }
             else
             {
-                enemyAnimation.Initialize(_enemyTexture, Vector2.Zero, 0, 16, 18, 8, 30, Color.White, 1f, true);
+                enemyAnimation.Initialize(_mineTexture, Vector2.Zero, 0, 47, 61, 8, 30, Color.White, 1f, true);
             }
 
             // Initialize the enemy
