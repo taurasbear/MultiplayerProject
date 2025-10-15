@@ -153,6 +153,9 @@
     <Content Include="Content\mineAnimation.xnb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Content\birdAnimation.xnb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Content\networkpackages.proto">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -161,7 +164,6 @@
     </Content>
     <None Include="ClassDiagram1.cd" />
     <None Include="ClassDiagramAbstractFactory.cd" />
-    <None Include="Content\birdAnimation.xnb" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -184,6 +186,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Content\mineAnimation.xnb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\birdAnimation.xnb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Content\player.xnb">

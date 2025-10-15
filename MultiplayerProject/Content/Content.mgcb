@@ -48,6 +48,11 @@
 /processor:
 /build:mineAnimation.xnb
 
+#begin birdAnimation.xnb
+/importer:
+/processor:
+/build:birdAnimation.xnb
+
 #begin player.xnb
 /importer:
 /processor:
