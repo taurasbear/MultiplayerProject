@@ -34,27 +34,38 @@ namespace MultiplayerProject.Source
         public Color LaserColor;
         public string LaserID { get; set; }
 
-        // the speed the laser travels
-        private const float _laserMoveSpeed = 30f;
-        private const float _laserMaxTimeActive = 5f;
+        // a multiplier for the damage of the laser
+        public float Damage { get; set; }
 
-        private float _timeActive;
+        // the speed the laser travels
+        public float Speed { get; set; }
+
+        // the distance the laser can travel
+        public float Range { get; set; }
+
+        private float distanceTraveled;
 
         public Laser()
         {
             LaserID = Guid.NewGuid().ToString();
             PlayerFiredID = "";
+            Damage = 10f;
+            Speed = 30f;
+            Range = 1000f;
         }
 
         public Laser(string ID, string playerFiredID)
         {
             LaserID = ID;
             PlayerFiredID = playerFiredID;
+            Damage = 10f;
+            Speed = 30f;
+            Range = 1000f;
         }
 
         public virtual void Initialize(Animation animation, Vector2 position, float rotation)
         {
-            _timeActive = 0;
+            distanceTraveled = 0;
             LaserAnimation = animation;
             Position = position;
             Rotation = rotation;
@@ -75,11 +86,11 @@ namespace MultiplayerProject.Source
             Vector2 direction = new Vector2((float)Math.Cos(Rotation),
                                      (float)Math.Sin(Rotation));
             direction.Normalize();
-            Position += direction * _laserMoveSpeed;
+            Position += direction * Speed;
 
-            _timeActive += deltaTime;
+            distanceTraveled += Speed;
 
-            if (_timeActive > _laserMaxTimeActive)
+            if (distanceTraveled > Range)
             {
                 Active = false;
             }

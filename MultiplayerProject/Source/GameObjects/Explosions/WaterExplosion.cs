@@ -5,7 +5,13 @@ namespace MultiplayerProject.Source.GameObjects.Explosions
 {
     public class WaterExplosion : Explosion
     {
-        public WaterExplosion() { }
+        public WaterExplosion()
+        {
+            Damage = 15f;
+            Radius = 1.5f;
+            Duration = 1.2f;
+        }
+
         private readonly float _scale = 1.1f;
         public override void Initialize(Animation baseAnimation, Vector2 centerPosition, Color color)
         {

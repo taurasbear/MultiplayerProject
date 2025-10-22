@@ -8,6 +8,13 @@ namespace MultiplayerProject.Source
         private readonly Color _color = Color.LightCyan;
         public float LengthMultiplier { get; private set; } = 1.5f;
 
+        public ElectricLaser()
+        {
+            Damage = 7f;
+            Speed = 40f;
+            Range = 1200f;
+        }
+
         public override void Initialize(Animation baseAnimation, Vector2 position, float rotation)
         {
             base.Initialize(baseAnimation, position, rotation);

@@ -10,6 +10,17 @@ namespace MultiplayerProject.Source
         protected Animation ExplosionAnimation;
         protected Color ExplosionColor = Color.White; // Default
 
+        public float Damage { get; set; }
+        public float Radius { get; set; } // a scale multiplier
+        public float Duration { get; set; } // an animation speed multiplier
+
+        public Explosion()
+        {
+            Damage = 20f;
+            Radius = 1.0f;
+            Duration = 1.0f;
+        }
+
         public virtual void Initialize(Animation animation, Vector2 centerPosition, Color color)
         {
             ExplosionAnimation = animation;
