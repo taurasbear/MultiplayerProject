@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using MultiplayerProject.Source.Helpers.Factories;
 using System.Collections.Generic;
 
 namespace MultiplayerProject.Source
@@ -33,25 +34,26 @@ namespace MultiplayerProject.Source
             }
         }
 
-        public void AddExplosion(Vector2 enemyPosition, Color color)
+        public void AddExplosion(Vector2 position, GameObjectFactory factory, Color color)
         {
-            Animation explosionAnimation = new Animation();
+            // Get the correct explosion type from the factory
+            Explosion explosion = (Explosion)factory.GetExplosion();
 
-            explosionAnimation.Initialize(_explosionTexture,
-                enemyPosition,
+            // Create a base animation that does NOT loop
+            Animation baseAnimation = new Animation();
+            baseAnimation.Initialize(_explosionTexture,
+                position,
                 0,
                 134,
                 134,
                 12,
                 30,
-                color,
+                color, // Pass the color to the animation
                 1.0f,
-                true);
-
-            Explosion explosion = new Explosion();
-            explosion.Initialize(explosionAnimation, enemyPosition);
+                false); // <-- This is the fix! Explosions should not loop.
 
             _explosions.Add(explosion);
+            explosion.Initialize(baseAnimation, position, color);
         }
 
         public void Draw(SpriteBatch spriteBatch)

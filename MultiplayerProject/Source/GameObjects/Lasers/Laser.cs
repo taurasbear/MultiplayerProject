@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MultiplayerProject.Source.GameObjects;
@@ -52,7 +52,7 @@ namespace MultiplayerProject.Source
             PlayerFiredID = playerFiredID;
         }
 
-        public void Initialize(Animation animation, Vector2 position, float rotation)
+        public virtual void Initialize(Animation animation, Vector2 position, float rotation)
         {
             _timeActive = 0;
             LaserAnimation = animation;

@@ -134,18 +134,18 @@
       <FileName>Source\GameObjects\Explosions\RedExplosion.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="MultiplayerProject.Source.BlueLaser" Collapsed="true">
+  <Class Name="MultiplayerProject.Source.ElectricLaser" Collapsed="true">
     <Position X="5.75" Y="6.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAA=</HashCode>
-      <FileName>Source\GameObjects\Lasers\BlueLaser.cs</FileName>
+      <FileName>Source\GameObjects\Lasers\ElectricLaser.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="MultiplayerProject.Source.GreenLaser" Collapsed="true">
+  <Class Name="MultiplayerProject.Source.WaterLaser" Collapsed="true">
     <Position X="1.25" Y="6.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAA=</HashCode>
-      <FileName>Source\GameObjects\Lasers\GreenLaser.cs</FileName>
+      <FileName>Source\GameObjects\Lasers\WaterLaser.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="MultiplayerProject.Source.Laser" Collapsed="true">
@@ -163,25 +163,25 @@
     </TypeIdentifier>
     <Lollipop Position="0.2" Collapsed="true" />
   </Class>
-  <Class Name="MultiplayerProject.Source.RedLaser" Collapsed="true">
+  <Class Name="MultiplayerProject.Source.FireLaser" Collapsed="true">
     <Position X="3.5" Y="6.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAA=</HashCode>
-      <FileName>Source\GameObjects\Lasers\RedLaser.cs</FileName>
+      <FileName>Source\GameObjects\Lasers\FireLaser.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="MultiplayerProject.Source.BluePlayer" Collapsed="true">
+  <Class Name="MultiplayerProject.Source.ElectricPlayer" Collapsed="true">
     <Position X="19.25" Y="6.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
-      <FileName>Source\GameObjects\Players\BluePlayer.cs</FileName>
+      <FileName>Source\GameObjects\Players\ElectricPlayer.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="MultiplayerProject.Source.GreenPlayer" Collapsed="true">
+  <Class Name="MultiplayerProject.Source.WaterPlayer" Collapsed="true">
     <Position X="21.5" Y="6.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
-      <FileName>Source\GameObjects\Players\GreenPlayer.cs</FileName>
+      <FileName>Source\GameObjects\Players\WaterPlayer.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="MultiplayerProject.Source.Player" Collapsed="true">
@@ -192,11 +192,11 @@
     </TypeIdentifier>
     <Lollipop Position="0.2" />
   </Class>
-  <Class Name="MultiplayerProject.Source.RedPlayer" Collapsed="true">
+  <Class Name="MultiplayerProject.Source.FirePlayer" Collapsed="true">
     <Position X="23.75" Y="6.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
-      <FileName>Source\GameObjects\Players\RedPlayer.cs</FileName>
+      <FileName>Source\GameObjects\Players\FirePlayer.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="MultiplayerProject.Source.Logger" Collapsed="true">
@@ -452,11 +452,11 @@
       <FileName>Source\Helpers\BackwardReader.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="MultiplayerProject.Source.Helpers.Factories.BlueFactory" Collapsed="true">
+  <Class Name="MultiplayerProject.Source.Helpers.Factories.ElectricFactory" Collapsed="true">
     <Position X="5" Y="8.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AABABAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
-      <FileName>Source\Helpers\Factories\BlueFactory.cs</FileName>
+      <FileName>Source\Helpers\Factories\ElectricFactory.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="MultiplayerProject.Source.Helpers.Factories.GameObjectFactory" Collapsed="true">
@@ -466,18 +466,18 @@
       <FileName>Source\Helpers\Factories\GameObjectFactory.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="MultiplayerProject.Source.Helpers.Factories.GreenFactory" Collapsed="true">
+  <Class Name="MultiplayerProject.Source.Helpers.Factories.WaterFactory" Collapsed="true">
     <Position X="0.5" Y="8.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AABABAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
-      <FileName>Source\Helpers\Factories\GreenFactory.cs</FileName>
+      <FileName>Source\Helpers\Factories\WaterFactory.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="MultiplayerProject.Source.Helpers.Factories.RedFactory" Collapsed="true">
+  <Class Name="MultiplayerProject.Source.Helpers.Factories.FireFactory" Collapsed="true">
     <Position X="2.75" Y="8.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AABABAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
-      <FileName>Source\Helpers\Factories\RedFactory.cs</FileName>
+      <FileName>Source\Helpers\Factories\FireFactory.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="MonoGame_Textbox.Cursor" Collapsed="true">

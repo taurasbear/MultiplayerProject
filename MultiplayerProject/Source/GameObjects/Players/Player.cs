@@ -160,5 +160,10 @@ namespace MultiplayerProject.Source
             float rot = (float)Math.Round((decimal)PlayerState.Rotation, 1);
             return NetworkPacketFactory.Instance.MakePlayerUpdatePacket(pos.X, pos.Y, speed, rot);
         }
+
+        public void SetColour(PlayerColour colour)
+        {
+            this.Colour = colour;
+        }
     }
 }

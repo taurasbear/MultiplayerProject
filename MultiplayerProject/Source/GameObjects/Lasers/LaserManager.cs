@@ -12,7 +12,6 @@ namespace MultiplayerProject.Source
         public List<Laser> Lasers { get { return _laserBeams; } }
 
         private List<Laser> _laserBeams;
-        private Dictionary<string, List<Laser>> _playerLasers;
 
         // texture to hold the laser.
         private Texture2D _laserTexture;
@@ -31,7 +30,6 @@ namespace MultiplayerProject.Source
         {
             // Init our laser
             _laserBeams = new List<Laser>();
-            _playerLasers = new Dictionary<string, List<Laser>>();
 
             _laserSpawnTime = TimeSpan.FromSeconds(SECONDS_IN_MINUTE / RATE_OF_FIRE);
             _previousLaserSpawnTime = TimeSpan.Zero;
@@ -46,7 +44,7 @@ namespace MultiplayerProject.Source
         public void Update(GameTime gameTime)
         {
             // Update laserbeams
-            for (var i = 0; i < _laserBeams.Count; i++)
+            for (var i = _laserBeams.Count - 1; i >= 0; i--)
             {
                 _laserBeams[i].Update(gameTime);
                 // Remove the beam when its deactivated or is at the end of the screen.
@@ -70,35 +68,28 @@ namespace MultiplayerProject.Source
             }
         }
 
-        public Laser FireLocalLaserClient(GameTime gameTime, Vector2 position, float rotation, PlayerColour colour)
+        public Laser FireLocalLaserClient(GameObjectFactory factory, GameTime gameTime, Vector2 position, float rotation)
         {
             // Govern the rate of fire for our lasers
             if (gameTime.TotalGameTime - _previousLaserSpawnTime > _laserSpawnTime)
             {
                 _previousLaserSpawnTime = gameTime.TotalGameTime;
                 // Add the laer to our list.
-                return AddLaser(position, rotation, "", "", colour);
+                return AddLaser(factory, position, rotation, "", "");
             }
 
             return null;
         }
 
-        public void FireRemoteLaserClient(Vector2 position, float rotation, string playerID, DateTime originalTimeFired, string laserID, PlayerColour colour)
+        public void FireRemoteLaserClient(GameObjectFactory factory, Vector2 position, float rotation, string playerID, DateTime originalTimeFired, string laserID)
         {
             var timeDifference = (originalTimeFired - DateTime.UtcNow).TotalSeconds;
 
-            var laser = AddLaser(position, rotation, laserID, playerID, colour);
+            var laser = AddLaser(factory, position, rotation, laserID, playerID);
             laser.Update((float)timeDifference); // Update it to match the true position
-
-            if (!_playerLasers.ContainsKey(playerID))
-            {
-                _playerLasers.Add(playerID, new List<Laser>());
-            }
-
-            _playerLasers[playerID].Add(laser);
         }
 
-        public Laser FireLaserServer(double totalGameSeconds, float deltaTime, Vector2 position, float rotation, string laserID, string playerFiredID)
+        public Laser FireLaserServer(GameObjectFactory factory, double totalGameSeconds, float deltaTime, Vector2 position, float rotation, string laserID, string playerFiredID)
         {
             // Govern the rate of fire for our lasers
             if (totalGameSeconds - _previousLaserSpawnTime.TotalSeconds > _laserSpawnTime.TotalSeconds)
@@ -106,7 +97,7 @@ namespace MultiplayerProject.Source
                 _previousLaserSpawnTime = TimeSpan.FromSeconds(totalGameSeconds);
 
                 // Add the laser to our list.
-                var laser = AddLaser(position, rotation, laserID, playerFiredID, NetworkPacketFactory.Instance.MakePlayerColour(255, 255, 255));
+                var laser = AddLaser(factory, position, rotation, laserID, playerFiredID);
                 laser.Update(deltaTime); // Update it so it's in the correct position on the server as it is on the client
 
                 return laser;
@@ -115,10 +106,10 @@ namespace MultiplayerProject.Source
             return null;
         }
 
-        public Laser AddLaser(Vector2 position, float rotation, string laserID, string playerFiredID, PlayerColour colour)
+        public Laser AddLaser(GameObjectFactory factory, Vector2 position, float rotation, string laserID, string playerFiredID)
         {
-            Laser laser = CreateLaserFromColor(colour, laserID, playerFiredID);
-
+            Laser laser = (Laser)factory.GetLaser();
+            
             Animation laserAnimation = new Animation();
             // Initlize the laser animation
             laserAnimation.Initialize(_laserTexture,
@@ -128,15 +119,9 @@ namespace MultiplayerProject.Source
                 16,
                 1,
                 30,
-                new Color(colour.R, colour.G, colour.B),
+                Color.White, // The concrete laser will set its own color in its Initialize method
                 1f,
                 true);
-
-            //Laser laser;
-            //if (string.IsNullOrEmpty(laserID))
-            //    laser = new Laser();
-            //else
-            //    laser = new Laser(laserID, playerFiredID);
 
             Vector2 direction = new Vector2((float)Math.Cos(rotation),
                                      (float)Math.Sin(rotation));
@@ -146,51 +131,13 @@ namespace MultiplayerProject.Source
             var laserPostion = position;
             laserPostion += direction * LASER_SPAWN_DISTANCE;
 
-            // Init the laser
             laser.Initialize(laserAnimation, laserPostion, rotation);
-            laser.LaserColor = new Color(colour.R, colour.G, colour.B);  // <-- store in laser
+
+            if (!string.IsNullOrEmpty(laserID))
+                laser.LaserID = laserID;
+
             laser.PlayerFiredID = playerFiredID;
             _laserBeams.Add(laser);
-
-            return laser;
-        }
-        private Laser CreateLaserFromColor(PlayerColour colour, string laserID, string playerFiredID)
-        {
-            GameObjectFactory factory;
-
-            // Determine which factory to use based on color
-            var color = new Color(colour.R, colour.G, colour.B);
-
-            if (color == Color.Red)
-            {
-                factory = new RedFactory();
-            }
-            else if (color == Color.Blue)
-            {
-                factory = new BlueFactory();
-            }
-            else if (color == Color.Green)
-            {
-                factory = new GreenFactory();
-            }
-            else
-            {
-                // Default to Red factory for any other colors
-                factory = new RedFactory();
-            }
-
-            // Get laser from factory and cast to Laser
-            Laser laser = (Laser)factory.GetLaser();
-
-            // Set the IDs if they were provided
-            if (!string.IsNullOrEmpty(laserID))
-            {
-                laser.LaserID = laserID;
-            }
-            if (!string.IsNullOrEmpty(playerFiredID))
-            {
-                laser.PlayerFiredID = playerFiredID;
-            }
 
             return laser;
         }

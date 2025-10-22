@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using MultiplayerProject.Source.GameObjects;
 using MultiplayerProject.Source.Helpers.Factories;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,7 @@ namespace MultiplayerProject.Source
         private List<RemotePlayer> _remotePlayers;
         private LocalPlayer _localPlayer;
         private Dictionary<string, PlayerColour> _playerColours;
+        private Dictionary<string, ElementalType> _playerElements;
 
         private GameSceneGUI _GUI;
 
@@ -33,6 +35,7 @@ namespace MultiplayerProject.Source
         {
             _players = new Dictionary<string, Player>();
             _playerColours = new Dictionary<string, PlayerColour>();
+            _playerElements = new Dictionary<string, ElementalType>();
             _remotePlayers = new List<RemotePlayer>();
 
             Client = client;
@@ -40,42 +43,28 @@ namespace MultiplayerProject.Source
             for (int i = 0; i < playerCount; i++)
             {
                 Player player;
+
                 if (playerIDs[i] == localClientID)
                 {
-                    // Use factory to create local player
-                    player = CreatePlayerFromColor(playerColours[i]);
-                    _localPlayer = player as LocalPlayer;
-
-                    // If the factory didn't create a LocalPlayer, wrap it
-                    if (_localPlayer == null)
-                    {
-                        _localPlayer = new LocalPlayer();
-                        _localPlayer.NetworkID = playerIDs[i];
-                        _localPlayer.Colour = playerColours[i];
-                        player = _localPlayer;
-                    }
+                    _localPlayer = new LocalPlayer();
+                    player = _localPlayer;
                 }
                 else
                 {
-                    // Use factory to create remote player
-                    player = CreatePlayerFromColor(playerColours[i]);
-                    var remotePlayer = player as RemotePlayer;
-
-                    // If the factory didn't create a RemotePlayer, wrap it
-                    if (remotePlayer == null)
-                    {
-                        remotePlayer = new RemotePlayer();
-                        remotePlayer.NetworkID = playerIDs[i];
-                        remotePlayer.Colour = playerColours[i];
-                        player = remotePlayer;
-                    }
-
+                    var remotePlayer = new RemotePlayer();
+                    player = remotePlayer;
                     _remotePlayers.Add(remotePlayer);
                 }
 
                 player.NetworkID = playerIDs[i];
-                player.Colour = playerColours[i];
-                _playerColours[player.NetworkID] = playerColours[i];
+                // Set all player colors to white
+                var whiteColour = new PlayerColour { R = 255, G = 255, B = 255 };
+                _playerColours[player.NetworkID] = whiteColour;
+                player.SetColour(whiteColour);
+
+                // Assign elements in a fixed order: Fire, Water, Electric, Fire, ...
+                ElementalType[] elementOrder = { ElementalType.Fire, ElementalType.Water, ElementalType.Electric, ElementalType.Fire };
+                _playerElements[player.NetworkID] = elementOrder[i % elementOrder.Length];
 
                 _players.Add(player.NetworkID, player);
             }
@@ -89,34 +78,6 @@ namespace MultiplayerProject.Source
             _backgroundManager = new BackgroundManager();
 
             _explosionManager = new ExplosionManager();
-        }
-        private Player CreatePlayerFromColor(PlayerColour colour)
-        {
-            GameObjectFactory factory;
-
-            // Determine which factory to use based on color
-            // Convert PlayerColour to Color for comparison
-            var color = new Color(colour.R, colour.G, colour.B);
-
-            if (color == Color.Red)
-            {
-                factory = new RedFactory();
-            }
-            else if (color == Color.Blue)
-            {
-                factory = new BlueFactory();
-            }
-            else if (color == Color.Green)
-            {
-                factory = new GreenFactory();
-            }
-            else
-            {
-                // Default to Red factory for any other colors
-                factory = new RedFactory();
-            }
-
-            return (Player)factory.GetPlayer();
         }
 
         public void Initalise(ContentManager content, GraphicsDevice graphicsDevice)
@@ -223,7 +184,10 @@ namespace MultiplayerProject.Source
 
             if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Space) || inputInfo.CurrentGamePadState.Buttons.X == ButtonState.Pressed)
             {
-                var laser = _laserManager.FireLocalLaserClient(gameTime, _localPlayer.Position, _localPlayer.Rotation, _playerColours[_localPlayer.NetworkID]);
+                // Use the local player's factory to create the correct laser
+                GameObjectFactory factory = GetFactoryFromPlayer(_localPlayer);
+                var laser = _laserManager.FireLocalLaserClient(factory, gameTime, _localPlayer.Position, _localPlayer.Rotation);
+
                 if (laser != null)
                 {
                     input.FirePressed = true;
@@ -245,6 +209,25 @@ namespace MultiplayerProject.Source
             _localPlayer.Update(gameTime);
 
             return input;
+        }
+
+        private GameObjectFactory GetFactoryFromPlayer(Player player)
+        {
+            // Use the stored element type to get the correct factory
+            var elementType = _playerElements[player.NetworkID];
+
+            switch (elementType)
+            {
+                case ElementalType.Fire:
+                    return new FireFactory();
+                case ElementalType.Electric:
+                    return new ElectricFactory();
+                case ElementalType.Water:
+                    return new WaterFactory();
+                default:
+                    // Fallback to a default
+                    return new FireFactory(); // Default
+            }
         }
 
         private void OnRecievedPlayerUpdatePacket(BasePacket packet)
@@ -311,7 +294,10 @@ namespace MultiplayerProject.Source
             PlayerFiredPacket playerUpdate = (PlayerFiredPacket)packet;
             if (playerUpdate.PlayerID != _localPlayer.NetworkID) // Local laser has already been shot so don't shoot it again
             {
-                _laserManager.FireRemoteLaserClient(new Vector2(playerUpdate.XPosition, playerUpdate.YPosition), playerUpdate.Rotation, playerUpdate.PlayerID, playerUpdate.SendDate, playerUpdate.LaserID, _playerColours[playerUpdate.PlayerID]);
+                // Use the remote player's factory to create the correct laser
+                Player remotePlayer = _players[playerUpdate.PlayerID];
+                GameObjectFactory factory = GetFactoryFromPlayer(remotePlayer);
+                _laserManager.FireRemoteLaserClient(factory, new Vector2(playerUpdate.XPosition, playerUpdate.YPosition), playerUpdate.Rotation, playerUpdate.PlayerID, playerUpdate.SendDate, playerUpdate.LaserID);
             }
         }
 
@@ -332,10 +318,25 @@ namespace MultiplayerProject.Source
 
             var enemy = _enemyManager.DeactivateAndReturnEnemy(enemyDefeatedPacket.CollidedEnemyID);
 
-            // Use the color of the player who fired the laser
-            PlayerColour pc = _playerColours[packet.AttackingPlayerID];
-            Color playerColor = new Color(pc.R, pc.G, pc.B);
-            _explosionManager.AddExplosion(enemy.Position, playerColor);
+            // Use the attacking player's factory to create the correct explosion
+            Player attackingPlayer = _players[packet.AttackingPlayerID];
+            GameObjectFactory factory = GetFactoryFromPlayer(attackingPlayer);
+            // Choose explosion color based on element
+            Color explosionColor = Color.White;
+            var element = _playerElements[attackingPlayer.NetworkID];
+            switch (element)
+            {
+                case ElementalType.Fire:
+                    explosionColor = Color.Red;
+                    break;
+                case ElementalType.Electric:
+                    explosionColor = Color.Yellow;
+                    break;
+                case ElementalType.Water:
+                    explosionColor = Color.Blue;
+                    break;
+            }
+            _explosionManager.AddExplosion(enemy.Position, factory, explosionColor);
         }
 
         private void ClientMessenger_OnPlayerDefeatedPacket(BasePacket packet)
@@ -348,10 +349,25 @@ namespace MultiplayerProject.Source
 
             var player = _players[playerDefeatedPacket.CollidedPlayerID];
 
-            // Use the color of the player who fired the laser
-            PlayerColour pc = _playerColours[playerDefeatedPacket.CollidedPlayerID];
-            Color playerColor = new Color(pc.R, pc.G, pc.B);
-            _explosionManager.AddExplosion(player.Position, playerColor);
+            // Use the defeated player's factory to create an explosion of their own element
+            // Note: You might want the explosion to be the element of the ATTACKING player. If so, you'll need to add the AttackingPlayerID to the PlayerDefeatedPacket.
+            GameObjectFactory factory = GetFactoryFromPlayer(player);
+            // Choose explosion color based on element
+            Color explosionColor = Color.White;
+            var element = _playerElements[player.NetworkID];
+            switch (element)
+            {
+                case ElementalType.Fire:
+                    explosionColor = Color.Red;
+                    break;
+                case ElementalType.Electric:
+                    explosionColor = Color.Yellow;
+                    break;
+                case ElementalType.Water:
+                    explosionColor = Color.Blue;
+                    break;
+            }
+            _explosionManager.AddExplosion(player.Position, factory, explosionColor);
         }
 
         private PlayerUpdatePacket GetUpdateAtSequenceNumber(int sequenceNumber)

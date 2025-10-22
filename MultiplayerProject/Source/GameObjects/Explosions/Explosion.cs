@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MultiplayerProject.Source.GameObjects;
 
@@ -7,46 +6,42 @@ namespace MultiplayerProject.Source
 {
     public class Explosion : GameObject
     {
-        public int Width
-        {
-            get { return _explosionAnimation.FrameWidth; }
-        }
-
-        public int Height
-        {
-            get { return _explosionAnimation.FrameWidth; }
-        }
-
         public override bool Active { get; set; }
+        protected Animation ExplosionAnimation;
+        protected Color ExplosionColor = Color.White; // Default
 
-        private Animation _explosionAnimation;
-        private Vector2 _position;      
-        private int _timeToLive;
-
-        public void Initialize(Animation animation, Vector2 position)
+        public virtual void Initialize(Animation animation, Vector2 centerPosition, Color color)
         {
-            _explosionAnimation = animation;
-            _position = position;
-            _timeToLive = 30;
-
+            ExplosionAnimation = animation;
             Active = true;
+            ExplosionColor = color;
+            ExplosionAnimation.SetColor(ExplosionColor);
+
+            // Center animation
+            ExplosionAnimation.Position = centerPosition;
+
+            // Reset animation so it starts from first frame
+            ExplosionAnimation.Reset();
         }
 
         public override void Update(GameTime gameTime)
         {
-            _explosionAnimation.Update(gameTime);
-
-            _timeToLive -= 1;
-
-            if (_timeToLive <= 0)
+            if (ExplosionAnimation != null)
             {
-                Active = false;
+                ExplosionAnimation.Update(gameTime);
+                if (ExplosionAnimation.IsFinished)
+                {
+                    Active = false;
+                }
             }
         }
 
         public override void Draw(SpriteBatch spriteBatch)
         {
-            _explosionAnimation.Draw(spriteBatch);
+            if (Active && ExplosionAnimation != null)
+            {
+                ExplosionAnimation.Draw(spriteBatch);
+            }
         }
     }
 }

@@ -60,6 +60,7 @@
   <ItemGroup>
     <Compile Include="Source\ClientApplication.cs" />
     <Compile Include="Source\Effects\Animation.cs" />
+    <Compile Include="Source\GameObjects\ElementalType.cs" />
     <Compile Include="Source\GameObjects\Enemy\BirdEnemy.cs" />
     <Compile Include="Source\GameObjects\Enemy\BirdEnemyFactory.cs" />
     <Compile Include="Source\GameObjects\Enemy\Enemy.cs" />
@@ -67,13 +68,13 @@
     <Compile Include="Source\GameObjects\Enemy\EnemyType.cs" />
     <Compile Include="Source\GameObjects\Enemy\BlackbirdEnemy.cs" />
     <Compile Include="Source\GameObjects\Enemy\BlackbirdEnemyFactory.cs" />
-    <Compile Include="Source\GameObjects\Explosions\BlueExplosion.cs" />
     <Compile Include="Source\GameObjects\Explosions\Explosion.cs" />
-    <Compile Include="Source\GameObjects\Explosions\GreenExplosion.cs" />
-    <Compile Include="Source\GameObjects\Explosions\RedExplosion.cs" />
+    <Compile Include="Source\GameObjects\Explosions\WaterExplosion.cs" />
+    <Compile Include="Source\GameObjects\Explosions\FireExplosion.cs" />
+    <Compile Include="Source\GameObjects\Explosions\ElectricExplosion.cs" />
     <Compile Include="Source\GameObjects\GameObject.cs" />
-    <Compile Include="Source\GameObjects\Lasers\BlueLaser.cs" />
-    <Compile Include="Source\GameObjects\Lasers\GreenLaser.cs" />
+    <Compile Include="Source\GameObjects\Lasers\ElectricLaser.cs" />
+    <Compile Include="Source\GameObjects\Lasers\WaterLaser.cs" />
     <Compile Include="Source\GameObjects\Lasers\Laser.cs" />
     <Compile Include="Source\Effects\BackgroundManager.cs" />
     <Compile Include="Source\Collisions\CollisionManager.cs" />
@@ -81,15 +82,12 @@
     <Compile Include="Source\Effects\ExplosionManager.cs" />
     <Compile Include="Source\GameObjects\Lasers\LaserManager.cs" />
     <Compile Include="Source\Application.cs" />
-    <Compile Include="Source\GameObjects\Lasers\RedLaser.cs" />
-    <Compile Include="Source\GameObjects\Players\BluePlayer.cs" />
-    <Compile Include="Source\GameObjects\Players\GreenPlayer.cs" />
-    <Compile Include="Source\GameObjects\Players\RedPlayer.cs" />
+    <Compile Include="Source\GameObjects\Lasers\FireLaser.cs" />
     <Compile Include="Source\Helpers\BackwardReader.cs" />
-    <Compile Include="Source\Helpers\Factories\BlueFactory.cs" />
+    <Compile Include="Source\Helpers\Factories\ElectricFactory.cs" />
     <Compile Include="Source\Helpers\Factories\GameObjectFactory.cs" />
-    <Compile Include="Source\Helpers\Factories\GreenFactory.cs" />
-    <Compile Include="Source\Helpers\Factories\RedFactory.cs" />
+    <Compile Include="Source\Helpers\Factories\WaterFactory.cs" />
+    <Compile Include="Source\Helpers\Factories\FireFactory.cs" />
     <Compile Include="Source\Helpers\Logger.cs" />
     <Compile Include="Source\Helpers\PlayerColour.cs" />
     <Compile Include="Source\MonoGame\TextBox\Cursor.cs" />
