@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using System;
 using System.Collections.Generic;
+using MultiplayerProject.Source.Helpers.Audio.Tiers;
 
 namespace MultiplayerProject.Source.Helpers.Audio
 {
@@ -47,82 +48,20 @@ namespace MultiplayerProject.Source.Helpers.Audio
 
             try
             {
-                // Tier 1: Calm, ambient atmosphere
-                var tier1 = AudioManager.Instance.CreateAudioBuilder()
-                    .WithSound("backgroundMusic")
-                    .WithVolume(0.3f)
-                    .WithPitch(-0.2f)
-                    .WithTempo(0.8f)
-                    .WithIntensity(0.0f)
-                    .WithPan(0.0f)
-                    .WithLooping(true)
-                    .AtScoreThreshold(TIER_1_SCORE)
-                    .Build();
-                
-                if (tier1.SoundEffect != null)
-                {
-                    _musicProgression.Add(tier1);
-                }
-                else
-                {
-                    Logger.Instance.Warning("Tier 1 background music not available");
-                }
+                // Use tier classes to build configurations
+                var tier1 = CalmAudioTier.Build("backgroundMusic");
+                if (tier1.SoundEffect != null) _musicProgression.Add(tier1);
 
-                // Tier 2: Rising tension with panning effect
-                var tier2 = AudioManager.Instance.CreateAudioBuilder()
-                    .WithSound("backgroundMusic")
-                    .WithVolume(0.5f)
-                    .WithPitch(0.0f)
-                    .WithPan(0.3f)
-                    .WithTempo(1.0f)
-                    .WithIntensity(0.25f)
-                    .WithReverb(true)
-                    .WithLooping(true)
-                    .AtScoreThreshold(TIER_2_SCORE)
-                    .Build();
-                
-                if (tier2.SoundEffect != null)
-                {
-                    _musicProgression.Add(tier2);
-                }
+                var tier2 = TensionAudioTier.Build("backgroundMusic");
+                if (tier2.SoundEffect != null) _musicProgression.Add(tier2);
 
-                // Tier 3: High action with pitch variation
-                var tier3 = AudioManager.Instance.CreateAudioBuilder()
-                    .WithSound("backgroundMusic")
-                    .WithVolume(0.75f)
-                    .WithPitch(0.3f)
-                    .WithPan(-0.3f)
-                    .WithTempo(1.3f)
-                    .WithIntensity(0.6f)
-                    .WithReverb(true)
-                    .WithLooping(true)
-                    .AtScoreThreshold(TIER_3_SCORE)
-                    .Build();
-                
-                if (tier3.SoundEffect != null)
-                {
-                    _musicProgression.Add(tier3);
-                }
+                var tier3 = ActionAudioTier.Build("backgroundMusic");
+                if (tier3.SoundEffect != null) _musicProgression.Add(tier3);
 
-                // Tier 4: Maximum chaos with rapid tempo
-                var tier4 = AudioManager.Instance.CreateAudioBuilder()
-                    .WithSound("backgroundMusic")
-                    .WithVolume(1.0f)
-                    .WithPitch(0.5f)
-                    .WithPan(0.0f)
-                    .WithTempo(1.6f)
-                    .WithIntensity(1.0f)
-                    .WithReverb(true)
-                    .WithLooping(true)
-                    .AtScoreThreshold(TIER_4_SCORE)
-                    .Build();
-                
-                if (tier4.SoundEffect != null)
-                {
-                    _musicProgression.Add(tier4);
-                }
+                var tier4 = ChaosAudioTier.Build("backgroundMusic");
+                if (tier4.SoundEffect != null) _musicProgression.Add(tier4);
 
-                Logger.Instance.Info($"Built {_musicProgression.Count} music progression tiers with unique characteristics");
+                Logger.Instance.Info($"Built {_musicProgression.Count} music progression tiers using tier classes");
                 _isInitialized = _musicProgression.Count > 0;
             }
             catch (Exception ex)
