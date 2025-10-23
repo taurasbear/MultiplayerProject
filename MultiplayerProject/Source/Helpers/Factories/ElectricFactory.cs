@@ -5,7 +5,7 @@ namespace MultiplayerProject.Source.Helpers.Factories
 {
     public class ElectricFactory : GameObjectFactory
     {
-        public override GameObject GetLaser() => new ElectricLaser();
-        public override GameObject GetExplosion() => new ElectricExplosion();
+        public override GameObject CreateLaser() => new ElectricLaser();
+        public override GameObject CreateExplosion() => new ElectricExplosion();
     }
 }

@@ -108,7 +108,7 @@ namespace MultiplayerProject.Source
 
         public Laser AddLaser(GameObjectFactory factory, Vector2 position, float rotation, string laserID, string playerFiredID)
         {
-            Laser laser = (Laser)factory.GetLaser();
+            Laser laser = (Laser)factory.CreateLaser();
             
             Animation laserAnimation = new Animation();
             // Initlize the laser animation

@@ -37,7 +37,7 @@ namespace MultiplayerProject.Source
         public void AddExplosion(Vector2 position, GameObjectFactory factory, Color color)
         {
             // Get the correct explosion type from the factory
-            Explosion explosion = (Explosion)factory.GetExplosion();
+            Explosion explosion = (Explosion)factory.CreateExplosion();
 
             // Create a base animation that does NOT loop
             Animation baseAnimation = new Animation();

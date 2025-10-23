@@ -4,7 +4,7 @@ namespace MultiplayerProject.Source.Helpers.Factories
 {
     public abstract class GameObjectFactory
     {
-        public abstract GameObject GetLaser();
-        public abstract GameObject GetExplosion();
+        public abstract GameObject CreateLaser();
+        public abstract GameObject CreateExplosion();
     }
 }
