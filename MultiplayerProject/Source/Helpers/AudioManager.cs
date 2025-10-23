@@ -199,8 +199,12 @@ namespace MultiplayerProject.Source.Helpers
                             {
                                 _backgroundMusicEffect = SoundEffect.FromStream(fileStream);
                                 _backgroundMusicInstance = _backgroundMusicEffect.CreateInstance();
-                                _backgroundMusicInstance.IsLooped = false; // DON'T loop - we'll control it manually
+                                _backgroundMusicInstance.IsLooped = false;
                                 _backgroundMusicInstance.Volume = _musicVolume;
+                                
+                                // ADD THIS: Register in dictionary so builder can find it
+                                _soundEffects["backgroundMusic"] = _backgroundMusicEffect;
+                                
                                 Logger.Instance.Info("Background music loaded successfully as SoundEffect (no loop)");
                             }
                         }

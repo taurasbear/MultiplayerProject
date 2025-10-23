@@ -20,11 +20,15 @@ namespace MultiplayerProject.Source
         private int _playerCount;
         private int _width;
         private int _height;
+        
+        // Store the local player ID
+        private string _localPlayerID;
 
-        public GameSceneGUI(int width, int height, string[] playerIDs, string[] playerNames, PlayerColour[] playerColours)
+        public GameSceneGUI(int width, int height, string[] playerIDs, string[] playerNames, PlayerColour[] playerColours, string localPlayerID)
         {
             _width = width;
             _height = height;
+            _localPlayerID = localPlayerID;
 
             _playerCount = playerIDs.Length;
 
@@ -78,6 +82,18 @@ namespace MultiplayerProject.Source
             if (_playerScores.ContainsKey(playerID))
             {
                 return _playerScores[playerID];
+            }
+            return 0;
+        }
+
+        /// <summary>
+        /// Get the current score for the local player
+        /// </summary>
+        public int GetLocalPlayerScore()
+        {
+            if (_playerScores != null && _playerScores.ContainsKey(_localPlayerID))
+            {
+                return _playerScores[_localPlayerID];
             }
             return 0;
         }

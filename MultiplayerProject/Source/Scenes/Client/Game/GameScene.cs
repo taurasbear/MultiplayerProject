@@ -4,8 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MultiplayerProject.Source.Helpers.Factories;
 using MultiplayerProject.Source.Helpers.Audio;
-using System;
-using System.Collections.Generic;
+using System.Collections.Generic; // Add this line
 
 namespace MultiplayerProject.Source
 {
@@ -22,6 +21,9 @@ namespace MultiplayerProject.Source
         private LaserManager _laserManager;
         private ExplosionManager _explosionManager;
         private BackgroundManager _backgroundManager;
+        
+        // Add audio controller field
+        private ScoreBasedAudioController _audioController;
 
         private int framesSinceLastSend;
 
@@ -30,7 +32,6 @@ namespace MultiplayerProject.Source
 
         public Client Client { get; set; }
 
-        private ScoreBasedAudioController _audioController;
         private int _localPlayerScore;
 
         public GameScene(int width, int height, int playerCount, string[] playerIDs, string[] playerNames, PlayerColour[] playerColours, string localClientID, Client client)
@@ -43,7 +44,8 @@ namespace MultiplayerProject.Source
 
             for (int i = 0; i < playerCount; i++)
             {
-                Player player;
+                Player player; // Add this declaration
+                
                 if (playerIDs[i] == localClientID)
                 {
                     // Use factory to create local player
@@ -84,7 +86,8 @@ namespace MultiplayerProject.Source
                 _players.Add(player.NetworkID, player);
             }
 
-            _GUI = new GameSceneGUI(width, height, playerIDs, playerNames, playerColours);
+            // Pass localClientID to GameSceneGUI
+            _GUI = new GameSceneGUI(width, height, playerIDs, playerNames, playerColours, localClientID);
 
             _updatePackets = new Queue<PlayerUpdatePacket>();
 
@@ -93,9 +96,9 @@ namespace MultiplayerProject.Source
             _backgroundManager = new BackgroundManager();
 
             _explosionManager = new ExplosionManager();
-
+            
+            // Initialize audio controller
             _audioController = new ScoreBasedAudioController();
-            _localPlayerScore = 0;
         }
         private Player CreatePlayerFromColor(PlayerColour colour)
         {
@@ -140,9 +143,10 @@ namespace MultiplayerProject.Source
             _laserManager.Initalise(content);
             _explosionManager.Initalise(content);
             _backgroundManager.Initalise(content);
-
-            // Start score-based audio
+            
+            // Start the audio controller
             _audioController.Start();
+            Logger.Instance.Info("Audio controller started in GameScene");
         }
 
         public void Update(GameTime gameTime)
@@ -157,16 +161,12 @@ namespace MultiplayerProject.Source
             _enemyManager.Update(gameTime);
             _laserManager.Update(gameTime);
             _explosionManager.Update(gameTime);
-
-            // Update audio based on local player's score
-            if (_localPlayer != null)
+            
+            // Update audio based on local player score
+            if (_localPlayer != null && _GUI != null)
             {
-                int currentScore = _GUI.GetPlayerScore(_localPlayer.NetworkID);
-                if (currentScore != _localPlayerScore)
-                {
-                    _localPlayerScore = currentScore;
-                    _audioController.Update(_localPlayerScore);
-                }
+                int currentScore = _GUI.GetLocalPlayerScore(); // You'll need to add this method
+                _audioController.Update(currentScore);
             }
         }
 
@@ -248,9 +248,14 @@ namespace MultiplayerProject.Source
                 if (laser != null)
                 {
                     input.FirePressed = true;
+                    
+                    // Play laser sound with score-based dynamics
+                    int currentScore = _GUI?.GetLocalPlayerScore() ?? 0;
+                    _audioController?.PlayLaserSound(currentScore);
+                    
                     var dataPacket = _localPlayer.BuildUpdatePacket();
                     PlayerFiredPacket packet = NetworkPacketFactory.Instance.MakePlayerFiredPacket(dataPacket.XPosition, dataPacket.YPosition, dataPacket.Speed, dataPacket.Rotation);
-                    packet.TotalGameTime = (float)gameTime.TotalGameTime.TotalSeconds; // TOTAL GAME TIME NOT ELAPSED TIME!
+                    packet.TotalGameTime = (float)gameTime.TotalGameTime.TotalSeconds;
                     packet.LaserID = laser.LaserID;
 
                     // Send the packet to the server
@@ -423,6 +428,10 @@ namespace MultiplayerProject.Source
                     {
                         var enemyPacket = (EnemyDefeatedPacket)recievedPacket;
                         ClientMessenger_OnEnemyDefeatedPacket(enemyPacket);
+                        
+                        // Play explosion sound with score-based dynamics
+                        int currentScore = _GUI?.GetLocalPlayerScore() ?? 0;
+                        _audioController?.PlayExplosionSound(currentScore);
                         break;
                     }
 

@@ -188,9 +188,54 @@ namespace MultiplayerProject.Source.Helpers.Audio
 
         /// <summary>
         /// Build and return the audio configuration
+        /// Validates the configuration before returning
         /// </summary>
         public AudioConfiguration Build()
         {
+            // Only validate if we actually have a sound effect
+            // If no sound effect was set, return a "null" configuration
+            if (_configuration.SoundEffect == null)
+            {
+                Logger.Instance.Warning("Building AudioConfiguration without a SoundEffect - configuration will be inactive");
+                return _configuration; // Return it anyway, just won't play anything
+            }
+
+            // Validate volume range
+            if (_configuration.Volume < 0.0f || _configuration.Volume > 1.0f)
+            {
+                Logger.Instance.Warning($"Volume out of range: {_configuration.Volume}, clamping to valid range");
+                _configuration.Volume = Math.Max(0.0f, Math.Min(1.0f, _configuration.Volume));
+            }
+
+            // Validate pitch range
+            if (_configuration.Pitch < -1.0f || _configuration.Pitch > 1.0f)
+            {
+                Logger.Instance.Warning($"Pitch out of range: {_configuration.Pitch}, clamping to valid range");
+                _configuration.Pitch = Math.Max(-1.0f, Math.Min(1.0f, _configuration.Pitch));
+            }
+
+            // Validate pan range
+            if (_configuration.Pan < -1.0f || _configuration.Pan > 1.0f)
+            {
+                Logger.Instance.Warning($"Pan out of range: {_configuration.Pan}, clamping to valid range");
+                _configuration.Pan = Math.Max(-1.0f, Math.Min(1.0f, _configuration.Pan));
+            }
+
+            // Validate tempo range
+            if (_configuration.Tempo < 0.5f || _configuration.Tempo > 2.0f)
+            {
+                Logger.Instance.Warning($"Tempo out of range: {_configuration.Tempo}, clamping to valid range");
+                _configuration.Tempo = Math.Max(0.5f, Math.Min(2.0f, _configuration.Tempo));
+            }
+
+            // Validate intensity range
+            if (_configuration.Intensity < 0.0f || _configuration.Intensity > 1.0f)
+            {
+                Logger.Instance.Warning($"Intensity out of range: {_configuration.Intensity}, clamping to valid range");
+                _configuration.Intensity = Math.Max(0.0f, Math.Min(1.0f, _configuration.Intensity));
+            }
+
+            Logger.Instance.Trace($"Built AudioConfiguration: {_configuration.GetDescription()}");
             return _configuration;
         }
 
