@@ -34,12 +34,6 @@ namespace MultiplayerProject.Source
 
         public Client Client { get; set; }
 
-        private bool _shallowCopyRequested = false;
-        private bool _deepCopyRequested = false;
-
-        private enum CopyMode { None, Shallow, Deep }
-        private CopyMode _copyMode = CopyMode.None;
-
         public GameScene(int width, int height, int playerCount, string[] playerIDs, string[] playerNames, PlayerColour[] playerColours, string localClientID, Client client)
         {
             _players = new Dictionary<string, Player>();
@@ -118,43 +112,6 @@ namespace MultiplayerProject.Source
             _laserManager.Update(gameTime);
             _explosionManager.Update(gameTime);
 
-            // --- COPY LOGIC START ---
-            var toCopy = new List<Enemy>();
-            var toRemove = new List<Enemy>();
-            foreach (var enemy in _enemyManager.Enemies)
-            {
-                if (!enemy.Active)
-                {
-                    Logger.Instance.Info($"Found deactivated enemy: {enemy.EnemyID}, copy mode: {_copyMode}");
-                    toCopy.Add(enemy);
-                    toRemove.Add(enemy);
-                }
-            }
-            foreach (var enemy in toCopy)
-            {
-                Enemy copy = null;
-                if (_copyMode == CopyMode.Deep)
-                {
-                    copy = enemy.DeepClone();
-                    Logger.Instance.Info($"Deep copy made for EnemyID: {enemy.EnemyID}");
-                }
-                else if (_copyMode == CopyMode.Shallow)
-                {
-                    copy = enemy.ShallowClone();
-                    Logger.Instance.Info($"Shallow copy made for EnemyID: {enemy.EnemyID}");
-                }
-                if (copy != null)
-                {
-                    copy.Position = new Vector2(Application.WINDOW_WIDTH + copy.Width / 2, copy.Position.Y);
-                    copy.Active = true;
-                    _enemyManager.Enemies.Add(copy);
-                }
-            }
-            foreach (var enemy in toRemove)
-            {
-                _enemyManager.Enemies.Remove(enemy);
-            }
-            // --- COPY LOGIC END ---
         }
 
         public void Draw(SpriteBatch spriteBatch)
@@ -186,18 +143,6 @@ namespace MultiplayerProject.Source
             {
                 sendPacketThisFrame = true;
                 framesSinceLastSend = 0;
-            }
-
-            // Detect S and D key presses for copy logic
-            if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.S) && !inputInfo.PreviousKeyboardState.IsKeyDown(Keys.S))
-            {
-                _copyMode = CopyMode.Shallow;
-                Logger.Instance.Info("Shallow copy mode selected (S pressed)");
-            }
-            if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.D) && !inputInfo.PreviousKeyboardState.IsKeyDown(Keys.D))
-            {
-                _copyMode = CopyMode.Deep;
-                Logger.Instance.Info("Deep copy mode selected (D pressed)");
             }
 
             // Process and fetch input from local player
@@ -371,7 +316,8 @@ namespace MultiplayerProject.Source
             {
                 foreach (var minionInfo in enemySpawn.Minions)
                 {
-                    var minion = _enemyManager.AddEnemy((EnemyType)minionInfo.EnemyType, new Vector2(minionInfo.XPosition, minionInfo.YPosition));
+                    // Use the prototype pattern to create minions, just like the server does.
+                    var minion = parentEnemy.DeepClone();
                     minion.EnemyID = minionInfo.EnemyID;
                     minion.Scale *= 0.6f; // Make it smaller
                     minion.EnemyAnimation.SetColor(new Color(255, 255, 150)); // Give it a yellowish tint
@@ -442,6 +388,38 @@ namespace MultiplayerProject.Source
             _explosionManager.AddExplosion(player.Position, factory, explosionColor);
         }
 
+        private void HandleEnemyClonePacket(EnemyClonePacket packet)
+        {
+            Enemy originalToCopy = null;
+            // Find the enemy to clone by its ID
+            foreach (var enemy in _enemyManager.Enemies)
+            {
+                if (enemy.EnemyID == packet.EnemyID)
+                {
+                    originalToCopy = enemy;
+                    break;
+                }
+            }
+
+            if (originalToCopy != null)
+            {
+                Enemy copy = null;
+                if (packet.IsDeepClone)
+                {
+                    copy = originalToCopy.DeepClone();
+                    Logger.Instance.Info($"Deep copy made for EnemyID: {originalToCopy.EnemyID}. New ID: {copy.EnemyID}");
+                }
+                else // Shallow clone
+                {
+                    copy = originalToCopy.ShallowClone();
+                    Logger.Instance.Info($"Shallow copy made for EnemyID: {originalToCopy.EnemyID}. New ID: {copy.EnemyID}");
+                }
+
+                copy.Position = new Vector2(originalToCopy.Position.X, originalToCopy.Position.Y + 100); // Offset to see it clearly
+                _enemyManager.Enemies.Add(copy);
+            }
+        }
+
         private PlayerUpdatePacket GetUpdateAtSequenceNumber(int sequenceNumber)
         {
             PlayerUpdatePacket localUpdate;
@@ -498,6 +476,12 @@ namespace MultiplayerProject.Source
                     {
                         var enemyPacket = (PlayerDefeatedPacket)recievedPacket;
                         ClientMessenger_OnPlayerDefeatedPacket(enemyPacket);
+                        break;
+                    }
+
+                case MessageType.GI_ServerSend_EnemyClone:
+                    {
+                        HandleEnemyClonePacket((EnemyClonePacket)recievedPacket);
                         break;
                     }
             }

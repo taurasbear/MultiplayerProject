@@ -197,20 +197,28 @@ namespace MultiplayerProject.Source
                 var enemy = _enemyManager.AddEnemy();
 
                 _enemySpawnCounter++; 
-                if (_enemySpawnCounter % 3 == 0) // Every 3rd enemy gets minions
+                bool isDeepClone = _enemySpawnCounter % 2 == 0; // Even enemies get deep clone, odd get shallow
+
+                if (isDeepClone)
                 {
+                    // Every enemy gets minions (deep clone)
                     for (int i = 0; i < 2; i++)
                     {
-                        // Create a minion of the same type as the parent
                         var minion = (Enemy)enemy.DeepClone(); // Clone the parent to get the same type and animation base
                         minion.EnemyID = Guid.NewGuid().ToString(); // Give it a new unique ID
                         minion.Scale *= 0.6f; // Make it smaller
                         minion.EnemyAnimation.SetColor(new Color(255, 255, 150)); // Give it a yellowish tint
-                        
-                        // Add minion to the main enemy manager list so it can be tracked for collisions
-                        _enemyManager.Enemies.Add(minion);
                         enemy.Minions.Add(minion);
                     }
+                }
+                // If not deep clone, enemy remains single (no minions)
+
+                // Every enemy, send a clone request, alternating between deep and shallow
+                var clonePacket = NetworkPacketFactory.Instance.MakeEnemyClonePacket(enemy.EnemyID, isDeepClone);
+                Logger.Instance.Info($"Sending {(isDeepClone ? "deep" : "shallow")} clone request for EnemyID: {enemy.EnemyID}");
+                for (int i = 0; i < ComponentClients.Count; i++)
+                {
+                    ComponentClients[i].SendPacketToClient(clonePacket, MessageType.GI_ServerSend_EnemyClone);
                 }
 
                 // Determine the type of the enemy that was just created
@@ -218,9 +226,6 @@ namespace MultiplayerProject.Source
                 if (enemy is BirdEnemy) parentType = EnemyType.Bird;
                 else if (enemy is BlackbirdEnemy) parentType = EnemyType.Blackbird;
 
-                var randomType = _enemyTypes[_random.Next(_enemyTypes.Length)];
-                _enemyManager.SetEnemyType(randomType);
-                
                 // Create the packet and add minion info if they exist
                 var packet = NetworkPacketFactory.Instance.MakeEnemySpawnedPacket(enemy.Position.X, enemy.Position.Y, enemy.EnemyID, parentType);
                 if (enemy.Minions.Count > 0)
@@ -243,6 +248,9 @@ namespace MultiplayerProject.Source
 
                     ComponentClients[i].SendPacketToClient(packet, MessageType.GI_ServerSend_EnemySpawn);
                 }
+
+                var randomType = _enemyTypes[_random.Next(_enemyTypes.Length)];
+                _enemyManager.SetEnemyType(randomType);
             }
 
             _enemyManager.Update(gameTime);

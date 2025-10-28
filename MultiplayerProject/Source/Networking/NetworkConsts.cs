@@ -77,6 +77,7 @@ namespace MultiplayerProject.Source
         GI_ServerSend_RemotePlayerFired,
         GI_ServerSend_EnemySpawn,
         GI_ServerSend_EnemyDefeated,
+        GI_ServerSend_EnemyClone,
         GI_ServerSend_PlayerDefeated,
 
         GI_ServerSend_GameOver,
@@ -121,7 +122,7 @@ namespace MultiplayerProject.Source
     [ProtoInclude(60, typeof(PlayerDefeatedPacket))]
     [ProtoInclude(61, typeof(LeaderboardPacket))]
     [ProtoInclude(62, typeof(LeaderboardUpdatePacket))]
-    [ProtoInclude(63, typeof(MinionInfo))]
+    [ProtoInclude(63, typeof(EnemyClonePacket))]
     public class BasePacket
     {
         [ProtoMember(1)]
@@ -263,7 +264,7 @@ namespace MultiplayerProject.Source
     }
 
     [ProtoContract]
-    public class MinionInfo : BasePacket
+    public class MinionInfo
     {
         [ProtoMember(1)]
         public string EnemyID { get; set; }
@@ -292,6 +293,16 @@ namespace MultiplayerProject.Source
         [ProtoMember(6)]
         public List<MinionInfo> Minions { get; set; } = new List<MinionInfo>();
     }
+
+    [ProtoContract]
+    public class EnemyClonePacket : BasePacket
+    {
+        [ProtoMember(1)]
+        public string EnemyID { get; set; }
+        [ProtoMember(2)]
+        public bool IsDeepClone { get; set; } // True for deep, false for shallow
+    }
+
 
     [ProtoContract]
     public class EnemyDefeatedPacket : BasePacket

@@ -66,31 +66,12 @@ namespace MultiplayerProject.Source
             for (int i = _enemies.Count - 1; i >= 0; i--)
             {
                 var enemy = _enemies[i];
-                
-                // Don't update minions directly, they are updated by their parent
-                bool isMinion = false;
-                foreach(var e in _enemies)
-                {
-                    if (e.Minions.Contains(enemy))
-                    {
-                        isMinion = true;
-                        break;
-                    }
-                }
 
-                if (!isMinion) enemy.Update(gameTime);
+                enemy.Update(gameTime);
 
-                // Check if the enemy (parent or minion) is inactive and should be removed
+                // Check if the enemy (parent or clone) is inactive and should be removed
                 if (enemy.Active == false)
                 {
-                    // If it's a minion, also remove it from its parent's list
-                    foreach (var parent in _enemies)
-                    {
-                        if (parent.Minions.Contains(enemy))
-                        {
-                            parent.Minions.Remove(enemy);
-                        }
-                    }
                     _enemies.RemoveAt(i);
                 }
             }
@@ -100,7 +81,8 @@ namespace MultiplayerProject.Source
         {
             for (int i = 0; i < _enemies.Count; i++)
             {
-                _enemies[i].Draw(spriteBatch);
+                var enemy = _enemies[i];
+                enemy?.Draw(spriteBatch);
             }
         }
 
@@ -170,6 +152,7 @@ namespace MultiplayerProject.Source
 
         public void DeactivateEnemy(string enemyID)
         {
+            // First, check top-level enemies
             for (int i = 0; i < _enemies.Count; i++)
             {
                 if (_enemies[i].EnemyID == enemyID)
@@ -177,17 +160,38 @@ namespace MultiplayerProject.Source
                     _enemies[i].Active = false;
                     return;
                 }
+
+                // If not found, check the minions of the current top-level enemy
+                foreach (var minion in _enemies[i].Minions)
+                {
+                    if (minion.EnemyID == enemyID)
+                    {
+                        minion.Active = false;
+                        return;
+                    }
+                }
             }
         }
 
         public Enemy DeactivateAndReturnEnemy(string enemyID)
         {
+            // First, check top-level enemies
             for (int i = 0; i < _enemies.Count; i++)
             {
                 if (_enemies[i].EnemyID == enemyID)
                 {
                     _enemies[i].Active = false;
                     return _enemies[i];
+                }
+
+                // If not found, check the minions of the current top-level enemy
+                foreach (var minion in _enemies[i].Minions)
+                {
+                    if (minion.EnemyID == enemyID)
+                    {
+                        minion.Active = false;
+                        return minion;
+                    }
                 }
             }
 

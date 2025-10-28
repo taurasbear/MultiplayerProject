@@ -186,6 +186,16 @@ namespace MultiplayerProject.Source
             return packet;
         }
 
+        public EnemyClonePacket MakeEnemyClonePacket(string enemyID, bool isDeepClone)
+        {
+            EnemyClonePacket packet = new EnemyClonePacket
+            {
+                EnemyID = enemyID,
+                IsDeepClone = isDeepClone
+            };
+            return packet;
+        }
+
         public PlayerDefeatedPacket MakePlayerDefeatedPacket(string laserID, string playerID, int collidedPlayerNewScore)
         {
             PlayerDefeatedPacket packet = new PlayerDefeatedPacket

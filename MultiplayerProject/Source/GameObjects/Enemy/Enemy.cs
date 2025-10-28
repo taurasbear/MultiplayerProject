@@ -79,15 +79,27 @@ namespace MultiplayerProject.Source.GameObjects.Enemy
                 // By setting the Active flag to false, the game will remove this objet from the
                 // active game list
                 Active = false;
+                // Also deactivate all minions
+                foreach (var minion in Minions)
+                {
+                    minion.Active = false;
+                }
             }
 
-            // Update minions
-            for (int i = 0; i < Minions.Count; i++)
+            // Update and clean up inactive minions
+            for (int i = Minions.Count - 1; i >= 0; i--)
             {
                 var minion = Minions[i];
-                minion.Position = this.Position + new Vector2((this.Width / 2f + minion.Width / 2f) + (minion.Width * i), 0);
-                minion.EnemyAnimation.Position = minion.Position;
-                minion.EnemyAnimation.Update(gameTime);
+                if (minion.Active)
+                {
+                    minion.Position = this.Position + new Vector2((this.Width / 2f + minion.Width / 2f) + (minion.Width * i), 0);
+                    minion.EnemyAnimation.Position = minion.Position;
+                    minion.EnemyAnimation.Update(gameTime);
+                }
+                else
+                {
+                    Minions.RemoveAt(i); // Remove inactive minion
+                }
             }
         }
 
@@ -100,11 +112,10 @@ namespace MultiplayerProject.Source.GameObjects.Enemy
             }
 
             // Draw minions after the parent so they appear on top.
+            // This is crucial for deep copies to show their minions.
             foreach (var minion in Minions)
             {
-                // We call the minion's Draw method, but only to draw its animation.
-                // This avoids an infinite loop if minions also had minions.
-                minion.EnemyAnimation?.Draw(spriteBatch);
+                minion.Draw(spriteBatch); // Recursively draw minions
             }
         }
 
@@ -112,7 +123,14 @@ namespace MultiplayerProject.Source.GameObjects.Enemy
         {
             // Shallow copy: MemberwiseClone copies value types and references as-is
             Enemy clone = (Enemy)this.MemberwiseClone();
-            // Shallow copy of minions list (reference)
+            clone.EnemyID = Guid.NewGuid().ToString(); // Give the clone a new ID
+            // For demonstration, give the shallow clone an empty minion list
+            if (this.EnemyAnimation != null)
+            {
+                // Even in a shallow clone, we need a separate animation object to avoid state conflicts.
+                clone.EnemyAnimation = this.EnemyAnimation.ShallowClone();
+            }
+            clone.Minions = new List<Enemy>(); // Ensure shallow clone has no minions
             return clone;
         }
 
@@ -125,6 +143,8 @@ namespace MultiplayerProject.Source.GameObjects.Enemy
         {
             // Deep copy: Clone value types and create new instances for referenced objects
             Enemy clone = (Enemy)this.MemberwiseClone();
+            clone.EnemyID = Guid.NewGuid().ToString(); // Give the clone a new ID
+
             if (EnemyAnimation != null)
             {
                 clone.EnemyAnimation = (Animation)this.EnemyAnimation.DeepClone();

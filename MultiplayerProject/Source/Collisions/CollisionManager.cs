@@ -1,4 +1,4 @@
-﻿﻿using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -77,20 +77,37 @@ namespace MultiplayerProject.Source
 
                 if (laserStillActive)
                 {
-                    for (int iEnemy = 0; iEnemy < enemies.Count; iEnemy++) // Loop through every enemy
+                    // Loop through every parent enemy
+                    for (int iParentEnemy = 0; iParentEnemy < enemies.Count; iParentEnemy++)
                     {
-                        Rectangle enemyRectangle = new Rectangle(
-                        (int)enemies[iEnemy].Position.X,
-                        (int)enemies[iEnemy].Position.Y,
-                        enemies[iEnemy].Width,
-                        enemies[iEnemy].Height);
+                        Enemy currentEnemy = enemies[iParentEnemy];
 
-                        if (laserRectangle.Intersects(enemyRectangle))
+                        // Check collision with parent enemy
+                        Rectangle parentEnemyRectangle = new Rectangle(
+                            (int)currentEnemy.Position.X,
+                            (int)currentEnemy.Position.Y,
+                            currentEnemy.Width,
+                            currentEnemy.Height);
+
+                        if (laserRectangle.Intersects(parentEnemyRectangle))
                         {
-                            collisions.Add(new Collision(CollisionType.LaserToEnemy, lasers[iLaser].LaserID, lasers[iLaser].PlayerFiredID, "", enemies[iEnemy].EnemyID));                           
+                            collisions.Add(new Collision(CollisionType.LaserToEnemy, lasers[iLaser].LaserID, lasers[iLaser].PlayerFiredID, "", currentEnemy.EnemyID));
                             laserStillActive = false; // Laser is used up
                             break; // Stop checking this laser against other enemies
                         }
+
+                        // Check collision with minions of the current parent enemy
+                        foreach (var minion in currentEnemy.Minions)
+                        {
+                            Rectangle minionRectangle = new Rectangle((int)minion.Position.X, (int)minion.Position.Y, minion.Width, minion.Height);
+                            if (laserRectangle.Intersects(minionRectangle))
+                            {
+                                collisions.Add(new Collision(CollisionType.LaserToEnemy, lasers[iLaser].LaserID, lasers[iLaser].PlayerFiredID, "", minion.EnemyID));
+                                laserStillActive = false; // Laser is used up
+                                break; // Stop checking this laser against other enemies
+                            }
+                        }
+                        if (!laserStillActive) break; // If minion hit, stop checking this laser
                     }
                 }
             }
