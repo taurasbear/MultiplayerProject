@@ -11,13 +11,10 @@ using MultiplayerProject.Source.GameObjects.Enemy;
 
 namespace MultiplayerProject.Source
 {
-    class CollisionManager
+    public class CollisionManager
     {
-        private GameInstance _game; // store the instance
-
-        public CollisionManager(GameInstance game)
+        public CollisionManager()
         {
-            _game = game;
         }
         public enum CollisionType
         {
