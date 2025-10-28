@@ -1,4 +1,4 @@
-﻿using Microsoft.Xna.Framework;
+﻿﻿using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -216,6 +216,18 @@ namespace MultiplayerProject.Source
                 PlayerCount = playerCount,
                 PlayerReadyCount = playerReadyCount,
                 IsClientReady = clientReady
+            };
+            return packet;
+        }
+
+        public MinionInfo MakeMinionInfo(string enemyID, float x, float y, int enemyType)
+        {
+            MinionInfo packet = new MinionInfo
+            {
+                EnemyID = enemyID,
+                XPosition = x,
+                YPosition = y,
+                EnemyType = enemyType
             };
             return packet;
         }

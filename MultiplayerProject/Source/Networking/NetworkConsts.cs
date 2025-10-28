@@ -1,4 +1,4 @@
-﻿using Microsoft.Xna.Framework;
+﻿﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
@@ -121,6 +121,7 @@ namespace MultiplayerProject.Source
     [ProtoInclude(60, typeof(PlayerDefeatedPacket))]
     [ProtoInclude(61, typeof(LeaderboardPacket))]
     [ProtoInclude(62, typeof(LeaderboardUpdatePacket))]
+    [ProtoInclude(63, typeof(MinionInfo))]
     public class BasePacket
     {
         [ProtoMember(1)]
@@ -262,6 +263,20 @@ namespace MultiplayerProject.Source
     }
 
     [ProtoContract]
+    public class MinionInfo : BasePacket
+    {
+        [ProtoMember(1)]
+        public string EnemyID { get; set; }
+        [ProtoMember(2)]
+        public float XPosition { get; set; }
+        [ProtoMember(3)]
+        public float YPosition { get; set; }
+        [ProtoMember(4)]
+        public int EnemyType { get; set; }
+    }
+
+
+    [ProtoContract]
     public class EnemySpawnedPacket : BasePacket
     {
         [ProtoMember(1)]
@@ -274,6 +289,8 @@ namespace MultiplayerProject.Source
         public string EnemyID { get; set; }
         [ProtoMember(5)]
         public EnemyType EnemyType { get; set; }
+        [ProtoMember(6)]
+        public List<MinionInfo> Minions { get; set; } = new List<MinionInfo>();
     }
 
     [ProtoContract]

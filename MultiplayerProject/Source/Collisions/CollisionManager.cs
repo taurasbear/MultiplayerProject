@@ -1,4 +1,4 @@
-﻿using Microsoft.Xna.Framework;
+﻿﻿using Microsoft.Xna.Framework;
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -6,6 +6,8 @@ using System.Collections.Generic;
 //using MultiplayerProject.Source.Networking.Server;
 using MultiplayerProject.Source.GameObjects;
 using MultiplayerProject.Source.Helpers.Factories;
+using MultiplayerProject.Source.GameObjects.Enemy;
+
 
 namespace MultiplayerProject.Source
 {
@@ -85,8 +87,9 @@ namespace MultiplayerProject.Source
 
                         if (laserRectangle.Intersects(enemyRectangle))
                         {
-                            collisions.Add(new Collision(CollisionType.LaserToEnemy, lasers[iLaser].LaserID, lasers[iLaser].PlayerFiredID, "", enemies[iEnemy].EnemyID));
-                            Console.WriteLine("SUCCESSFULL LASER/ENEMY INTERSECTION");
+                            collisions.Add(new Collision(CollisionType.LaserToEnemy, lasers[iLaser].LaserID, lasers[iLaser].PlayerFiredID, "", enemies[iEnemy].EnemyID));                           
+                            laserStillActive = false; // Laser is used up
+                            break; // Stop checking this laser against other enemies
                         }
                     }
                 }

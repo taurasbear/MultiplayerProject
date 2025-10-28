@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using System;
+using MultiplayerProject.Source.GameObjects.Enemy;
 using System.Collections.Generic;
 
 namespace MultiplayerProject.Source
@@ -64,13 +65,32 @@ namespace MultiplayerProject.Source
             // Update the Enemies
             for (int i = _enemies.Count - 1; i >= 0; i--)
             {
-                if (_enemies[i].EnemyAnimation == null)
-                    _enemies[i].Update();
-                else
-                    _enemies[i].Update(gameTime);
-
-                if (_enemies[i].Active == false)
+                var enemy = _enemies[i];
+                
+                // Don't update minions directly, they are updated by their parent
+                bool isMinion = false;
+                foreach(var e in _enemies)
                 {
+                    if (e.Minions.Contains(enemy))
+                    {
+                        isMinion = true;
+                        break;
+                    }
+                }
+
+                if (!isMinion) enemy.Update(gameTime);
+
+                // Check if the enemy (parent or minion) is inactive and should be removed
+                if (enemy.Active == false)
+                {
+                    // If it's a minion, also remove it from its parent's list
+                    foreach (var parent in _enemies)
+                    {
+                        if (parent.Minions.Contains(enemy))
+                        {
+                            parent.Minions.Remove(enemy);
+                        }
+                    }
                     _enemies.RemoveAt(i);
                 }
             }
@@ -118,32 +138,34 @@ namespace MultiplayerProject.Source
             return enemy;
         }
 
-        public void AddEnemy(Vector2 position, string enemyID)
+        public Enemy AddEnemy(EnemyType type, Vector2 position)
         {
             // Create the animation object
             Animation enemyAnimation = new Animation();
 
             // Create an enemy
-            Enemy enemy = _enemyFactory?.CreateEnemy(enemyID) ?? new Enemy(enemyID);
-
-            if (enemy is BirdEnemy)
+            Enemy enemy;
+            switch (type)
             {
-                enemyAnimation.Initialize(_birdTexture, Vector2.Zero, 0, 68, 68, 7, 30, Color.White, 1f, true);
-            }
-            else if (enemy is BlackbirdEnemy)
-            {
-                enemyAnimation.Initialize(_blackbirdTexture, Vector2.Zero, 0, 16, 18, 8, 30, Color.White, 1f, true);
-            }
-            else
-            {
-                enemyAnimation.Initialize(_mineTexture, Vector2.Zero, 0, 47, 61, 8, 30, Color.White, 1f, true);
+                case EnemyType.Bird:
+                    enemy = new BirdEnemy();
+                    enemyAnimation.Initialize(_birdTexture, Vector2.Zero, 0, 68, 68, 7, 30, Color.White, 1f, true);
+                    break;
+                case EnemyType.Blackbird:
+                    enemy = new BlackbirdEnemy();
+                    enemyAnimation.Initialize(_blackbirdTexture, Vector2.Zero, 0, 16, 18, 8, 30, Color.White, 1f, true);
+                    break;
+                default:
+                    enemy = new Enemy();
+                    enemyAnimation.Initialize(_mineTexture, Vector2.Zero, 0, 47, 61, 8, 30, Color.White, 1f, true);
+                    break;
             }
 
             // Initialize the enemy
             enemy.Initialize(enemyAnimation, position);
 
-            // Add the enemy to the active enemies list
             _enemies.Add(enemy);
+            return enemy;
         }
 
         public void DeactivateEnemy(string enemyID)

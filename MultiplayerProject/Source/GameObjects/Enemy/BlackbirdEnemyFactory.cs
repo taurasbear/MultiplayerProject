@@ -1,3 +1,5 @@
+using MultiplayerProject.Source.GameObjects.Enemy;
+
 namespace MultiplayerProject.Source
 {
     class BlackbirdEnemyFactory : EnemyFactory

@@ -1,9 +1,10 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using MultiplayerProject.Source.GameObjects.Enemy;
 
 namespace MultiplayerProject.Source
 {
-    public class Animation
+    public class Animation : IPrototype<Animation>
     {
         private Texture2D _spriteStrip;
         private int _frameCount;
@@ -106,6 +107,16 @@ namespace MultiplayerProject.Source
             _elapsedTime = 0;
             Active = true;
             IsFinished = false;
+        }
+
+        public Animation ShallowClone()
+        {
+            return (Animation)this.MemberwiseClone();
+        }
+
+        public object DeepClone()
+        {
+            return this.MemberwiseClone();
         }
     }
 }

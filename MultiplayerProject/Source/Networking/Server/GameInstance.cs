@@ -4,6 +4,8 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 using MultiplayerProject.Source.GameObjects;
 using MultiplayerProject.Source.Helpers.Factories;
+using MultiplayerProject.Source.GameObjects.Enemy;
+
 
 namespace MultiplayerProject.Source
 {
@@ -45,6 +47,7 @@ namespace MultiplayerProject.Source
         private TimeSpan _previousEnemySpawnTime;
         private int framesSinceLastSend;
         private EnemyType[] _enemyTypes = new[] { EnemyType.Mine, EnemyType.Bird, EnemyType.Blackbird };
+        private int _enemySpawnCounter = 0; // Track how many enemies have been spawned
 
         public GameInstance(List<ServerConnection> clients, string gameRoomID)
         {
@@ -193,9 +196,46 @@ namespace MultiplayerProject.Source
 
                 var enemy = _enemyManager.AddEnemy();
 
+                _enemySpawnCounter++; 
+                if (_enemySpawnCounter % 3 == 0) // Every 3rd enemy gets minions
+                {
+                    for (int i = 0; i < 2; i++)
+                    {
+                        // Create a minion of the same type as the parent
+                        var minion = (Enemy)enemy.DeepClone(); // Clone the parent to get the same type and animation base
+                        minion.EnemyID = Guid.NewGuid().ToString(); // Give it a new unique ID
+                        minion.Scale *= 0.6f; // Make it smaller
+                        minion.EnemyAnimation.SetColor(new Color(255, 255, 150)); // Give it a yellowish tint
+                        
+                        // Add minion to the main enemy manager list so it can be tracked for collisions
+                        _enemyManager.Enemies.Add(minion);
+                        enemy.Minions.Add(minion);
+                    }
+                }
+
+                // Determine the type of the enemy that was just created
+                EnemyType parentType = EnemyType.Mine; // Default
+                if (enemy is BirdEnemy) parentType = EnemyType.Bird;
+                else if (enemy is BlackbirdEnemy) parentType = EnemyType.Blackbird;
+
                 var randomType = _enemyTypes[_random.Next(_enemyTypes.Length)];
                 _enemyManager.SetEnemyType(randomType);
-                EnemySpawnedPacket packet = NetworkPacketFactory.Instance.MakeEnemySpawnedPacket(enemy.Position.X, enemy.Position.Y, enemy.EnemyID, randomType);
+                
+                // Create the packet and add minion info if they exist
+                var packet = NetworkPacketFactory.Instance.MakeEnemySpawnedPacket(enemy.Position.X, enemy.Position.Y, enemy.EnemyID, parentType);
+                if (enemy.Minions.Count > 0)
+                {
+                    foreach (var minion in enemy.Minions)
+                    {
+                        EnemyType minionType = EnemyType.Mine; // Default
+                        if (minion is BirdEnemy) minionType = EnemyType.Bird;
+                        else if (minion is BlackbirdEnemy) minionType = EnemyType.Blackbird;
+
+                        packet.Minions.Add(NetworkPacketFactory.Instance.MakeMinionInfo(
+                            minion.EnemyID, minion.Position.X, minion.Position.Y, (int)minionType
+                        ));
+                    }
+                }
 
                 for (int i = 0; i < ComponentClients.Count; i++) // Send the enemy spawn to all clients
                 {
