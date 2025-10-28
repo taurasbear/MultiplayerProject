@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -213,6 +214,12 @@ namespace MultiplayerProject.Source
                         _isReadyRematch = packet.IsClientReady;
                         _readyRematchCount = packet.PlayerReadyCount;
                         _playersLeftInInstance = packet.PlayerCount;
+
+                        Debug.WriteLine("LeaderboardPacket PlayerCount: " + _leaderboard.PlayerCount);
+                        for (int i = 0; i < _leaderboard.PlayerCount; i++)
+                        {
+                            Debug.WriteLine($"Player {i}: Name={_leaderboard.PlayerNames[i]}, Score={_leaderboard.PlayerScores[i]}");
+                        }
 
                         if (_playersLeftInInstance == 1)
                         {

@@ -15,6 +15,7 @@ namespace MultiplayerProject.Source.GameObjects.Explosions
         private readonly float _scale = 1.1f;
         public override void Initialize(Animation baseAnimation, Vector2 centerPosition, Color color)
         {
+            color = Color.Aquamarine;
             Animation animationCopy = new Animation();
             animationCopy.Initialize(
                 texture: baseAnimation.Texture,

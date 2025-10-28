@@ -1,9 +1,9 @@
-﻿using Microsoft.Xna.Framework;
-using MultiplayerProject.Source.GameObjects;
-using MultiplayerProject.Source.Helpers.Factories;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Xna.Framework;
+using MultiplayerProject.Source.GameObjects;
+using MultiplayerProject.Source.Helpers.Factories;
 
 namespace MultiplayerProject.Source
 {
@@ -45,63 +45,13 @@ namespace MultiplayerProject.Source
         private TimeSpan _previousEnemySpawnTime;
         private int framesSinceLastSend;
         private EnemyType[] _enemyTypes = new[] { EnemyType.Mine, EnemyType.Bird, EnemyType.Blackbird };
-        private List<string> _allPlayerIDs; // Track all players who ever joined
-        public Player GetPlayerByID(string id)
-        {
-            return _players.ContainsKey(id) ? _players[id] : null;
-        }
 
-        // Registers a player in all relevant collections. Call this for every new player, even if joining late.
-        private void RegisterPlayer(ServerConnection playerConn)
+        public GameInstance(List<ServerConnection> clients, string gameRoomID)
         {
-            string id = playerConn.ID;
-            if (!_allPlayerIDs.Contains(id))
-                _allPlayerIDs.Add(id);
-            if (!_playerNames.ContainsKey(id))
-                _playerNames[id] = playerConn.Name;
-            if (!_playerScores.ContainsKey(id))
-                _playerScores[id] = 0;
-            if (!_playerColours.ContainsKey(id))
-            {
-                var playerElement = GetRandomElement();
-                _playerElements[id] = playerElement;
-                Color color;
-                switch (playerElement)
-                {
-                    case ElementalType.Fire:
-                        color = Color.Red;
-                        break;
-                    case ElementalType.Water:
-                        color = Color.CornflowerBlue;
-                        break;
-                    case ElementalType.Electric:
-                        color = Color.Yellow;
-                        break;
-                    default:
-                        color = Color.White;
-                        break;
-                }
-                _playerColours[id] = color;
-            }
-            if (!_playerElements.ContainsKey(id))
-                _playerElements[id] = GetRandomElement();
-            if (!_playerLasers.ContainsKey(id))
-                _playerLasers[id] = new LaserManager();
-            if (!_playerUpdates.ContainsKey(id))
-                _playerUpdates[id] = null;
-            if (!_players.ContainsKey(id))
-            {
-                Player player = new Player();
-                player.NetworkID = id;
-                player.Colour = NetworkPacketFactory.Instance.MakePlayerColour(_playerColours[id].R, _playerColours[id].G, _playerColours[id].B);
-                _players[id] = player;
-            }
-        }
+            ComponentClients = clients;
 
-        public GameInstance(List<ServerConnection> allPlayers, string gameRoomID)
-        {
-            ComponentClients = allPlayers;
             _gameRoomID = gameRoomID;
+
             _playerUpdates = new Dictionary<string, PlayerUpdatePacket>();
             _playerLasers = new Dictionary<string, LaserManager>();
             _playerScores = new Dictionary<string, int>();
@@ -118,39 +68,35 @@ namespace MultiplayerProject.Source
             _random = new Random();
             _collisionManager = new CollisionManager(this);
             _enemyManager = new EnemyManager();
-            var randomType = _enemyTypes[_random.Next(_enemyTypes.Length)];
-            _enemyManager.SetEnemyType(randomType);
             _previousEnemySpawnTime = TimeSpan.Zero;
             _enemySpawnTime = TimeSpan.FromSeconds(1.0f);
-            _allPlayerIDs = new List<string>(); // Initialize the list
-            for (int i = 0; i < allPlayers.Count; i++)
-            {
-                allPlayers[i].AddServerComponent(this);
-                RegisterPlayer(allPlayers[i]);
-                var playerName = _playerNames[allPlayers[i].ID];
-                Logger.Instance.Info($"----Player '{playerName}' joined with color {_playerColours[allPlayers[i].ID]} and element {_playerElements[allPlayers[i].ID]}.");
-                Logger.Instance.Info($"---Player '{playerName}' element {_playerElements[allPlayers[i].ID]}.");
-            }
-            var allPlayerColours = allPlayers.Select(c => _playerColours[c.ID]).ToList();
-            for (int i = 0; i < allPlayers.Count; i++)
-            {
-                var packet = NetworkPacketFactory.Instance.MakeGameInstanceInformationPacket(allPlayers.Count, allPlayers, allPlayerColours, allPlayers[i].ID);
-                allPlayers[i].SendPacketToClient(packet, MessageType.GI_ServerSend_LoadNewGame);
-            }
-        }
 
-        private ElementalType GetRandomElement()
-        {
-            var elementTypes = new List<ElementalType> { ElementalType.Fire, ElementalType.Water, ElementalType.Electric };
-            return elementTypes[_random.Next(elementTypes.Count)];
+            var playerColours = GenerateRandomColours(clients.Count);
+
+            for (int i = 0; i < ComponentClients.Count; i++)
+            {
+                ComponentClients[i].AddServerComponent(this);
+                ComponentClients[i].SendPacketToClient(NetworkPacketFactory.Instance.MakeGameInstanceInformationPacket(ComponentClients.Count, ComponentClients, playerColours, ComponentClients[i].ID), MessageType.GI_ServerSend_LoadNewGame);
+
+                _playerUpdates[ComponentClients[i].ID] = null;
+                _playerLasers[ComponentClients[i].ID] = new LaserManager();
+                _playerScores[ComponentClients[i].ID] = 0;
+                _playerNames[ComponentClients[i].ID] = ComponentClients[i].Name;
+                _playerColours[ComponentClients[i].ID] = playerColours[i];
+
+                Player player = new Player();
+                player.NetworkID = ComponentClients[i].ID;
+                _players[ComponentClients[i].ID] = player;
+            }
         }
 
         private GameObjectFactory GetFactoryFromPlayer(Player player)
         {
-            // Use the stored element type to get the correct factory from the cache
-            if (_playerElements.TryGetValue(player.NetworkID, out ElementalType elementType) && _factories.ContainsKey(elementType))
+            // Use the stored element type to get the correct factory
+            var elementType = _playerElements.ContainsKey(player.NetworkID) ? _playerElements[player.NetworkID] : ElementalType.Fire;
+            if (_factories.ContainsKey(elementType))
                 return _factories[elementType];
-            return _factories[ElementalType.Fire]; // Fallback to a default
+            return _factories[ElementalType.Fire]; // Default fallback
         }
 
         public void RecieveClientMessage(ServerConnection client, BasePacket recievedPacket)
@@ -208,7 +154,7 @@ namespace MultiplayerProject.Source
             ApplyPlayerInput(gameTime);
 
             UpdateEnemies(gameTime);
-
+            
             CheckCollisions();
 
             if (sendPacketThisFrame)
@@ -245,14 +191,14 @@ namespace MultiplayerProject.Source
             {
                 _previousEnemySpawnTime = gameTime.TotalGameTime;
 
-                var randomType = _enemyTypes[_random.Next(_enemyTypes.Length)];
-                //Logger.Instance.Info($"----> Setting enemy type to {randomType}");
-                _enemyManager.SetEnemyType(randomType);
                 var enemy = _enemyManager.AddEnemy();
+
+                var randomType = _enemyTypes[_random.Next(_enemyTypes.Length)];
+                _enemyManager.SetEnemyType(randomType);
+                EnemySpawnedPacket packet = NetworkPacketFactory.Instance.MakeEnemySpawnedPacket(enemy.Position.X, enemy.Position.Y, enemy.EnemyID, randomType);
 
                 for (int i = 0; i < ComponentClients.Count; i++) // Send the enemy spawn to all clients
                 {
-                    EnemySpawnedPacket packet = NetworkPacketFactory.Instance.MakeEnemySpawnedPacket(enemy.Position.X, enemy.Position.Y, enemy.EnemyID, randomType);
                     packet.TotalGameTime = (float)gameTime.TotalGameTime.TotalSeconds;
 
                     ComponentClients[i].SendPacketToClient(packet, MessageType.GI_ServerSend_EnemySpawn);
@@ -273,7 +219,7 @@ namespace MultiplayerProject.Source
                     _playerLasers[collisions[iCollision].AttackingPlayerID].DeactivateLaser(collisions[iCollision].LaserID); // Deactivate collided laser
 
                     if (collisions[iCollision].CollisionType == CollisionManager.CollisionType.LaserToEnemy)
-                    {
+                    {                      
                         _enemyManager.DeactivateEnemy(collisions[iCollision].DefeatedEnemyID); // Deactivate collided enemy
 
                         // INCREMENT PLAYER SCORE HERE
@@ -326,28 +272,30 @@ namespace MultiplayerProject.Source
 
         private void CheckGameOver()
         {
-            // Use all players that were ever in the game instance, not just those who are still connected.
-            var allPlayerIDs = _allPlayerIDs; // Use the tracked list
-            for (int i = 0; i < allPlayerIDs.Count; i++)
+            foreach (KeyValuePair<string, int> player in _playerScores)
             {
-                var id = allPlayerIDs[i];
-                int score = _playerScores.ContainsKey(id) ? _playerScores[id] : 0;
-                if (score >= Application.SCORE_TO_WIN)
+                if (player.Value >= Application.SCORE_TO_WIN)
                 {
-                    Logger.Instance.Info(_playerNames.ContainsKey(id) ? _playerNames[id] + " has reached the score limit" : id + " has reached the score limit");
+                    Logger.Instance.Info(_playerNames[player.Key] + " has reached the score limit");
 
-                    int playerCount = allPlayerIDs.Count;
+                    int playerCount = ComponentClients.Count;
                     int[] playerScores = new int[playerCount];
                     string[] playerNames = new string[playerCount];
-                    PlayerColour[] playerColours = new PlayerColour[playerCount];
 
-                    for (int j = 0; j < playerCount; j++)
+                    int index = 0;
+                    foreach (KeyValuePair<string, int> playerScore in _playerScores)
                     {
-                        var pid = allPlayerIDs[j];
-                        playerScores[j] = _playerScores.ContainsKey(pid) ? _playerScores[pid] : 0;
-                        playerNames[j] = _playerNames.ContainsKey(pid) ? _playerNames[pid] : pid;
-                        var xnaColor = _playerColours.ContainsKey(pid) ? _playerColours[pid] : Color.White;
-                        playerColours[j] = NetworkPacketFactory.Instance.MakePlayerColour(xnaColor.R, xnaColor.G, xnaColor.B);
+                        playerScores[index] = playerScore.Value;
+                        playerNames[index] = _playerNames[playerScore.Key];
+                        index++;
+                    }
+
+                    PlayerColour[] playerColours = new PlayerColour[_playerColours.Count];
+                    index = 0;
+                    foreach (KeyValuePair<string, Color> playerColour in _playerColours)
+                    {
+                        playerColours[index] = NetworkPacketFactory.Instance.MakePlayerColour(playerColour.Value.R, playerColour.Value.G, playerColour.Value.B);
+                        index++;
                     }
 
                     LeaderboardPacket packet = NetworkPacketFactory.Instance.MakeLeaderboardPacket(playerCount, playerNames, playerScores, playerColours);
@@ -362,12 +310,43 @@ namespace MultiplayerProject.Source
                 }
             }
         }
+
+        private List<Color> GenerateRandomColours(int playerCount)
+        {
+            var returnList = new List<Color>();
+            for (int i = 0; i < playerCount && i < WaitingRoom.MAX_PEOPLE_PER_ROOM; i++)
+            {
+                switch(i)
+                {
+                    case 0:
+                        returnList.Add(Color.White);
+                        break;
+                    case 1:
+                        returnList.Add(Color.Red);
+                        break;
+                    case 2:
+                        returnList.Add(Color.Blue);
+                        break;
+                    case 3:
+                        returnList.Add(Color.Green);
+                        break;
+                    case 4:
+                        returnList.Add(Color.Aqua);
+                        break;
+                    case 5:
+                        returnList.Add(Color.Pink);
+                        break;
+                }
+            }
+            return returnList;
+        }
+
         private List<Laser> GetActiveLasers()
         {
             List<Laser> lasers = new List<Laser>();
 
             foreach (KeyValuePair<string, LaserManager> laserManager in _playerLasers)
-            {
+            { 
                 lasers.AddRange(laserManager.Value.Lasers);
             }
 
