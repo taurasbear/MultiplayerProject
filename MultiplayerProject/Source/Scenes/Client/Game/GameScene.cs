@@ -328,7 +328,6 @@ namespace MultiplayerProject.Source
 
         private void ClientMessenger_OnEnemyEventPacket(BasePacket packet)
         {
-            Console.WriteLine("--> Client received enemy event packet.");
             var enemyEvent = (EnemyEventPacket)packet;
             _enemyManager.NotifyEnemies(enemyEvent.EventType);   
         }

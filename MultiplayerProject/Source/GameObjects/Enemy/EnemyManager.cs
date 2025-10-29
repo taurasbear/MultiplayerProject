@@ -40,7 +40,7 @@ namespace MultiplayerProject.Source
         {
             EnemyFactory enemyFactory = null;
 
-            switch(enemyType)
+            switch (enemyType)
             {
                 case EnemyType.Bird:
                     enemyFactory = new BirdEnemyFactory();
@@ -79,36 +79,10 @@ namespace MultiplayerProject.Source
 
         public void NotifyEnemies(EnemyEventType eventType)
         {
-            if(eventType is EnemyEventType.GameCloseToFinishing)
+            for (int i = 0; i < _enemies.Count; i++)
             {
-                Console.WriteLine("--> We got enemy event for game finishing up!");
-                for (int i = 0; i < _enemies.Count; i++)
-                {
-                    var enemy = _enemies[i];
-                    if (enemy is BlackbirdEnemy)
-                    {
-                        enemy.Speed += 8f;
-                    }
-                    else if (!(enemy is BirdEnemy))
-                    {
-                        enemy.EnemyAnimation.Scale = 0.5f;
-                    }
-                }
-            }
-            else if(eventType is EnemyEventType.PlayerShot)
-            {
-                for (int i = 0; i < _enemies.Count; i++)
-                {
-                    var enemy = _enemies[i];
-                    if (enemy is BlackbirdEnemy)
-                    {
-                        enemy.Position.Y -= 10f;
-                    }
-                    else if (enemy is BirdEnemy)
-                    {
-                        enemy.Position.Y += 10f;
-                    }
-                }
+                var enemy = _enemies[i];
+                enemy.UpdateOnEnemyEvent(eventType);
             }
         }
 
@@ -133,11 +107,11 @@ namespace MultiplayerProject.Source
             // Create an enemy
             Enemy enemy = _enemyFactory?.CreateEnemy() ?? new Enemy();
 
-            if(enemy is BirdEnemy)
+            if (enemy is BirdEnemy)
             {
                 enemyAnimation.Initialize(_birdTexture, Vector2.Zero, 0, 68, 68, 7, 30, Color.White, 1f, true);
             }
-            else if(enemy is BlackbirdEnemy)
+            else if (enemy is BlackbirdEnemy)
             {
                 enemyAnimation.Initialize(_blackbirdTexture, Vector2.Zero, 0, 16, 18, 8, 30, Color.White, 1f, true);
             }

@@ -62,6 +62,14 @@ namespace MultiplayerProject.Source.GameObjects.Enemy
             Value = ENEMY_DEATH_SCORE_INCREASE;
         }
 
+        public virtual void UpdateOnEnemyEvent(EnemyEventType eventType)
+        {
+            if(eventType is EnemyEventType.GameCloseToFinishing)
+            {
+                EnemyAnimation.Scale = 0.5f;
+            }
+        }
+
         public void Update(GameTime gameTime)
         {
             // The enemy always moves to the left so decrement its x position

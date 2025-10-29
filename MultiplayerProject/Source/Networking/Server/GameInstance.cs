@@ -121,6 +121,14 @@ namespace MultiplayerProject.Source
 
                         var timeDifference = (packet.SendDate - DateTime.UtcNow).TotalSeconds;
 
+                        Console.WriteLine("---> Player I think shot!");
+                        _enemyManager.NotifyEnemies(EnemyEventType.PlayerShot);
+                        var enemyEventPacket = NetworkPacketFactory.Instance.MakeEnemyEventPacket(EnemyEventType.PlayerShot);
+                        for (int i = 0; i < ComponentClients.Count; i++)
+                        {
+                            ComponentClients[i].SendPacketToClient(enemyEventPacket, MessageType.GI_ServerSend_EnemyEvent);
+                        }
+
                         // Use the player's factory to create the correct laser type
                         Player firingPlayer = _players[client.ID];
                         GameObjectFactory factory = GetFactoryFromPlayer(firingPlayer);
@@ -265,7 +273,6 @@ namespace MultiplayerProject.Source
                 {
                     for (int i = 0; i < ComponentClients.Count; i++)
                     {
-                        Console.WriteLine("---> Sending enemy event type packet to clients :p");
                         ComponentClients[i].SendPacketToClient(enemyEventPacket, MessageType.GI_ServerSend_EnemyEvent);
                     }
                 }
