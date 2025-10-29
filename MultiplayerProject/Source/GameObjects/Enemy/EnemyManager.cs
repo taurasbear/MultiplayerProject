@@ -77,6 +77,41 @@ namespace MultiplayerProject.Source
             }
         }
 
+        public void NotifyEnemies(EnemyEventType eventType)
+        {
+            if(eventType is EnemyEventType.GameCloseToFinishing)
+            {
+                Console.WriteLine("--> We got enemy event for game finishing up!");
+                for (int i = 0; i < _enemies.Count; i++)
+                {
+                    var enemy = _enemies[i];
+                    if (enemy is BlackbirdEnemy)
+                    {
+                        enemy.Speed += 8f;
+                    }
+                    else if (!(enemy is BirdEnemy))
+                    {
+                        enemy.EnemyAnimation.Scale = 0.5f;
+                    }
+                }
+            }
+            else if(eventType is EnemyEventType.PlayerShot)
+            {
+                for (int i = 0; i < _enemies.Count; i++)
+                {
+                    var enemy = _enemies[i];
+                    if (enemy is BlackbirdEnemy)
+                    {
+                        enemy.Position.Y -= 10f;
+                    }
+                    else if (enemy is BirdEnemy)
+                    {
+                        enemy.Position.Y += 10f;
+                    }
+                }
+            }
+        }
+
         public void Draw(SpriteBatch spriteBatch)
         {
             for (int i = 0; i < _enemies.Count; i++)

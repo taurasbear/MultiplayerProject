@@ -326,6 +326,13 @@ namespace MultiplayerProject.Source
             }
         }
 
+        private void ClientMessenger_OnEnemyEventPacket(BasePacket packet)
+        {
+            Console.WriteLine("--> Client received enemy event packet.");
+            var enemyEvent = (EnemyEventPacket)packet;
+            _enemyManager.NotifyEnemies(enemyEvent.EventType);   
+        }
+
         private void ClientMessenger_OnEnemyDefeatedPacket(EnemyDefeatedPacket packet)
         {
             EnemyDefeatedPacket enemyDefeatedPacket = packet;
@@ -462,6 +469,13 @@ namespace MultiplayerProject.Source
                     {
                         var enemyPacket = (EnemySpawnedPacket)recievedPacket;
                         ClientMessenger_OnEnemySpawnedPacket(enemyPacket);
+                        break;
+                    }
+
+                case MessageType.GI_ServerSend_EnemyEvent:
+                    {
+                        var enemyEventPacket = (EnemyEventPacket)recievedPacket;
+                        ClientMessenger_OnEnemyEventPacket(enemyEventPacket);
                         break;
                     }
 

@@ -24,7 +24,7 @@ namespace MultiplayerProject.Source.GameObjects.Enemy
 
         public string EnemyID { get; set; }
 
-        const float ENEMY_MOVE_SPEED = 6f;
+        public float Speed { get; set; } = 6f;
 
         const int ENEMY_STARTING_HEALTH = 10;
         const int ENEMY_DAMAGE = 10;
@@ -65,7 +65,7 @@ namespace MultiplayerProject.Source.GameObjects.Enemy
         public void Update(GameTime gameTime)
         {
             // The enemy always moves to the left so decrement its x position
-            Position.X -= ENEMY_MOVE_SPEED;
+            Position.X -= Speed;
 
             // Update the position of the Animation
             EnemyAnimation.Position = Position;

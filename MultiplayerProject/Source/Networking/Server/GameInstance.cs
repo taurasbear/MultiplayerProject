@@ -157,7 +157,7 @@ namespace MultiplayerProject.Source
             ApplyPlayerInput(gameTime);
 
             UpdateEnemies(gameTime);
-            
+
             CheckCollisions();
 
             if (sendPacketThisFrame)
@@ -196,7 +196,7 @@ namespace MultiplayerProject.Source
 
                 var enemy = _enemyManager.AddEnemy();
 
-                _enemySpawnCounter++; 
+                _enemySpawnCounter++;
                 bool isDeepClone = _enemySpawnCounter % 2 == 0; // Even enemies get deep clone, odd get shallow
 
                 if (isDeepClone)
@@ -242,11 +242,32 @@ namespace MultiplayerProject.Source
                     }
                 }
 
+                // Check if players are close to winning
+                EnemyEventPacket enemyEventPacket = null;
+                foreach (KeyValuePair<string, int> player in _playerScores)
+                {
+                    if (player.Value >= Application.SCORE_TO_WIN - 1)
+                    {
+                        _enemyManager.NotifyEnemies(EnemyEventType.GameCloseToFinishing);
+                        enemyEventPacket = NetworkPacketFactory.Instance.MakeEnemyEventPacket(EnemyEventType.GameCloseToFinishing);
+                        break;
+                    }
+                }
+
                 for (int i = 0; i < ComponentClients.Count; i++) // Send the enemy spawn to all clients
                 {
                     packet.TotalGameTime = (float)gameTime.TotalGameTime.TotalSeconds;
 
                     ComponentClients[i].SendPacketToClient(packet, MessageType.GI_ServerSend_EnemySpawn);
+                }
+
+                if (enemyEventPacket != null)
+                {
+                    for (int i = 0; i < ComponentClients.Count; i++)
+                    {
+                        Console.WriteLine("---> Sending enemy event type packet to clients :p");
+                        ComponentClients[i].SendPacketToClient(enemyEventPacket, MessageType.GI_ServerSend_EnemyEvent);
+                    }
                 }
 
                 var randomType = _enemyTypes[_random.Next(_enemyTypes.Length)];
@@ -267,7 +288,7 @@ namespace MultiplayerProject.Source
                     _playerLasers[collisions[iCollision].AttackingPlayerID].DeactivateLaser(collisions[iCollision].LaserID); // Deactivate collided laser
 
                     if (collisions[iCollision].CollisionType == CollisionManager.CollisionType.LaserToEnemy)
-                    {                      
+                    {
                         _enemyManager.DeactivateEnemy(collisions[iCollision].DefeatedEnemyID); // Deactivate collided enemy
 
                         // INCREMENT PLAYER SCORE HERE
@@ -364,7 +385,7 @@ namespace MultiplayerProject.Source
             var returnList = new List<Color>();
             for (int i = 0; i < playerCount && i < WaitingRoom.MAX_PEOPLE_PER_ROOM; i++)
             {
-                switch(i)
+                switch (i)
                 {
                     case 0:
                         returnList.Add(Color.White);
@@ -394,7 +415,7 @@ namespace MultiplayerProject.Source
             List<Laser> lasers = new List<Laser>();
 
             foreach (KeyValuePair<string, LaserManager> laserManager in _playerLasers)
-            { 
+            {
                 lasers.AddRange(laserManager.Value.Lasers);
             }
 
