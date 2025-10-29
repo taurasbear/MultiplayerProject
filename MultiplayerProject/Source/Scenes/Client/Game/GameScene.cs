@@ -5,12 +5,13 @@ using Microsoft.Xna.Framework.Input;
 using MultiplayerProject.Source.Helpers.Factories;
 using MultiplayerProject.Source.Helpers.Audio;
 using System.Collections.Generic; // Add this line
+using System.Linq;
 
 namespace MultiplayerProject.Source
 {
     public class GameScene : IScene
     {
-        private Dictionary<string, Player> _players;
+        private Dictionary<string, IPlayer> _players;
         private Dictionary<string, string> _playerNames;
         private List<RemotePlayer> _remotePlayers;
         private LocalPlayer _localPlayer;
@@ -40,7 +41,7 @@ namespace MultiplayerProject.Source
 
         public GameScene(int width, int height, int playerCount, string[] playerIDs, string[] playerNames, PlayerColour[] playerColours, string localClientID, Client client)
         {
-            _players = new Dictionary<string, Player>();
+            _players = new Dictionary<string, IPlayer>();
             _playerNames = new Dictionary<string, string>();
             _playerColours = new Dictionary<string, PlayerColour>();
             _remotePlayers = new List<RemotePlayer>();
@@ -90,7 +91,9 @@ namespace MultiplayerProject.Source
                 _playerColours[player.NetworkID] = playerColours[i];
                 _playerNames[player.NetworkID] = playerNames[i]; // Store player names
 
-                _players.Add(player.NetworkID, player);
+                // Wrap all players with NameTagDecorator by default to show names
+                IPlayer decoratedPlayer = new NameTagDecorator(player, showEnhancements: true);
+                _players.Add(player.NetworkID, decoratedPlayer);
             }
 
             // Pass localClientID to GameSceneGUI
@@ -136,12 +139,48 @@ namespace MultiplayerProject.Source
             return (Player)factory.GetPlayer();
         }
 
+        /// <summary>
+        /// Helper method to unwrap decorators and get the base Player object
+        /// </summary>
+        private T GetBasePlayer<T>(IPlayer decoratedPlayer) where T : Player
+        {
+            IPlayer current = decoratedPlayer;
+            
+            // Unwrap decorators to find the base player
+            while (current is PlayerDecorator decorator)
+            {
+                current = decorator.WrappedPlayer;
+            }
+            
+            return current as T;
+        }
+
+        /// <summary>
+        /// Helper method to find a specific decorator type in the decorator chain
+        /// </summary>
+        private T FindDecorator<T>(IPlayer decoratedPlayer) where T : PlayerDecorator
+        {
+            IPlayer current = decoratedPlayer;
+            
+            // Walk through the decorator chain to find the specific type
+            while (current is PlayerDecorator decorator)
+            {
+                if (decorator is T targetDecorator)
+                {
+                    return targetDecorator;
+                }
+                current = decorator.WrappedPlayer;
+            }
+            
+            return null;
+        }
+
         public void Initalise(ContentManager content, GraphicsDevice graphicsDevice)
         {
             // Load font for player names
             _font = content.Load<SpriteFont>("Font");
             
-            foreach (KeyValuePair<string, Player> player in _players)
+            foreach (KeyValuePair<string, IPlayer> player in _players)
             {
                 //player.Value.Initialize(content, _playerColours[player.Key]);
                 player.Value.Initialize(content);
@@ -181,7 +220,10 @@ namespace MultiplayerProject.Source
                 // Update shield status based on score
                 UpdatePlayerShields();
                 
-                // Update fire rate based on score
+                // Update rapid fire status based on score  
+                UpdatePlayerRapidFire(currentScore);
+                
+                // Update fire rate based on score (keeping existing for compatibility)
                 _laserManager.UpdateFireRate(currentScore);
             }
         }
@@ -191,10 +233,129 @@ namespace MultiplayerProject.Source
             // Give shield to players who reach score of 5 or higher
             const int SHIELD_SCORE_THRESHOLD = 5;
             
-            foreach (var player in _players.Values)
+            foreach (var kvp in _players.ToList()) // ToList to avoid modification during iteration
             {
+                var player = kvp.Value;
                 int playerScore = _GUI.GetPlayerScore(player.NetworkID);
-                player.HasShield = playerScore >= SHIELD_SCORE_THRESHOLD;
+                
+                // Check if player should have shield but doesn't have one yet
+                if (playerScore >= SHIELD_SCORE_THRESHOLD)
+                {
+                    // Look for existing ShieldDecorator in the decorator chain
+                    var existingShield = FindDecorator<ShieldDecorator>(player);
+                    
+                    if (existingShield == null)
+                    {
+                        // No shield exists, add one while preserving NameTagDecorator as outermost
+                        if (player is NameTagDecorator nameTagDecorator)
+                        {
+                            // Extract the player beneath the NameTagDecorator
+                            var playerBelowNameTag = nameTagDecorator.WrappedPlayer;
+                            var newShieldPlayer = new ShieldDecorator(playerBelowNameTag);
+                            
+                            // Rebuild: Base -> Shield -> NameTag
+                            _players[kvp.Key] = new NameTagDecorator(newShieldPlayer, showEnhancements: true);
+                        }
+                        else
+                        {
+                            // No NameTagDecorator present, add Shield and then NameTag
+                            var newShieldPlayer = new ShieldDecorator(player);
+                            _players[kvp.Key] = new NameTagDecorator(newShieldPlayer, showEnhancements: true);
+                        }
+                    }
+                    // If shield already exists, do nothing (prevents infinite updates)
+                }
+                // Note: We don't remove shields when score drops to keep it simple
+                // In a full implementation, you might want to track shield state differently
+            }
+        }
+        
+        private void UpdatePlayerRapidFire(int localPlayerScore)
+        {
+            // Apply rapid fire decorator to local player based on score
+            if (_localPlayer != null && localPlayerScore > 0)
+            {
+                // Check if the local player needs rapid fire enhancement
+                var currentPlayer = _players[_localPlayer.NetworkID];
+                
+                // Look for existing RapidFireDecorator in the decorator chain
+                var existingRapidFire = FindDecorator<RapidFireDecorator>(currentPlayer);
+                
+                if (existingRapidFire != null)
+                {
+                    // Check if the fire rate needs updating (score changed significantly)
+                    float expectedMultiplier = 1.0f + (localPlayerScore / 3) * 0.25f;
+                    expectedMultiplier = System.Math.Min(expectedMultiplier, 3.0f);
+                    
+                    if (System.Math.Abs(existingRapidFire.GetFireRateMultiplier() - expectedMultiplier) > 0.1f)
+                    {
+                        // Score changed significantly, reapply rapid fire with new multiplier
+                        var basePlayer = GetBasePlayer<Player>(currentPlayer);
+                        
+                        // Rebuild the decoration chain: Base -> RapidFire -> NameTag (to preserve name display)
+                        var newRapidFirePlayer = RapidFireDecorator.FromScore(basePlayer, localPlayerScore);
+                        _players[_localPlayer.NetworkID] = new NameTagDecorator(newRapidFirePlayer, showEnhancements: true);
+                    }
+                    // If multiplier is close enough, do nothing (prevents infinite updates)
+                }
+                else
+                {
+                    // Apply rapid fire decorator for the first time
+                    // Check if currentPlayer is already a NameTagDecorator to preserve it
+                    if (currentPlayer is NameTagDecorator nameTagDecorator)
+                    {
+                        // Extract the player beneath the NameTagDecorator
+                        var playerBelowNameTag = nameTagDecorator.WrappedPlayer;
+                        var newRapidFirePlayer = RapidFireDecorator.FromScore(playerBelowNameTag, localPlayerScore);
+                        
+                        // Rebuild: Base -> RapidFire -> NameTag
+                        _players[_localPlayer.NetworkID] = new NameTagDecorator(newRapidFirePlayer, showEnhancements: true);
+                    }
+                    else
+                    {
+                        // No NameTagDecorator present, just add RapidFire and then NameTag
+                        var newRapidFirePlayer = RapidFireDecorator.FromScore(currentPlayer, localPlayerScore);
+                        _players[_localPlayer.NetworkID] = new NameTagDecorator(newRapidFirePlayer, showEnhancements: true);
+                    }
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Helper method to unwrap decorators and get the base player
+        /// This is a simplified version - in a full implementation you might want a more sophisticated approach
+        /// </summary>
+        private IPlayer GetBasePlayer(IPlayer decoratedPlayer)
+        {
+            // For now, just return the decorated player as we're keeping decorations
+            // In a full implementation, you might want to unwrap to the actual base Player
+            return decoratedPlayer;
+        }
+        
+        /// <summary>
+        /// Test method to demonstrate decorator pattern usage
+        /// </summary>
+        private void TestDecoratorPattern()
+        {
+            // Example: Create a player with multiple decorators
+            if (_localPlayer != null)
+            {
+                IPlayer basePlayer = _localPlayer;
+                
+                // Apply decorators in sequence
+                IPlayer decoratedPlayer = new NameTagDecorator(
+                    new RapidFireDecorator(
+                        new ShieldDecorator(basePlayer),
+                        2.0f, 15f
+                    ), 
+                    showEnhancements: true
+                );
+                
+                // Test that the player has all enhancements
+                bool hasShield = decoratedPlayer.GetHasShield();
+                float fireRate = decoratedPlayer.GetFireRateMultiplier();
+                
+                Logger.Instance?.Info($"Decorated player - Shield: {hasShield}, Fire Rate: {fireRate}x");
             }
         }
 
@@ -206,7 +367,7 @@ namespace MultiplayerProject.Source
 
             _laserManager.Draw(spriteBatch);
 
-            foreach (KeyValuePair<string, Player> player in _players)
+            foreach (KeyValuePair<string, IPlayer> player in _players)
             {
                 // Use the new Draw method that shows player names
                 player.Value.Draw(spriteBatch, _font);
@@ -356,7 +517,7 @@ namespace MultiplayerProject.Source
             }
             else
             {
-                RemotePlayer remotePlayer = _players[serverUpdate.PlayerID] as RemotePlayer;
+                RemotePlayer remotePlayer = GetBasePlayer<RemotePlayer>(_players[serverUpdate.PlayerID]);
                 remotePlayer.SetUpdatePacket(serverUpdate);
             }
         }

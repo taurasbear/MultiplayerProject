@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace MultiplayerProject.Source
 {
-    class Enemy
+    public abstract class Enemy
     {
         public Animation EnemyAnimation;
         public Vector2 Position;
@@ -16,12 +16,15 @@ namespace MultiplayerProject.Source
 
         public Vector2 CentrePosition { get { return new Vector2(Position.X - Width/2, Position.Y - Height / 2); } }
         public int Width { get; set; }
-        public int Height { get { return EnemyAnimation.FrameHeight; } }
+        public int Height { get { return EnemyAnimation?.FrameHeight ?? 0; } }
 
         public string EnemyID { get; set; }
 
         private IMoveAlgorithm _moveAlgorithm;
         private int _maxHealth;
+        
+        // Bridge Pattern: Reference to renderer implementation
+        private IEnemyRenderer _renderer;
 
         const float ENEMY_MOVE_SPEED = 4f;
 
@@ -63,6 +66,12 @@ namespace MultiplayerProject.Source
         {
             _moveAlgorithm = algorithm;
         }
+        
+        // Bridge Pattern: Set the renderer implementation
+        public void SetRenderer(IEnemyRenderer renderer)
+        {
+            _renderer = renderer;
+        }
 
         public void MoveDirection(string direction)
         {
@@ -72,9 +81,10 @@ namespace MultiplayerProject.Source
         public void TakeDamage(int damageAmount)
         {
             Health -= damageAmount;
+            OnDamage(damageAmount);
         }
 
-        public void Update(GameTime gameTime)
+        public virtual void Update(GameTime gameTime)
         {
             // Use strategy pattern for movement with GameTime
             if (_moveAlgorithm != null)
@@ -87,12 +97,19 @@ namespace MultiplayerProject.Source
                 Position.X -= ENEMY_MOVE_SPEED;
             }
 
-            // If the enemy is past the screen or its health reaches 0 then deactivate it
-            if (Position.X < -Width || Health <= 0)
+            // Check for death before enemy-specific update
+            if (Health <= 0)
             {
-                // By setting the Active flag to false, the game will remove this objet from the
-                // active game list
+                OnDeath();
                 Active = false;
+                return;
+            }
+
+            // If the enemy is past the screen then deactivate it
+            if (Position.X < -Width)
+            {
+                Active = false;
+                return;
             }
 
             // Update the position of the Animation
@@ -100,6 +117,21 @@ namespace MultiplayerProject.Source
 
             // Update Animation
             EnemyAnimation.Update(gameTime);
+
+            // Call enemy-specific update logic
+            UpdateEnemySpecific(gameTime);
+        }
+
+        // Abstract method that must be implemented by concrete enemy classes
+        protected abstract void UpdateEnemySpecific(GameTime gameTime);
+
+        // Abstract method for enemy-specific death behavior
+        protected abstract void OnDeath();
+
+        // Virtual method for taking damage - can be overridden for special behavior
+        protected virtual void OnDamage(int damageAmount)
+        {
+            // Default damage behavior - can be overridden
         }
 
         public void Update()
@@ -126,9 +158,14 @@ namespace MultiplayerProject.Source
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            if (EnemyAnimation != null)
+            // Bridge Pattern: Use renderer if available, otherwise fallback to original
+            if (_renderer != null)
             {
-                // Draw the animation
+                _renderer.Render(spriteBatch, Position, EnemyAnimation);
+            }
+            else if (EnemyAnimation != null)
+            {
+                // Fallback to original rendering for backward compatibility
                 EnemyAnimation.Draw(spriteBatch);
             }
         }

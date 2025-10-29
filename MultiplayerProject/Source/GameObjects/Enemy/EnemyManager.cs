@@ -6,13 +6,12 @@ using System.Collections.Generic;
 
 namespace MultiplayerProject.Source
 {
-    class EnemyManager
+    public class EnemyManager
     {
         public List<Enemy> Enemies { get { return _enemies; } }
         public float Width { get { return _width; } }
 
         private Texture2D _enemyTexture;
-
         private List<Enemy> _enemies;
 
         private Random _random;
@@ -23,6 +22,9 @@ namespace MultiplayerProject.Source
         private double _lastMovementChangeTime;
         private const double SECONDS_PER_MOVEMENT_CHANGE = 5.0;
         private int _currentMovementIndex;
+        
+        // Bridge Pattern: Current renderer for all enemies
+        private IEnemyRenderer _currentRenderer;
 
         public EnemyManager()
         {
@@ -43,6 +45,39 @@ namespace MultiplayerProject.Source
         public void Initalise(ContentManager content)
         {
             _enemyTexture = content.Load<Texture2D>("mineAnimation");
+            
+            // Initialize Bridge Pattern with AnimatedRenderer (original look)
+            InitializeRenderer(content, "animated");
+        }
+        
+        /// <summary>
+        /// Initialize or change the renderer used for all enemies
+        /// </summary>
+        public void InitializeRenderer(ContentManager content, string rendererType = "animated")
+        {
+            switch (rendererType.ToLower())
+            {
+                case "animated":
+                    _currentRenderer = new AnimatedRenderer();
+                    break;
+                case "static":
+                    _currentRenderer = new StaticRenderer();
+                    break;
+                case "particle":
+                    _currentRenderer = new ParticleRenderer();
+                    break;
+                default:
+                    _currentRenderer = new AnimatedRenderer(); // Default fallback
+                    break;
+            }
+            
+            _currentRenderer.Initialize(content);
+            
+            // Update existing enemies to use new renderer
+            foreach (var enemy in _enemies)
+            {
+                enemy.SetRenderer(_currentRenderer);
+            }
         }
 
         public void Update(GameTime gameTime)
@@ -80,7 +115,7 @@ namespace MultiplayerProject.Source
             }
         }
 
-        public Enemy AddEnemy()
+        public Enemy AddEnemy(string enemyType = "standard")
         {
             // Create the animation object
             Animation enemyAnimation = new Animation();
@@ -92,8 +127,18 @@ namespace MultiplayerProject.Source
             Vector2 position = new Vector2(Application.WINDOW_WIDTH + _width / 2,
                 _random.Next(100, Application.WINDOW_HEIGHT - 100));
 
-            // Create an enemy
-            Enemy enemy = new Enemy();
+            // Create appropriate enemy type using Bridge pattern
+            Enemy enemy;
+            switch (enemyType.ToLower())
+            {
+                case "boss":
+                    enemy = new BossEnemy(_currentRenderer);
+                    break;
+                case "standard":
+                default:
+                    enemy = new StandardEnemy(_currentRenderer);
+                    break;
+            }
 
             // Initialize the enemy
             enemy.Initialize(enemyAnimation, position);
@@ -107,7 +152,7 @@ namespace MultiplayerProject.Source
             return enemy;
         }
 
-        public void AddEnemy(Vector2 position, string enemyID)
+        public void AddEnemy(Vector2 position, string enemyID, string enemyType = "standard")
         {
             // Create the animation object
             Animation enemyAnimation = new Animation();
@@ -115,8 +160,18 @@ namespace MultiplayerProject.Source
             // Initialize the animation with the correct animation information
             enemyAnimation.Initialize(_enemyTexture, Vector2.Zero, 0, 47, 61, 8, 30, Color.White, 1f, true);
 
-            // Create an enemy
-            Enemy enemy = new Enemy(enemyID);
+            // Create appropriate enemy type using Bridge pattern
+            Enemy enemy;
+            switch (enemyType.ToLower())
+            {
+                case "boss":
+                    enemy = new BossEnemy(enemyID, _currentRenderer);
+                    break;
+                case "standard":
+                default:
+                    enemy = new StandardEnemy(enemyID, _currentRenderer);
+                    break;
+            }
 
             // Initialize the enemy
             enemy.Initialize(enemyAnimation, position);
@@ -228,6 +283,39 @@ namespace MultiplayerProject.Source
             
             // Move to next movement in cycle
             _currentMovementIndex = (_currentMovementIndex + 1) % movementTypes.Length;
+        }
+        
+        /// <summary>
+        /// Change the renderer for all enemies at runtime
+        /// </summary>
+        public void ChangeRenderer(ContentManager content, string rendererType)
+        {
+            // Create new renderer
+            IEnemyRenderer newRenderer;
+            switch (rendererType.ToLower())
+            {
+                case "animated":
+                    newRenderer = new AnimatedRenderer();
+                    break;
+                case "static":
+                    newRenderer = new StaticRenderer();
+                    break;
+                case "particle":
+                    newRenderer = new ParticleRenderer();
+                    break;
+                default:
+                    return; // Invalid renderer type
+            }
+            
+            newRenderer.Initialize(content);
+            
+            // Update all existing enemies with new renderer
+            foreach (var enemy in _enemies)
+            {
+                enemy.SetRenderer(newRenderer);
+            }
+            
+            _currentRenderer = newRenderer;
         }
     }
 }
