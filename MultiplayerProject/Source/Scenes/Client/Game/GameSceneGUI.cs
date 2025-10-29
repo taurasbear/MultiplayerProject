@@ -54,13 +54,31 @@ namespace MultiplayerProject.Source
             foreach (KeyValuePair<string, string> player in _playerNames)
             {
                 PlayerColour colour = _playerColours[player.Key];
+                int playerScore = _playerScores[player.Key];
 
                 // DRAW NAME
                 spriteBatch.DrawString(_font, player.Value, new Vector2(currentXpos, 0), new Color(colour.R, colour.G, colour.B));
                 // DRAW SCORE
-                spriteBatch.DrawString(_font, _playerScores[player.Key].ToString(), new Vector2(currentXpos + ((xDistanceBetweenEach ) / 2), textWidth/2), new Color(colour.R, colour.G, colour.B));
+                spriteBatch.DrawString(_font, playerScore.ToString(), new Vector2(currentXpos + ((xDistanceBetweenEach ) / 2), textWidth/2), new Color(colour.R, colour.G, colour.B));
+                
+                // DRAW SHIELD STATUS
+                if (playerScore >= 5) // Shield threshold
+                {
+                    spriteBatch.DrawString(_font, "SHIELD", new Vector2(currentXpos, textWidth), Color.Cyan);
+                }
 
                 currentXpos += (textWidth + xDistanceBetweenEach);
+            }
+            
+            // Draw fire rate indicator for local player
+            if (!string.IsNullOrEmpty(_localPlayerID) && _playerScores.ContainsKey(_localPlayerID))
+            {
+                int localScore = _playerScores[_localPlayerID];
+                float fireRateMultiplier = 1.0f + (localScore / 3) * 0.25f;
+                fireRateMultiplier = Math.Min(fireRateMultiplier, 3.0f);
+                
+                string fireRateText = $"Fire Rate: {fireRateMultiplier:F1}x";
+                spriteBatch.DrawString(_font, fireRateText, new Vector2(10, _height - 50), Color.Yellow);
             }
         }
 

@@ -11,6 +11,7 @@ namespace MultiplayerProject.Source
     public class GameScene : IScene
     {
         private Dictionary<string, Player> _players;
+        private Dictionary<string, string> _playerNames;
         private List<RemotePlayer> _remotePlayers;
         private LocalPlayer _localPlayer;
         private Dictionary<string, PlayerColour> _playerColours;
@@ -24,6 +25,9 @@ namespace MultiplayerProject.Source
         
         // Add audio controller field
         private ScoreBasedAudioController _audioController;
+        
+        // Font for drawing player names
+        private SpriteFont _font;
 
         private int framesSinceLastSend;
 
@@ -37,6 +41,7 @@ namespace MultiplayerProject.Source
         public GameScene(int width, int height, int playerCount, string[] playerIDs, string[] playerNames, PlayerColour[] playerColours, string localClientID, Client client)
         {
             _players = new Dictionary<string, Player>();
+            _playerNames = new Dictionary<string, string>();
             _playerColours = new Dictionary<string, PlayerColour>();
             _remotePlayers = new List<RemotePlayer>();
 
@@ -81,7 +86,9 @@ namespace MultiplayerProject.Source
 
                 player.NetworkID = playerIDs[i];
                 player.Colour = playerColours[i];
+                player.PlayerName = playerNames[i]; // Set the player name
                 _playerColours[player.NetworkID] = playerColours[i];
+                _playerNames[player.NetworkID] = playerNames[i]; // Store player names
 
                 _players.Add(player.NetworkID, player);
             }
@@ -131,6 +138,9 @@ namespace MultiplayerProject.Source
 
         public void Initalise(ContentManager content, GraphicsDevice graphicsDevice)
         {
+            // Load font for player names
+            _font = content.Load<SpriteFont>("Font");
+            
             foreach (KeyValuePair<string, Player> player in _players)
             {
                 //player.Value.Initialize(content, _playerColours[player.Key]);
@@ -165,8 +175,26 @@ namespace MultiplayerProject.Source
             // Update audio based on local player score
             if (_localPlayer != null && _GUI != null)
             {
-                int currentScore = _GUI.GetLocalPlayerScore(); // You'll need to add this method
+                int currentScore = _GUI.GetLocalPlayerScore();
                 _audioController.Update(currentScore);
+                
+                // Update shield status based on score
+                UpdatePlayerShields();
+                
+                // Update fire rate based on score
+                _laserManager.UpdateFireRate(currentScore);
+            }
+        }
+        
+        private void UpdatePlayerShields()
+        {
+            // Give shield to players who reach score of 5 or higher
+            const int SHIELD_SCORE_THRESHOLD = 5;
+            
+            foreach (var player in _players.Values)
+            {
+                int playerScore = _GUI.GetPlayerScore(player.NetworkID);
+                player.HasShield = playerScore >= SHIELD_SCORE_THRESHOLD;
             }
         }
 
@@ -180,7 +208,8 @@ namespace MultiplayerProject.Source
 
             foreach (KeyValuePair<string, Player> player in _players)
             {
-                player.Value.Draw(spriteBatch);
+                // Use the new Draw method that shows player names
+                player.Value.Draw(spriteBatch, _font);
             }
 
             _explosionManager.Draw(spriteBatch);

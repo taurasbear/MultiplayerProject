@@ -25,6 +25,9 @@ namespace MultiplayerProject.Source
         private const float SECONDS_IN_MINUTE = 60f;
         private const float RATE_OF_FIRE = 200f;
         private const float LASER_SPAWN_DISTANCE = 40f;
+        
+        // Dynamic fire rate based on score
+        private float _currentFireRate = RATE_OF_FIRE;
 
         public string NetworkID { get; set; }
 
@@ -34,7 +37,8 @@ namespace MultiplayerProject.Source
             _laserBeams = new List<Laser>();
             _playerLasers = new Dictionary<string, List<Laser>>();
 
-            _laserSpawnTime = TimeSpan.FromSeconds(SECONDS_IN_MINUTE / RATE_OF_FIRE);
+            _currentFireRate = RATE_OF_FIRE;
+            _laserSpawnTime = TimeSpan.FromSeconds(SECONDS_IN_MINUTE / _currentFireRate);
             _previousLaserSpawnTime = TimeSpan.Zero;
         }
 
@@ -89,6 +93,24 @@ namespace MultiplayerProject.Source
             }
 
             return null;
+        }
+        
+        /// <summary>
+        /// Update fire rate based on player score
+        /// Higher scores = faster fire rate
+        /// </summary>
+        public void UpdateFireRate(int playerScore)
+        {
+            // Increase fire rate based on score
+            // Base rate: 200, increases by 50 for every 3 points
+            float scoreMultiplier = 1.0f + (playerScore / 3) * 0.25f; // 25% increase per 3 points
+            _currentFireRate = RATE_OF_FIRE * scoreMultiplier;
+            
+            // Cap the maximum fire rate to prevent it from getting too crazy
+            _currentFireRate = Math.Min(_currentFireRate, RATE_OF_FIRE * 3.0f); // Max 3x fire rate
+            
+            // Update the spawn time
+            _laserSpawnTime = TimeSpan.FromSeconds(SECONDS_IN_MINUTE / _currentFireRate);
         }
 
         public void FireRemoteLaserClient(Vector2 position, float rotation, string playerID, DateTime originalTimeFired, string laserID, PlayerColour colour)

@@ -11,6 +11,8 @@ namespace MultiplayerProject.Source
         public override bool Active { get; set; }
         public int Health;
         public PlayerColour Colour { get; set; }  
+        public string PlayerName { get; set; } = "Player";
+        public bool HasShield { get; set; } = false;
 
         public int Width { get; set; }
         public int Height { get; set; }
@@ -115,6 +117,49 @@ namespace MultiplayerProject.Source
         public override void Draw(SpriteBatch spriteBatch)
         {
             PlayerAnimation.Draw(spriteBatch);
+        }
+
+        public virtual void Draw(SpriteBatch spriteBatch, SpriteFont font)
+        {
+            // Draw the player animation
+            PlayerAnimation.Draw(spriteBatch);
+            
+            // Draw player name above the player
+            if (font != null && !string.IsNullOrEmpty(PlayerName))
+            {
+                Vector2 nameSize = font.MeasureString(PlayerName);
+                Vector2 namePosition = new Vector2(
+                    PlayerState.Position.X - nameSize.X / 2,
+                    PlayerState.Position.Y - Height / 2 - nameSize.Y - 5
+                );
+                
+                // Draw name with player color
+                Color nameColor = new Color(Colour.R, Colour.G, Colour.B);
+                spriteBatch.DrawString(font, PlayerName, namePosition, nameColor);
+                
+                // Draw shield indicator next to name if player has shield
+                if (HasShield)
+                {
+                    string shieldText = " [SHIELD]";
+                    Vector2 shieldSize = font.MeasureString(shieldText);
+                    Vector2 shieldPosition = new Vector2(
+                        namePosition.X + nameSize.X,
+                        namePosition.Y
+                    );
+                    spriteBatch.DrawString(font, shieldText, shieldPosition, Color.Cyan);
+                }
+            }
+        }
+        
+        private void DrawShield(SpriteBatch spriteBatch)
+        {
+            // This method can be implemented later with proper shield graphics
+            // For now, shield indication is shown in the player name
+        }
+        
+        private void DrawLine(SpriteBatch spriteBatch, Vector2 start, Vector2 end, Color color)
+        {
+            // This method can be implemented later for drawing shield effects
         }
 
         public void SetPlayerState(PlayerUpdatePacket packet)
