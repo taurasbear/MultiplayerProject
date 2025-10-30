@@ -193,6 +193,12 @@ namespace MultiplayerProject.Source
             _explosionManager.Initalise(content);
             _backgroundManager.Initalise(content);
             
+            // Set default key bindings ONLY if none exist
+            if (_keyCommandMap == null || _keyCommandMap.Count == 0)
+            {
+                InitializeDefaultKeyBindings();
+            }
+
             // Start the audio controller
             _audioController.Start();
             Logger.Instance.Info("Audio controller started in GameScene");
@@ -410,29 +416,69 @@ namespace MultiplayerProject.Source
             }
         }
 
+        // 1. Command interface and concrete commands
+        public interface IInputCommand
+        {
+            void Execute(KeyboardMovementInput input);
+        }
+
+        public class MoveLeftCommand : IInputCommand
+        {
+            public void Execute(KeyboardMovementInput input) => input.LeftPressed = true;
+        }
+
+        public class MoveRightCommand : IInputCommand
+        {
+            public void Execute(KeyboardMovementInput input) => input.RightPressed = true;
+        }
+
+        public class MoveUpCommand : IInputCommand
+        {
+            public void Execute(KeyboardMovementInput input) => input.UpPressed = true;
+        }
+
+        public class MoveDownCommand : IInputCommand
+        {
+            public void Execute(KeyboardMovementInput input) => input.DownPressed = true;
+        }
+
+        public class FireCommand : IInputCommand
+        {
+            public void Execute(KeyboardMovementInput input) => input.FirePressed = true;
+        }
+
+        // 2. Add a mapping from Keys to commands
+        private Dictionary<Keys, IInputCommand> _keyCommandMap = new Dictionary<Keys, IInputCommand>();
+
+        // 3. Initialize default mapping (call in constructor or Initalise)
+        private void InitializeDefaultKeyBindings()
+        {
+            _keyCommandMap = new Dictionary<Keys, IInputCommand>
+            {
+                { Keys.Left, new MoveLeftCommand() },
+                { Keys.Right, new MoveRightCommand() },
+                { Keys.Up, new MoveUpCommand() },
+                { Keys.Down, new MoveDownCommand() },
+                { Keys.Space, new FireCommand() }
+                // Add more or allow remapping
+            };
+        }
+
+        // 4. Refactor ProcessInputForLocalPlayer to use commands
         private KeyboardMovementInput ProcessInputForLocalPlayer(GameTime gameTime, InputInformation inputInfo)
         {
             KeyboardMovementInput input = new KeyboardMovementInput();
 
-            // Keyboard/Dpad controls
-            if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Left) || inputInfo.CurrentGamePadState.DPad.Left == ButtonState.Pressed)
+            foreach (var kvp in _keyCommandMap)
             {
-                input.LeftPressed = true;
-            }
-            if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Right) || inputInfo.CurrentGamePadState.DPad.Right == ButtonState.Pressed)
-            {
-                input.RightPressed = true;
-            }
-            if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Up) || inputInfo.CurrentGamePadState.DPad.Up == ButtonState.Pressed)
-            {
-                input.UpPressed = true;
-            }
-            if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Down) || inputInfo.CurrentGamePadState.DPad.Down == ButtonState.Pressed)
-            {
-                input.DownPressed = true;
+                if (inputInfo.CurrentKeyboardState.IsKeyDown(kvp.Key))
+                {
+                    kvp.Value.Execute(input);
+                }
             }
 
-            if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Space) || inputInfo.CurrentGamePadState.Buttons.X == ButtonState.Pressed)
+            // Fire logic (unchanged, but now uses input.FirePressed)
+            if (input.FirePressed)
             {
                 var laser = _laserManager.FireLocalLaserClient(gameTime, _localPlayer.Position, _localPlayer.Rotation, _playerColours[_localPlayer.NetworkID]);
                 if (laser != null)
@@ -637,6 +683,12 @@ namespace MultiplayerProject.Source
         public void SendMessageToTheServer(BasePacket packet, MessageType messageType)
         {
             Client.SendMessageToServer(packet, messageType);
+        }
+
+        // Add this method to GameScene
+        public void BindKey(Keys key, IInputCommand command)
+        {
+            _keyCommandMap[key] = command;
         }
     }
 }

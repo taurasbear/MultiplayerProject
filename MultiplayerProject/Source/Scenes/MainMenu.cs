@@ -34,7 +34,19 @@ namespace MultiplayerProject.Source
         private Color _serverBtnColour;
         private string _serverBtnText = "START SERVER";
 
+        // Controls button
+        private Vector2 _controlsBtnPosition;
+        private Rectangle _controlsBtnRect;
+        private Color _controlsBtnColour;
+        private string _controlsBtnText = "SET CONTROLS";
+
         private GraphicsDevice _device;
+
+        private int _bindingStep = 0;
+        private Keys _leftKey, _rightKey, _upKey, _downKey, _fireKey;
+        private bool _bindingActive = false;
+
+        private KeyboardState _prevKeyState;
 
         public MainMenu()
         {
@@ -64,6 +76,13 @@ namespace MultiplayerProject.Source
             _serverBtnRect = new Rectangle((int)_serverBtnPosition.X, (int)_serverBtnPosition.Y,
                 (int)_font.MeasureString(_serverBtnText).X, (int)_font.MeasureString(_serverBtnText).Y);
             _serverBtnColour = Color.Blue;
+
+            _controlsBtnPosition = new Vector2(Application.WINDOW_WIDTH / 2, Application.WINDOW_HEIGHT - (_font.MeasureString(_controlsBtnText).Y));
+            _controlsBtnPosition.X -= (_font.MeasureString(_controlsBtnText).X / 2);
+            _controlsBtnPosition.Y -= 100;
+            _controlsBtnRect = new Rectangle((int)_controlsBtnPosition.X, (int)_controlsBtnPosition.Y,
+                (int)_font.MeasureString(_controlsBtnText).X, (int)_font.MeasureString(_controlsBtnText).Y);
+            _controlsBtnColour = Color.Blue;
         }
 
         public void Draw(SpriteBatch spriteBatch)
@@ -83,14 +102,102 @@ namespace MultiplayerProject.Source
             serverBtnTexture.CreateBorder(1, _serverBtnColour);
             spriteBatch.Draw(serverBtnTexture, _serverBtnPosition, Color.White);
 
+            // Draw controls button
+            spriteBatch.DrawString(_font, _controlsBtnText, _controlsBtnPosition, Color.White);
+            Texture2D controlsBtnTexture = new Texture2D(_device, _controlsBtnRect.Width, _controlsBtnRect.Height);
+            controlsBtnTexture.CreateBorder(1, _controlsBtnColour);
+            spriteBatch.Draw(controlsBtnTexture, _controlsBtnPosition, Color.White);
+
+            // Draw key binding instructions if active
+            if (_bindingActive)
+            {
+                string instruction = "";
+                switch (_bindingStep)
+                {
+                    case 1: instruction = "Press a key for LEFT"; break;
+                    case 2: instruction = "Press a key for RIGHT"; break;
+                    case 3: instruction = "Press a key for UP"; break;
+                    case 4: instruction = "Press a key for DOWN"; break;
+                    case 5: instruction = "Press a key for FIRE"; break;
+                }
+                Vector2 instrPos = new Vector2(Application.WINDOW_WIDTH / 2, _controlsBtnPosition.Y + 40);
+                instrPos.X -= (_font.MeasureString(instruction).X / 2);
+                spriteBatch.DrawString(_font, instruction, instrPos, Color.Yellow);
+            }
+
             _textbox.Draw(spriteBatch);
+        }
+
+        private void OpenKeyBindingDialog()
+        {
+            _bindingStep = 1;
+            _bindingActive = true;
+            _prevKeyState = Keyboard.GetState(); // Reset previous state
         }
 
         public void ProcessInput(GameTime gameTime, InputInformation inputInfo)
         {
+            if (_bindingActive)
+            {
+                HandleKeyBindingInput(inputInfo);
+                return;
+            }
             UpdateTextbox(gameTime);
             UpdateButtons(inputInfo);
         }
+
+        private void HandleKeyBindingInput(InputInformation inputInfo)
+        {
+            KeyboardState ks = inputInfo.CurrentKeyboardState;
+            Keys[] pressed = ks.GetPressedKeys();
+
+            // Only register a key if it was not pressed in the previous frame
+            foreach (var key in pressed)
+            {
+                if (Array.IndexOf(_prevKeyState.GetPressedKeys(), key) == -1)
+                {
+                    switch (_bindingStep)
+                    {
+                        case 1:
+                            _leftKey = key;
+                            _bindingStep++;
+                            break;
+                        case 2:
+                            _rightKey = key;
+                            _bindingStep++;
+                            break;
+                        case 3:
+                            _upKey = key;
+                            _bindingStep++;
+                            break;
+                        case 4:
+                            _downKey = key;
+                            _bindingStep++;
+                            break;
+                        case 5:
+                            _fireKey = key;
+                            _bindingStep = 0;
+                            _bindingActive = false;
+                            ApplyKeyBindings();
+                            break;
+                    }
+                    break; // Only process one key per frame
+                }
+            }
+
+            _prevKeyState = ks;
+        }
+
+        private void ApplyKeyBindings()
+        {
+            // You need a reference to your GameScene instance to call BindKey.
+            // For demo, raise an event with the selected keys:
+            OnControlsConfigured?.Invoke(_leftKey, _rightKey, _upKey, _downKey, _fireKey);
+        }
+
+        // Add this event to MainMenu
+        public delegate void ControlsConfiguredDelegate(Keys left, Keys right, Keys up, Keys down, Keys fire);
+        public static event ControlsConfiguredDelegate OnControlsConfigured;
 
         public void Update(GameTime gameTime)
         {
@@ -133,6 +240,11 @@ namespace MultiplayerProject.Source
                     // START GAME AS SERVER
                     OnServerStartRequested("str");
                 }
+                else if (_controlsBtnRect.Contains(inputInfo.CurrentMouseState.Position))
+                {
+                    // Open key binding dialog
+                    OpenKeyBindingDialog();
+                }
             }
             else
             {
@@ -159,6 +271,15 @@ namespace MultiplayerProject.Source
                 else
                 {
                     _serverBtnColour = Color.Blue;
+                }
+
+                if (_controlsBtnRect.Contains(inputInfo.CurrentMouseState.Position))
+                {
+                    _controlsBtnColour = Color.LightGreen;
+                }
+                else
+                {
+                    _controlsBtnColour = Color.Blue;
                 }
             }
         }

@@ -64,6 +64,12 @@ namespace MultiplayerProject
             MainMenu.OnClientStartRequested += OnClientStartRequested;
 
             ClientApplication.OnRequestToReturnToMainMenu += ReturnToMainMenu;
+
+            // Add this block:
+            MainMenu.OnControlsConfigured += (left, right, up, down, fire) =>
+            {
+                _client.SetCustomBindings(left, right, up, down, fire);
+            };
         }
 
         protected override void Initialize()
