@@ -56,5 +56,7 @@ namespace MultiplayerProject.Source
         public Enemy AddNewEnemy() => _enemyManager.AddEnemy();
 
         public void SetNextEnemyType(EnemyType enemyType) => _enemyManager.SetEnemyType(enemyType);
+
+        public void NotifyEnemies(EnemyEventType eventType) => _enemyManager.NotifyEnemies(eventType);
     }
 }

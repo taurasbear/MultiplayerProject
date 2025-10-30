@@ -116,7 +116,7 @@ namespace MultiplayerProject.Source
                         var timeDifference = (packet.SendDate - DateTime.UtcNow).TotalSeconds;
 
                         Console.WriteLine("---> Player I think shot!");
-                        _enemyManager.NotifyEnemies(EnemyEventType.PlayerShot);
+                        _gameFacade.NotifyEnemies(EnemyEventType.PlayerShot);
                         var enemyEventPacket = NetworkPacketFactory.Instance.MakeEnemyEventPacket(EnemyEventType.PlayerShot);
                         for (int i = 0; i < ComponentClients.Count; i++)
                         {
@@ -246,7 +246,7 @@ namespace MultiplayerProject.Source
                 {
                     if (player.Value >= Application.SCORE_TO_WIN - 1)
                     {
-                        _enemyManager.NotifyEnemies(EnemyEventType.GameCloseToFinishing);
+                        _gameFacade.NotifyEnemies(EnemyEventType.GameCloseToFinishing);
                         enemyEventPacket = NetworkPacketFactory.Instance.MakeEnemyEventPacket(EnemyEventType.GameCloseToFinishing);
                         break;
                     }
