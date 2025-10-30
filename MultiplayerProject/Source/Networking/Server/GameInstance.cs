@@ -30,19 +30,15 @@ namespace MultiplayerProject.Source
 
         private string _gameRoomID;
 
+        private GameFacade _gameFacade;
         private Dictionary<string, PlayerUpdatePacket> _playerUpdates;
-        private Dictionary<string, LaserManager> _playerLasers;
         private Dictionary<string, int> _playerScores;
         private Dictionary<string, string> _playerNames;
         private Dictionary<string, Player> _players;
         private Dictionary<string, Color> _playerColours;
         private Dictionary<string, ElementalType> _playerElements;
         private Dictionary<ElementalType, GameObjectFactory> _factories;
-
-        private CollisionManager _collisionManager;
         private Random _random;
-
-        private EnemyManager _enemyManager;
         private TimeSpan _enemySpawnTime;
         private TimeSpan _previousEnemySpawnTime;
         private int framesSinceLastSend;
@@ -51,12 +47,12 @@ namespace MultiplayerProject.Source
 
         public GameInstance(List<ServerConnection> clients, string gameRoomID)
         {
+            _gameFacade = new GameFacade();
             ComponentClients = clients;
 
             _gameRoomID = gameRoomID;
 
             _playerUpdates = new Dictionary<string, PlayerUpdatePacket>();
-            _playerLasers = new Dictionary<string, LaserManager>();
             _playerScores = new Dictionary<string, int>();
             _playerNames = new Dictionary<string, string>();
             _playerColours = new Dictionary<string, Color>();
@@ -69,8 +65,6 @@ namespace MultiplayerProject.Source
                 { ElementalType.Electric, new ElectricFactory() }
             };
             _random = new Random();
-            _collisionManager = new CollisionManager(this);
-            _enemyManager = new EnemyManager();
             _previousEnemySpawnTime = TimeSpan.Zero;
             _enemySpawnTime = TimeSpan.FromSeconds(1.0f);
 
@@ -82,7 +76,7 @@ namespace MultiplayerProject.Source
                 ComponentClients[i].SendPacketToClient(NetworkPacketFactory.Instance.MakeGameInstanceInformationPacket(ComponentClients.Count, ComponentClients, playerColours, ComponentClients[i].ID), MessageType.GI_ServerSend_LoadNewGame);
 
                 _playerUpdates[ComponentClients[i].ID] = null;
-                _playerLasers[ComponentClients[i].ID] = new LaserManager();
+                _gameFacade.AddPlayer(ComponentClients[i].ID);
                 _playerScores[ComponentClients[i].ID] = 0;
                 _playerNames[ComponentClients[i].ID] = ComponentClients[i].Name;
                 _playerColours[ComponentClients[i].ID] = playerColours[i];
@@ -132,7 +126,7 @@ namespace MultiplayerProject.Source
                         // Use the player's factory to create the correct laser type
                         Player firingPlayer = _players[client.ID];
                         GameObjectFactory factory = GetFactoryFromPlayer(firingPlayer);
-                        var laser = _playerLasers[client.ID].FireLaserServer(factory, packet.TotalGameTime, (float)timeDifference, new Vector2(packet.XPosition, packet.YPosition), packet.Rotation, packet.LaserID, packet.PlayerID);
+                        var laser = _gameFacade.FireLaser(client.ID, factory, packet.TotalGameTime, (float)timeDifference, new Vector2(packet.XPosition, packet.YPosition), packet.Rotation, packet.LaserID);
                         if (laser != null)
                         {
                             for (int i = 0; i < ComponentClients.Count; i++)
@@ -164,6 +158,7 @@ namespace MultiplayerProject.Source
 
             ApplyPlayerInput(gameTime);
 
+            _gameFacade.Update(gameTime);
             UpdateEnemies(gameTime);
 
             CheckCollisions();
@@ -187,11 +182,6 @@ namespace MultiplayerProject.Source
 
                     player.Value.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
                 }
-
-                if (_playerLasers[player.Key] != null)
-                {
-                    _playerLasers[player.Key].Update(gameTime);
-                }
             }
         }
 
@@ -202,7 +192,7 @@ namespace MultiplayerProject.Source
             {
                 _previousEnemySpawnTime = gameTime.TotalGameTime;
 
-                var enemy = _enemyManager.AddEnemy();
+                var enemy = _gameFacade.AddNewEnemy();
 
                 _enemySpawnCounter++;
                 bool isDeepClone = _enemySpawnCounter % 2 == 0; // Even enemies get deep clone, odd get shallow
@@ -278,25 +268,23 @@ namespace MultiplayerProject.Source
                 }
 
                 var randomType = _enemyTypes[_random.Next(_enemyTypes.Length)];
-                _enemyManager.SetEnemyType(randomType);
+                _gameFacade.SetNextEnemyType(randomType);
             }
-
-            _enemyManager.Update(gameTime);
         }
 
         private void CheckCollisions()
         {
-            var collisions = _collisionManager.CheckCollision(_players.Values.ToList(), _enemyManager.Enemies, GetActiveLasers());
+            var collisions = _gameFacade.CheckCollisions(_players.Values.ToList());
 
             if (collisions.Count > 0)
             {
                 for (int iCollision = 0; iCollision < collisions.Count; iCollision++)
                 {
-                    _playerLasers[collisions[iCollision].AttackingPlayerID].DeactivateLaser(collisions[iCollision].LaserID); // Deactivate collided laser
+                    _gameFacade.DeactivateLaser(collisions[iCollision].AttackingPlayerID, collisions[iCollision].LaserID); // Deactivate collided laser
 
                     if (collisions[iCollision].CollisionType == CollisionManager.CollisionType.LaserToEnemy)
-                    {
-                        _enemyManager.DeactivateEnemy(collisions[iCollision].DefeatedEnemyID); // Deactivate collided enemy
+                    {                      
+                        _gameFacade.DeactivateEnemy(collisions[iCollision].DefeatedEnemyID); // Deactivate collided enemy
 
                         // INCREMENT PLAYER SCORE HERE
                         _playerScores[collisions[iCollision].AttackingPlayerID]++;
@@ -415,18 +403,6 @@ namespace MultiplayerProject.Source
                 }
             }
             return returnList;
-        }
-
-        private List<Laser> GetActiveLasers()
-        {
-            List<Laser> lasers = new List<Laser>();
-
-            foreach (KeyValuePair<string, LaserManager> laserManager in _playerLasers)
-            {
-                lasers.AddRange(laserManager.Value.Lasers);
-            }
-
-            return lasers;
         }
     }
 }

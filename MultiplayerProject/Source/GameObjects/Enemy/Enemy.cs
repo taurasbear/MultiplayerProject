@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace MultiplayerProject.Source.GameObjects.Enemy
 {
-    class Enemy : IPrototype<Enemy>
+    public class Enemy : IPrototype<Enemy>
     {
         public Animation EnemyAnimation;
         public Vector2 Position;
