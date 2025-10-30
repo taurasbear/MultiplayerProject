@@ -76,6 +76,7 @@ namespace MultiplayerProject.Source
 
         GI_ServerSend_RemotePlayerFired,
         GI_ServerSend_EnemySpawn,
+        GI_ServerSend_EnemyEvent,
         GI_ServerSend_EnemyDefeated,
         GI_ServerSend_EnemyClone,
         GI_ServerSend_PlayerDefeated,
@@ -123,6 +124,7 @@ namespace MultiplayerProject.Source
     [ProtoInclude(61, typeof(LeaderboardPacket))]
     [ProtoInclude(62, typeof(LeaderboardUpdatePacket))]
     [ProtoInclude(63, typeof(EnemyClonePacket))]
+    [ProtoInclude(64, typeof(EnemyEventPacket))]
     public class BasePacket
     {
         [ProtoMember(1)]
@@ -292,6 +294,13 @@ namespace MultiplayerProject.Source
         public EnemyType EnemyType { get; set; }
         [ProtoMember(6)]
         public List<MinionInfo> Minions { get; set; } = new List<MinionInfo>();
+    }
+
+    [ProtoContract]
+    public class EnemyEventPacket : BasePacket
+    {
+        [ProtoMember(1)]
+        public EnemyEventType EventType { get; set; }
     }
 
     [ProtoContract]

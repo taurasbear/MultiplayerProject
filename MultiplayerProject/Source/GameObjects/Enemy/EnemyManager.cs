@@ -40,7 +40,7 @@ namespace MultiplayerProject.Source
         {
             EnemyFactory enemyFactory = null;
 
-            switch(enemyType)
+            switch (enemyType)
             {
                 case EnemyType.Bird:
                     enemyFactory = new BirdEnemyFactory();
@@ -77,6 +77,15 @@ namespace MultiplayerProject.Source
             }
         }
 
+        public void NotifyEnemies(EnemyEventType eventType)
+        {
+            for (int i = 0; i < _enemies.Count; i++)
+            {
+                var enemy = _enemies[i];
+                enemy.UpdateOnEnemyEvent(eventType);
+            }
+        }
+
         public void Draw(SpriteBatch spriteBatch)
         {
             for (int i = 0; i < _enemies.Count; i++)
@@ -98,11 +107,11 @@ namespace MultiplayerProject.Source
             // Create an enemy
             Enemy enemy = _enemyFactory?.CreateEnemy() ?? new Enemy();
 
-            if(enemy is BirdEnemy)
+            if (enemy is BirdEnemy)
             {
                 enemyAnimation.Initialize(_birdTexture, Vector2.Zero, 0, 68, 68, 7, 30, Color.White, 1f, true);
             }
-            else if(enemy is BlackbirdEnemy)
+            else if (enemy is BlackbirdEnemy)
             {
                 enemyAnimation.Initialize(_blackbirdTexture, Vector2.Zero, 0, 16, 18, 8, 30, Color.White, 1f, true);
             }

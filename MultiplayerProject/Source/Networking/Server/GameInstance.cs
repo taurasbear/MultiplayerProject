@@ -115,6 +115,14 @@ namespace MultiplayerProject.Source
 
                         var timeDifference = (packet.SendDate - DateTime.UtcNow).TotalSeconds;
 
+                        Console.WriteLine("---> Player I think shot!");
+                        _enemyManager.NotifyEnemies(EnemyEventType.PlayerShot);
+                        var enemyEventPacket = NetworkPacketFactory.Instance.MakeEnemyEventPacket(EnemyEventType.PlayerShot);
+                        for (int i = 0; i < ComponentClients.Count; i++)
+                        {
+                            ComponentClients[i].SendPacketToClient(enemyEventPacket, MessageType.GI_ServerSend_EnemyEvent);
+                        }
+
                         // Use the player's factory to create the correct laser type
                         Player firingPlayer = _players[client.ID];
                         GameObjectFactory factory = GetFactoryFromPlayer(firingPlayer);
@@ -152,7 +160,7 @@ namespace MultiplayerProject.Source
 
             _gameFacade.Update(gameTime);
             UpdateEnemies(gameTime);
-            
+
             CheckCollisions();
 
             if (sendPacketThisFrame)
@@ -186,7 +194,7 @@ namespace MultiplayerProject.Source
 
                 var enemy = _gameFacade.AddNewEnemy();
 
-                _enemySpawnCounter++; 
+                _enemySpawnCounter++;
                 bool isDeepClone = _enemySpawnCounter % 2 == 0; // Even enemies get deep clone, odd get shallow
 
                 if (isDeepClone)
@@ -232,11 +240,31 @@ namespace MultiplayerProject.Source
                     }
                 }
 
+                // Check if players are close to winning
+                EnemyEventPacket enemyEventPacket = null;
+                foreach (KeyValuePair<string, int> player in _playerScores)
+                {
+                    if (player.Value >= Application.SCORE_TO_WIN - 1)
+                    {
+                        _enemyManager.NotifyEnemies(EnemyEventType.GameCloseToFinishing);
+                        enemyEventPacket = NetworkPacketFactory.Instance.MakeEnemyEventPacket(EnemyEventType.GameCloseToFinishing);
+                        break;
+                    }
+                }
+
                 for (int i = 0; i < ComponentClients.Count; i++) // Send the enemy spawn to all clients
                 {
                     packet.TotalGameTime = (float)gameTime.TotalGameTime.TotalSeconds;
 
                     ComponentClients[i].SendPacketToClient(packet, MessageType.GI_ServerSend_EnemySpawn);
+                }
+
+                if (enemyEventPacket != null)
+                {
+                    for (int i = 0; i < ComponentClients.Count; i++)
+                    {
+                        ComponentClients[i].SendPacketToClient(enemyEventPacket, MessageType.GI_ServerSend_EnemyEvent);
+                    }
                 }
 
                 var randomType = _enemyTypes[_random.Next(_enemyTypes.Length)];
@@ -352,7 +380,7 @@ namespace MultiplayerProject.Source
             var returnList = new List<Color>();
             for (int i = 0; i < playerCount && i < WaitingRoom.MAX_PEOPLE_PER_ROOM; i++)
             {
-                switch(i)
+                switch (i)
                 {
                     case 0:
                         returnList.Add(Color.White);

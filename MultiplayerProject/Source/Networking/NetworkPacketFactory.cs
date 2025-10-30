@@ -174,6 +174,15 @@ namespace MultiplayerProject.Source
             return packet;
         }
 
+        public EnemyEventPacket MakeEnemyEventPacket(EnemyEventType enemyEventType)
+        {
+            EnemyEventPacket packet = new EnemyEventPacket
+            {
+                EventType = enemyEventType,
+            };
+            return packet;
+        }
+
         public EnemyDefeatedPacket MakeEnemyDefeatedPacket(string laserID, string enemyID, string attackingPlayerID, int attackingPlayerNewScore)
         {
             EnemyDefeatedPacket packet = new EnemyDefeatedPacket
