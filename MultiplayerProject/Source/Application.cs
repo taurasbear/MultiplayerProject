@@ -150,7 +150,15 @@ namespace MultiplayerProject
             _inputInformation.PreviousMouseState = _inputInformation.CurrentMouseState;
 
             _inputInformation.CurrentKeyboardState = Keyboard.GetState();
-            _inputInformation.CurrentGamePadState = GamePad.GetState(PlayerIndex.One);
+
+            if (!IsActive)
+            {
+                _inputInformation.CurrentGamePadState = GamePad.GetState(PlayerIndex.Two);
+            }
+            else
+            {
+                _inputInformation.CurrentGamePadState = GamePad.GetState(PlayerIndex.One);
+            }
             _inputInformation.CurrentMouseState = Mouse.GetState();
 
             // Toggle background music with M key
