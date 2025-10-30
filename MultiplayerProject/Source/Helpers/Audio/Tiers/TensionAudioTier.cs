@@ -5,6 +5,7 @@ namespace MultiplayerProject.Source.Helpers.Audio.Tiers
     /// <summary>
     /// Tier 2: Rising tension with spatial audio
     /// Characteristics: Medium volume, normal tempo, right pan, reverb enabled
+    /// Configuration data only - no construction logic
     /// </summary>
     public static class TensionAudioTier
     {
@@ -15,23 +16,5 @@ namespace MultiplayerProject.Source.Helpers.Audio.Tiers
         public const float TEMPO = 1.0f;
         public const float INTENSITY = 0.25f;
         public const bool ENABLE_REVERB = true;  // REVERB ON
-
-        /// <summary>
-        /// Build the Tier 2 audio configuration
-        /// </summary>
-        public static AudioConfiguration Build(string soundName)
-        {
-            return AudioManager.Instance.CreateAudioBuilder()
-                .WithSound(soundName)
-                .WithVolume(VOLUME)
-                .WithPitch(PITCH)
-                .WithPan(PAN)
-                .WithTempo(TEMPO)
-                .WithIntensity(INTENSITY)
-                .WithReverb(ENABLE_REVERB)
-                .WithLooping(true)
-                .AtScoreThreshold(SCORE_THRESHOLD)
-                .Build();
-        }
     }
 }

@@ -5,6 +5,7 @@ namespace MultiplayerProject.Source.Helpers.Audio.Tiers
     /// <summary>
     /// Tier 3: High action with pitch variation
     /// Characteristics: High volume, faster tempo, high pitch, left pan (opposite of tier 2)
+    /// Contains only configuration data - no construction logic
     /// </summary>
     public static class ActionAudioTier
     {
@@ -15,23 +16,5 @@ namespace MultiplayerProject.Source.Helpers.Audio.Tiers
         public const float TEMPO = 1.3f;  // FASTER
         public const float INTENSITY = 0.6f;
         public const bool ENABLE_REVERB = true;
-
-        /// <summary>
-        /// Build the Tier 3 audio configuration
-        /// </summary>
-        public static AudioConfiguration Build(string soundName)
-        {
-            return AudioManager.Instance.CreateAudioBuilder()
-                .WithSound(soundName)
-                .WithVolume(VOLUME)
-                .WithPitch(PITCH)
-                .WithPan(PAN)
-                .WithTempo(TEMPO)
-                .WithIntensity(INTENSITY)
-                .WithReverb(ENABLE_REVERB)
-                .WithLooping(true)
-                .AtScoreThreshold(SCORE_THRESHOLD)
-                .Build();
-        }
     }
 }

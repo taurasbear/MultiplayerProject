@@ -34,6 +34,9 @@ namespace MultiplayerProject.Source
 
         private int _localPlayerScore;
 
+        private int _audioUpdateCounter = 0;
+        private const int AUDIO_UPDATE_FREQUENCY = 30; // Update audio every 30 frames (twice per second)
+
         public GameScene(int width, int height, int playerCount, string[] playerIDs, string[] playerNames, PlayerColour[] playerColours, string localClientID, Client client)
         {
             _players = new Dictionary<string, Player>();
@@ -162,11 +165,13 @@ namespace MultiplayerProject.Source
             _laserManager.Update(gameTime);
             _explosionManager.Update(gameTime);
             
-            // Update audio based on local player score
-            if (_localPlayer != null && _GUI != null)
+            // Update audio less frequently to prevent overload
+            _audioUpdateCounter++;
+            if (_audioUpdateCounter >= AUDIO_UPDATE_FREQUENCY && _localPlayer != null && _GUI != null)
             {
-                int currentScore = _GUI.GetLocalPlayerScore(); // You'll need to add this method
+                int currentScore = _GUI.GetLocalPlayerScore();
                 _audioController.Update(currentScore);
+                _audioUpdateCounter = 0;
             }
         }
 

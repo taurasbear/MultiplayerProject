@@ -93,10 +93,11 @@
     <Compile Include="Source\Helpers\Audio\Tiers\TensionAudioTier.cs" />
     <Compile Include="Source\Helpers\Audio\Tiers\ActionAudioTier.cs" />
     <Compile Include="Source\Helpers\Audio\Tiers\ChaosAudioTier.cs" />
-    <Compile Include="Source\Helpers\Factories\BlueFactory.cs" />
+    <Compile Include="Source\Helpers\Audio\AudioDirector.cs" />
     <Compile Include="Source\Helpers\Factories\GameObjectFactory.cs" />
-    <Compile Include="Source\Helpers\Factories\GreenFactory.cs" />
     <Compile Include="Source\Helpers\Factories\RedFactory.cs" />
+    <Compile Include="Source\Helpers\Factories\BlueFactory.cs" />
+    <Compile Include="Source\Helpers\Factories\GreenFactory.cs" />
     <Compile Include="Source\Helpers\Logger.cs" />
     <Compile Include="Source\Helpers\PlayerColour.cs" />
     <Compile Include="Source\MonoGame\TextBox\Cursor.cs" />

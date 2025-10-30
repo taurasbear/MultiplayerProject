@@ -119,13 +119,12 @@ namespace MultiplayerProject.Source.Helpers.Audio
         /// </summary>
         public AudioBuilder WithTempo(float tempo)
         {
-            _configuration.Tempo = Math.Max(0.5f, Math.Min(2.0f, tempo));
+            _configuration.Tempo = Math.Max(0.1f, Math.Min(2.0f, tempo));
             return this;
         }
 
         /// <summary>
-        /// Set intensity level (0.0 = calm, 1.0 = maximum intensity)
-        /// Affects volume and pitch
+        /// Set the intensity level (0.0 to 1.0)
         /// </summary>
         public AudioBuilder WithIntensity(float intensity)
         {
@@ -134,108 +133,71 @@ namespace MultiplayerProject.Source.Helpers.Audio
         }
 
         /// <summary>
-        /// Enable reverb effect
+        /// Enable or disable reverb effect
         /// </summary>
-        public AudioBuilder WithReverb(bool enable = true)
+        public AudioBuilder WithReverb(bool enableReverb)
         {
-            _configuration.EnableReverb = enable;
+            _configuration.EnableReverb = enableReverb;
             return this;
         }
 
         /// <summary>
-        /// Set the score threshold at which this configuration becomes active
+        /// Set the score threshold for this configuration
         /// </summary>
-        public AudioBuilder AtScoreThreshold(int score)
+        public AudioBuilder AtScoreThreshold(int threshold)
         {
-            _configuration.ScoreThreshold = Math.Max(0, score);
+            _configuration.ScoreThreshold = threshold;
             return this;
         }
 
         /// <summary>
-        /// Configure audio based on current score
-        /// Automatically adjusts volume, tempo, and intensity
-        /// </summary>
-        public AudioBuilder WithScoreBasedDynamics(int currentScore, int maxScore = 100)
-        {
-            float scoreRatio = Math.Min(1.0f, (float)currentScore / maxScore);
-            
-            // Volume increases from 0.5 to 1.0 as score increases
-            WithVolume(0.5f + (scoreRatio * 0.5f));
-            
-            // Tempo increases from 1.0 to 1.5 as score increases
-            WithTempo(1.0f + (scoreRatio * 0.5f));
-            
-            // Intensity matches score ratio
-            WithIntensity(scoreRatio);
-            
-            // Enable reverb at high scores
-            if (scoreRatio > 0.7f)
-            {
-                WithReverb(true);
-            }
-            
-            return this;
-        }
-
-        /// <summary>
-        /// Set callback for when audio completes
-        /// </summary>
-        public AudioBuilder OnComplete(Action callback)
-        {
-            _configuration.OnComplete = callback;
-            return this;
-        }
-
-        /// <summary>
-        /// Build and return the audio configuration
-        /// Validates the configuration before returning
+        /// Build the final audio configuration
         /// </summary>
         public AudioConfiguration Build()
         {
-            // Only validate if we actually have a sound effect
-            // If no sound effect was set, return a "null" configuration
+            // Validate that we have a sound effect
             if (_configuration.SoundEffect == null)
             {
-                Logger.Instance.Warning("Building AudioConfiguration without a SoundEffect - configuration will be inactive");
-                return _configuration; // Return it anyway, just won't play anything
+                Logger.Instance.Warning("AudioBuilder: No sound effect set, cannot build audio configuration");
+                return null;
             }
 
             // Validate volume range
             if (_configuration.Volume < 0.0f || _configuration.Volume > 1.0f)
             {
-                Logger.Instance.Warning($"Volume out of range: {_configuration.Volume}, clamping to valid range");
+                Logger.Instance.Warning($"AudioBuilder: Volume out of range ({_configuration.Volume}), clamping to valid range");
                 _configuration.Volume = Math.Max(0.0f, Math.Min(1.0f, _configuration.Volume));
             }
 
             // Validate pitch range
             if (_configuration.Pitch < -1.0f || _configuration.Pitch > 1.0f)
             {
-                Logger.Instance.Warning($"Pitch out of range: {_configuration.Pitch}, clamping to valid range");
+                Logger.Instance.Warning($"AudioBuilder: Pitch out of range ({_configuration.Pitch}), clamping to valid range");
                 _configuration.Pitch = Math.Max(-1.0f, Math.Min(1.0f, _configuration.Pitch));
             }
 
             // Validate pan range
             if (_configuration.Pan < -1.0f || _configuration.Pan > 1.0f)
             {
-                Logger.Instance.Warning($"Pan out of range: {_configuration.Pan}, clamping to valid range");
+                Logger.Instance.Warning($"AudioBuilder: Pan out of range ({_configuration.Pan}), clamping to valid range");
                 _configuration.Pan = Math.Max(-1.0f, Math.Min(1.0f, _configuration.Pan));
             }
 
             // Validate tempo range
-            if (_configuration.Tempo < 0.5f || _configuration.Tempo > 2.0f)
+            if (_configuration.Tempo < 0.1f || _configuration.Tempo > 2.0f)
             {
-                Logger.Instance.Warning($"Tempo out of range: {_configuration.Tempo}, clamping to valid range");
-                _configuration.Tempo = Math.Max(0.5f, Math.Min(2.0f, _configuration.Tempo));
+                Logger.Instance.Warning($"AudioBuilder: Tempo out of range ({_configuration.Tempo}), clamping to valid range");
+                _configuration.Tempo = Math.Max(0.1f, Math.Min(2.0f, _configuration.Tempo));
             }
 
             // Validate intensity range
             if (_configuration.Intensity < 0.0f || _configuration.Intensity > 1.0f)
             {
-                Logger.Instance.Warning($"Intensity out of range: {_configuration.Intensity}, clamping to valid range");
+                Logger.Instance.Warning($"AudioBuilder: Intensity out of range ({_configuration.Intensity}), clamping to valid range");
                 _configuration.Intensity = Math.Max(0.0f, Math.Min(1.0f, _configuration.Intensity));
             }
 
-            Logger.Instance.Trace($"Built AudioConfiguration: {_configuration.GetDescription()}");
+            Logger.Instance.Debug($"Built audio configuration successfully: Volume={_configuration.Volume:F2}, Pitch={_configuration.Pitch:F2}");
             return _configuration;
         }
 

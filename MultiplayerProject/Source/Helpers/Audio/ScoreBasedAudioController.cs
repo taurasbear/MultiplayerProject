@@ -18,7 +18,7 @@ namespace MultiplayerProject.Source.Helpers.Audio
         private int _previousScore;
         private bool _isInitialized;
 
-        // Audio progression tiers
+        // Audio progression tiers - ORIGINAL VALUES
         private const int TIER_1_SCORE = 0;   // Calm
         private const int TIER_2_SCORE = 3;   // Building tension
         private const int TIER_3_SCORE = 6;   // High intensity
@@ -48,20 +48,17 @@ namespace MultiplayerProject.Source.Helpers.Audio
 
             try
             {
-                // Use tier classes to build configurations
-                var tier1 = CalmAudioTier.Build("backgroundMusic");
-                if (tier1.SoundEffect != null) _musicProgression.Add(tier1);
+                // Use AudioDirector to construct each tier
+                for (int tier = 0; tier < 4; tier++)
+                {
+                    var config = AudioDirector.ConstructTier(tier, "backgroundMusic");
+                    if (config.SoundEffect != null) 
+                    {
+                        _musicProgression.Add(config);
+                    }
+                }
 
-                var tier2 = TensionAudioTier.Build("backgroundMusic");
-                if (tier2.SoundEffect != null) _musicProgression.Add(tier2);
-
-                var tier3 = ActionAudioTier.Build("backgroundMusic");
-                if (tier3.SoundEffect != null) _musicProgression.Add(tier3);
-
-                var tier4 = ChaosAudioTier.Build("backgroundMusic");
-                if (tier4.SoundEffect != null) _musicProgression.Add(tier4);
-
-                Logger.Instance.Info($"Built {_musicProgression.Count} music progression tiers using tier classes");
+                Logger.Instance.Info($"Built {_musicProgression.Count} music progression tiers using AudioDirector");
                 _isInitialized = _musicProgression.Count > 0;
             }
             catch (Exception ex)
@@ -77,10 +74,17 @@ namespace MultiplayerProject.Source.Helpers.Audio
         public void Update(int currentScore)
         {
             if (!_isInitialized)
+            {
+                if (AudioManager.Instance.IsInitialized)
+                {
+                    BuildMusicProgression();
+                }
                 return;
+            }
 
-            if (currentScore == _previousScore)
-                return;
+            // Remove the score difference check - check every update
+            // if (Math.Abs(currentScore - _previousScore) < 2)
+            //     return;
 
             // Determine which tier we should be in
             int newTier = GetTierForScore(currentScore);
@@ -107,11 +111,11 @@ namespace MultiplayerProject.Source.Helpers.Audio
         }
 
         /// <summary>
-        /// Transition to a new music tier
+        /// Transition to a new music tier - ACTUALLY CHANGE THE MUSIC
         /// </summary>
         private void TransitionToTier(int tier)
         {
-            // Stop current music
+            // Stop current music cleanly
             if (_currentBackgroundMusic != null)
             {
                 _currentBackgroundMusic.Stop(true);
@@ -119,13 +123,30 @@ namespace MultiplayerProject.Source.Helpers.Audio
                 _currentBackgroundMusic = null;
             }
             
-            AudioManager.Instance.StopBackgroundMusic();
-            
-            // Play the new tier
-            if (tier >= 0 && tier < _musicProgression.Count)
+            // Actually apply the new tier configuration
+            if (tier < _musicProgression.Count && _musicProgression[tier] != null)
             {
-                _currentBackgroundMusic = _musicProgression[tier].Play();
-                Logger.Instance.Info($"Transitioned to music tier {tier}");
+                try
+                {
+                    // Play the new configuration with tier-specific settings
+                    _currentBackgroundMusic = _musicProgression[tier].Play();
+                    if (_currentBackgroundMusic != null)
+                    {
+                        Logger.Instance.Info($"Successfully transitioned to audio tier {tier} with new settings");
+                    }
+                    else
+                    {
+                        Logger.Instance.Warning($"Failed to create sound instance for tier {tier}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Instance.Error($"Error transitioning to tier {tier}: {ex.Message}");
+                }
+            }
+            else
+            {
+                Logger.Instance.Warning($"No audio configuration available for tier {tier}");
             }
         }
 
@@ -134,13 +155,8 @@ namespace MultiplayerProject.Source.Helpers.Audio
         /// </summary>
         public void PlayLaserSound(int currentScore)
         {
-            if (!AudioManager.Instance.IsInitialized)
-                return;
-
-            AudioManager.Instance.CreateAudioBuilder()
-                .WithSound("laser")
-                .WithScoreBasedDynamics(currentScore, 10)
-                .BuildAndPlay();
+            // Use simple AudioManager instead of complex builder pattern for laser sounds
+            AudioManager.Instance.PlayLaserSound();
         }
 
         /// <summary>
@@ -148,14 +164,8 @@ namespace MultiplayerProject.Source.Helpers.Audio
         /// </summary>
         public void PlayExplosionSound(int currentScore)
         {
-            if (!AudioManager.Instance.IsInitialized)
-                return;
-
-            AudioManager.Instance.CreateAudioBuilder()
-                .WithSound("explosion")
-                .WithScoreBasedDynamics(currentScore, 10)
-                .WithReverb(currentScore >= TIER_3_SCORE)
-                .BuildAndPlay();
+            // Use simple AudioManager instead of complex builder pattern for explosion sounds
+            AudioManager.Instance.PlayExplosionSound();
         }
 
         /// <summary>
