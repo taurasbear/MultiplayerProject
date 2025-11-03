@@ -7,6 +7,7 @@ using MultiplayerProject.Source.Helpers.Factories;
 using MultiplayerProject.Source.Helpers.Audio;
 using System.Collections.Generic; // Add this line
 using System.Linq;
+using System;
 using MultiplayerProject.Source.GameObjects.Enemy;
 
 namespace MultiplayerProject.Source
@@ -432,16 +433,18 @@ namespace MultiplayerProject.Source
         // 4. Refactor ProcessInputForLocalPlayer to use commands
         private KeyboardMovementInput ProcessInputForLocalPlayer(GameTime gameTime, InputInformation inputInfo)
         {
-            KeyboardMovementInput input = new KeyboardMovementInput();
+            IGameInput inputAdapter;
 
-            // Keyboard/Dpad controls
-            foreach (var kvp in _keyCommandMap)
+            if(inputInfo.CurrentGamePadState.IsConnected)
             {
-                if (inputInfo.CurrentKeyboardState.IsKeyDown(kvp.Key))
-                {
-                    kvp.Value.Execute(input);
-                }
+                inputAdapter = new GamepadAdapter();
             }
+            else
+            {
+                inputAdapter = new KeyboardAdapter(_keyCommandMap);
+            }
+
+            KeyboardMovementInput input = inputAdapter.GetMovementInput(inputInfo);
 
             // Fire logic (unchanged, but now uses input.FirePressed)
             if (input.FirePressed)

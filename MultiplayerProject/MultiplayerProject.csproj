@@ -110,6 +110,9 @@
     <Compile Include="Source\Helpers\Factories\GameObjectFactory.cs" />
     <Compile Include="Source\Helpers\Factories\WaterFactory.cs" />
     <Compile Include="Source\Helpers\Factories\FireFactory.cs" />
+    <Compile Include="Source\Helpers\GamepadAdapter.cs" />
+    <Compile Include="Source\Helpers\IGameInput.cs" />
+    <Compile Include="Source\Helpers\KeyboardAdapter.cs" />
     <Compile Include="Source\Helpers\Logger.cs" />
     <Compile Include="Source\Helpers\PlayerColour.cs" />
     <Compile Include="Source\MonoGame\TextBox\Cursor.cs" />
