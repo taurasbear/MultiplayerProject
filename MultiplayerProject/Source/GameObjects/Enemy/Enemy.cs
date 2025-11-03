@@ -80,14 +80,6 @@ namespace MultiplayerProject.Source.GameObjects.Enemy
             }
         }
 
-        public virtual void UpdateOnEnemyEvent(EnemyEventType eventType)
-        {
-            if(eventType is EnemyEventType.GameCloseToFinishing)
-            {
-                EnemyAnimation.Scale = 0.5f;
-            }
-        }
-
         public void SetMovementAlgorithm(IMoveAlgorithm algorithm)
         {
             _moveAlgorithm = algorithm;
@@ -144,6 +136,22 @@ namespace MultiplayerProject.Source.GameObjects.Enemy
             // Update Animation
             EnemyAnimation.Update(gameTime);
 
+            // Update and clean up inactive minions
+            for (int i = Minions.Count - 1; i >= 0; i--)
+            {
+                var minion = Minions[i];
+                if (minion.Active)
+                {
+                    minion.Position = this.Position + new Vector2((this.Width / 2f + minion.Width / 2f) + (minion.Width * i), 0);
+                    minion.EnemyAnimation.Position = minion.Position;
+                    minion.EnemyAnimation.Update(gameTime);
+                }
+                else
+                {
+                    Minions.RemoveAt(i); // Remove inactive minion
+                }
+            }
+
             // Call enemy-specific update logic
             UpdateEnemySpecific(gameTime);
         }
@@ -170,7 +178,7 @@ namespace MultiplayerProject.Source.GameObjects.Enemy
             else
             {
                 // Fallback to default movement if no strategy is set
-                Position.X -= ENEMY_MOVE_SPEED;
+                Position.X -= Speed;
             }
 
             // If the enemy is past the screen or its health reaches 0 then deactivate it
@@ -194,7 +202,8 @@ namespace MultiplayerProject.Source.GameObjects.Enemy
                 {
                     minion.Position = this.Position + new Vector2((this.Width / 2f + minion.Width / 2f) + (minion.Width * i), 0);
                     minion.EnemyAnimation.Position = minion.Position;
-                    minion.EnemyAnimation.Update(gameTime);
+                    // Note: This parameterless Update() method doesn't have gameTime, so we can't update animation here
+                    // Animation updates should be done in the Update(GameTime gameTime) overload
                 }
                 else
                 {

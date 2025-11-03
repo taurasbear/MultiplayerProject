@@ -74,11 +74,30 @@ namespace MultiplayerProject
 
         public void SendPacketToClient(BasePacket packet, MessageType type)
         {
-            packet.SendDate = DateTime.UtcNow;
-            packet.MessageType = (int)type;
+            // Check if the client socket is still connected
+            if (ClientSocket == null || !ClientSocket.Connected || Stream == null || !Stream.CanWrite)
+            {
+                Console.WriteLine($"Cannot send packet to client {Name}: Connection is closed");
+                return;
+            }
 
-            Serializer.SerializeWithLengthPrefix(Writer.BaseStream, packet, PrefixStyle.Base128);
-            Writer.Flush();
+            try
+            {
+                packet.SendDate = DateTime.UtcNow;
+                packet.MessageType = (int)type;
+
+                Serializer.SerializeWithLengthPrefix(Writer.BaseStream, packet, PrefixStyle.Base128);
+                Writer.Flush();
+            }
+            catch (IOException ex)
+            {
+                Console.WriteLine($"Failed to send packet to client {Name}: {ex.Message}");
+                // Connection was lost, cleanup will be handled by ProcessClientMessage
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Unexpected error sending packet to client {Name}: {ex.Message}");
+            }
         }
 
         private void ProcessClientMessage()

@@ -10,17 +10,15 @@ namespace MultiplayerProject.Source
     /// </summary>
     public class AnimatedRenderer : IEnemyRenderer
     {
-        private Texture2D _texture;
-        
         public void Initialize(ContentManager content)
         {
-            // Load the animated enemy texture
-            _texture = content.Load<Texture2D>("mineAnimation");
+            // No need to load any texture here - we use the animation already set on the enemy
+            // Each enemy type (BirdEnemy, BlackbirdEnemy) has its own animation with correct texture
         }
         
         public void Render(SpriteBatch spriteBatch, Vector2 position, Animation animation)
         {
-            // Use the existing animation system - preserves current behavior
+            // Use the existing animation system - just draw the animation that was set on the enemy
             if (animation != null)
             {
                 animation.Draw(spriteBatch);

@@ -70,8 +70,6 @@
     <Compile Include="Source\GameObjects\Enemy\AnimatedRenderer.cs" />
     <Compile Include="Source\GameObjects\Enemy\StaticRenderer.cs" />
     <Compile Include="Source\GameObjects\Enemy\ParticleRenderer.cs" />
-    <Compile Include="Source\GameObjects\Enemy\StandardEnemy.cs" />
-    <Compile Include="Source\GameObjects\Enemy\BossEnemy.cs" />
     <Compile Include="Source\GameObjects\Enemy\VerticalPacing.cs" />
     <Compile Include="Source\GameObjects\Enemy\ZigZag.cs" />
     <Compile Include="Source\GameObjects\Enemy\Spinning.cs" />

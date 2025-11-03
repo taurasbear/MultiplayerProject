@@ -2,13 +2,11 @@
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using MultiplayerProject.Source.GameObjects;
 using MultiplayerProject.Source.Helpers.Factories;
 using MultiplayerProject.Source.Helpers.Audio;
+using MultiplayerProject.Source.GameObjects.Enemy;
 using System.Collections.Generic; // Add this line
 using System.Linq;
-using System;
-using MultiplayerProject.Source.GameObjects.Enemy;
 
 namespace MultiplayerProject.Source
 {
@@ -19,7 +17,7 @@ namespace MultiplayerProject.Source
         private List<RemotePlayer> _remotePlayers;
         private LocalPlayer _localPlayer;
         private Dictionary<string, PlayerColour> _playerColours;
-        private Dictionary<string, ElementalType> _playerElements;
+        private Dictionary<string, ElementalType> _playerElements; // Track elemental types per player
 
         private GameSceneGUI _GUI;
 
@@ -27,6 +25,9 @@ namespace MultiplayerProject.Source
         private LaserManager _laserManager;
         private ExplosionManager _explosionManager;
         private BackgroundManager _backgroundManager;
+        
+        // Abstract Factory - no longer using a single global factory
+        // Each player gets their own factory based on their elemental type
         
         // Add audio controller field
         private ScoreBasedAudioController _audioController;
@@ -38,7 +39,7 @@ namespace MultiplayerProject.Source
 
         private int _packetNumber = -1;
         private Queue<PlayerUpdatePacket> _updatePackets;
-
+        
         private int _enemySpawnCounter = 0; // Track how many enemies have been spawned
 
         public Client Client { get; set; }
@@ -57,32 +58,31 @@ namespace MultiplayerProject.Source
 
             for (int i = 0; i < playerCount; i++)
             {
-                Player player; // Add this declaration
+                Player player;
                 
-
                 if (playerIDs[i] == localClientID)
                 {
-                    _localPlayer = new LocalPlayer();
-                    player = _localPlayer;
+                    // Create local player directly
+                    player = new LocalPlayer();
+                    _localPlayer = player as LocalPlayer;
                 }
                 else
                 {
-                    var remotePlayer = new RemotePlayer();
-                    player = remotePlayer;
+                    // Create remote player directly
+                    player = new RemotePlayer();
+                    var remotePlayer = player as RemotePlayer;
                     _remotePlayers.Add(remotePlayer);
                 }
 
                 player.NetworkID = playerIDs[i];
-                // Set all player colors to white
-                var whiteColour = new PlayerColour { R = 255, G = 255, B = 255 };
+                player.Colour = playerColours[i];
                 player.PlayerName = playerNames[i]; // Set the player name
-                _playerColours[player.NetworkID] = whiteColour;
-                player.SetColour(whiteColour);
-
-                // Assign elements in a fixed order: Fire, Water, Electric, Fire, ...
-                ElementalType[] elementOrder = { ElementalType.Fire, ElementalType.Water, ElementalType.Electric, ElementalType.Fire };
-                _playerElements[player.NetworkID] = elementOrder[i % elementOrder.Length];
+                _playerColours[player.NetworkID] = playerColours[i];
                 _playerNames[player.NetworkID] = playerNames[i]; // Store player names
+
+                // Assign elemental types in a fixed order: Fire, Water, Electric, Fire, ...
+                ElementalType[] elementOrder = { ElementalType.Fire, ElementalType.Water, ElementalType.Electric };
+                _playerElements[player.NetworkID] = elementOrder[i % elementOrder.Length];
 
                 // Wrap all players with NameTagDecorator by default to show names
                 IPlayer decoratedPlayer = new NameTagDecorator(player, showEnhancements: true);
@@ -138,6 +138,28 @@ namespace MultiplayerProject.Source
             }
             
             return null;
+        }
+
+        /// <summary>
+        /// Get the appropriate factory based on player's elemental type
+        /// This is the Abstract Factory pattern in action!
+        /// </summary>
+        private GameObjectFactory GetFactoryFromPlayer(Player player)
+        {
+            // Use the stored element type to get the correct factory
+            var elementType = _playerElements[player.NetworkID];
+
+            switch (elementType)
+            {
+                case ElementalType.Fire:
+                    return new FireFactory();
+                case ElementalType.Electric:
+                    return new ElectricFactory();
+                case ElementalType.Water:
+                    return new WaterFactory();
+                default:
+                    return new FireFactory(); // Default fallback
+            }
         }
 
         public void Initalise(ContentManager content, GraphicsDevice graphicsDevice)
@@ -328,7 +350,6 @@ namespace MultiplayerProject.Source
                 
                 Logger.Instance?.Info($"Decorated player - Shield: {hasShield}, Fire Rate: {fireRate}x");
             }
-
         }
 
         public void Draw(SpriteBatch spriteBatch)
@@ -433,26 +454,22 @@ namespace MultiplayerProject.Source
         // 4. Refactor ProcessInputForLocalPlayer to use commands
         private KeyboardMovementInput ProcessInputForLocalPlayer(GameTime gameTime, InputInformation inputInfo)
         {
-            IGameInput inputAdapter;
+            KeyboardMovementInput input = new KeyboardMovementInput();
 
-            if(inputInfo.CurrentGamePadState.IsConnected)
+            foreach (var kvp in _keyCommandMap)
             {
-                inputAdapter = new GamepadAdapter();
+                if (inputInfo.CurrentKeyboardState.IsKeyDown(kvp.Key))
+                {
+                    kvp.Value.Execute(input);
+                }
             }
-            else
-            {
-                inputAdapter = new KeyboardAdapter(_keyCommandMap);
-            }
-
-            KeyboardMovementInput input = inputAdapter.GetMovementInput(inputInfo);
 
             // Fire logic (unchanged, but now uses input.FirePressed)
             if (input.FirePressed)
             {
-                // Use the local player's factory to create the correct laser
+                // Use the local player's factory based on their elemental type
                 GameObjectFactory factory = GetFactoryFromPlayer(_localPlayer);
                 var laser = _laserManager.FireLocalLaserClient(factory, gameTime, _localPlayer.Position, _localPlayer.Rotation);
-
                 if (laser != null)
                 {
                     input.FirePressed = true;
@@ -479,25 +496,6 @@ namespace MultiplayerProject.Source
             _localPlayer.Update(gameTime);
 
             return input;
-        }
-
-        private GameObjectFactory GetFactoryFromPlayer(Player player)
-        {
-            // Use the stored element type to get the correct factory
-            var elementType = _playerElements[player.NetworkID];
-
-            switch (elementType)
-            {
-                case ElementalType.Fire:
-                    return new FireFactory();
-                case ElementalType.Electric:
-                    return new ElectricFactory();
-                case ElementalType.Water:
-                    return new WaterFactory();
-                default:
-                    // Fallback to a default
-                    return new FireFactory(); // Default
-            }
         }
 
         private void OnRecievedPlayerUpdatePacket(BasePacket packet)
@@ -564,8 +562,8 @@ namespace MultiplayerProject.Source
             PlayerFiredPacket playerUpdate = (PlayerFiredPacket)packet;
             if (playerUpdate.PlayerID != _localPlayer.NetworkID) // Local laser has already been shot so don't shoot it again
             {
-                // Use the remote player's factory to create the correct laser
-                Player remotePlayer = _players[playerUpdate.PlayerID];
+                // Use the remote player's factory to create the correct laser based on their element
+                Player remotePlayer = GetBasePlayer<Player>(_players[playerUpdate.PlayerID]);
                 GameObjectFactory factory = GetFactoryFromPlayer(remotePlayer);
                 _laserManager.FireRemoteLaserClient(factory, new Vector2(playerUpdate.XPosition, playerUpdate.YPosition), playerUpdate.Rotation, playerUpdate.PlayerID, playerUpdate.SendDate, playerUpdate.LaserID);
             }
@@ -574,28 +572,35 @@ namespace MultiplayerProject.Source
         private void ClientMessenger_OnEnemySpawnedPacket(BasePacket packet)
         {
             EnemySpawnedPacket enemySpawn = (EnemySpawnedPacket)packet;
+            Logger.Instance?.Info($"Client received enemy spawn: Type={enemySpawn.EnemyType}, Position=({enemySpawn.XPosition}, {enemySpawn.YPosition}), MinionCount={enemySpawn.Minions?.Count ?? 0}");
+            
+            // Add enemy using the type from the packet and create parent-minion relationships
             var parentEnemy = _enemyManager.AddEnemy(enemySpawn.EnemyType, new Vector2(enemySpawn.XPosition, enemySpawn.YPosition));
             parentEnemy.EnemyID = enemySpawn.EnemyID;
 
-            // If the packet contains minion info, create them
+            Logger.Instance?.Info($"Created parent enemy: Type={parentEnemy.GetType().Name}, TextureName={parentEnemy.EnemyAnimation?.Texture?.Name ?? "NULL"}");
+
+            // If the packet contains minion info, create them using Prototype pattern
             if (enemySpawn.Minions != null && enemySpawn.Minions.Count > 0)
             {
+                Logger.Instance?.Info($"Creating {enemySpawn.Minions.Count} minions...");
                 foreach (var minionInfo in enemySpawn.Minions)
                 {
-                    // Use the prototype pattern to create minions, just like the server does.
+                    // Use the prototype pattern to create minions (DeepClone)
                     var minion = parentEnemy.DeepClone();
                     minion.EnemyID = minionInfo.EnemyID;
-                    minion.Scale *= 0.6f; // Make it smaller
-                    minion.EnemyAnimation.SetColor(new Color(255, 255, 150)); // Give it a yellowish tint
+                    minion.Scale *= 0.6f; // Make minions smaller
+                    minion.EnemyAnimation.SetColor(new Color(255, 255, 150)); // Yellowish tint
+                    minion.EnemyAnimation.Scale = 0.6f; // Also scale the animation
+                    
+                    // Set minion position from packet data
+                    minion.Position = new Vector2(minionInfo.XPosition, minionInfo.YPosition);
+                    minion.EnemyAnimation.Position = minion.Position;
+                    
                     parentEnemy.Minions.Add(minion);
+                    Logger.Instance?.Info($"Created minion at ({minion.Position.X}, {minion.Position.Y})");
                 }
             }
-        }
-
-        private void ClientMessenger_OnEnemyEventPacket(BasePacket packet)
-        {
-            var enemyEvent = (EnemyEventPacket)packet;
-            _enemyManager.NotifyEnemies(enemyEvent.EventType);   
         }
 
         private void ClientMessenger_OnEnemyDefeatedPacket(EnemyDefeatedPacket packet)
@@ -609,8 +614,9 @@ namespace MultiplayerProject.Source
             var enemy = _enemyManager.DeactivateAndReturnEnemy(enemyDefeatedPacket.CollidedEnemyID);
 
             // Use the attacking player's factory to create the correct explosion
-            Player attackingPlayer = _players[packet.AttackingPlayerID];
+            Player attackingPlayer = GetBasePlayer<Player>(_players[packet.AttackingPlayerID]);
             GameObjectFactory factory = GetFactoryFromPlayer(attackingPlayer);
+            
             // Choose explosion color based on element
             Color explosionColor = Color.White;
             var element = _playerElements[attackingPlayer.NetworkID];
@@ -638,13 +644,14 @@ namespace MultiplayerProject.Source
             _laserManager.DeactivateLaser(playerDefeatedPacket.CollidedLaserID);
 
             var player = _players[playerDefeatedPacket.CollidedPlayerID];
+            var basePlayer = GetBasePlayer<Player>(player);
 
             // Use the defeated player's factory to create an explosion of their own element
-            // Note: You might want the explosion to be the element of the ATTACKING player. If so, you'll need to add the AttackingPlayerID to the PlayerDefeatedPacket.
-            GameObjectFactory factory = GetFactoryFromPlayer(player);
+            GameObjectFactory factory = GetFactoryFromPlayer(basePlayer);
+            
             // Choose explosion color based on element
             Color explosionColor = Color.White;
-            var element = _playerElements[player.NetworkID];
+            var element = _playerElements[basePlayer.NetworkID];
             switch (element)
             {
                 case ElementalType.Fire:
@@ -657,7 +664,13 @@ namespace MultiplayerProject.Source
                     explosionColor = Color.Blue;
                     break;
             }
-            _explosionManager.AddExplosion(player.Position, factory, explosionColor);
+            _explosionManager.AddExplosion(basePlayer.Position, factory, explosionColor);
+        }
+
+        private void ClientMessenger_OnEnemyEventPacket(BasePacket packet)
+        {
+            var enemyEvent = (EnemyEventPacket)packet;
+            _enemyManager.NotifyEnemies(enemyEvent.EventType);
         }
 
         private void HandleEnemyClonePacket(EnemyClonePacket packet)

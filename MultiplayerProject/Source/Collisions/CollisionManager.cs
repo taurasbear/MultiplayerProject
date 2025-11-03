@@ -1,5 +1,4 @@
 ﻿using Microsoft.Xna.Framework;
-﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MultiplayerProject.Source.Helpers;
 using System;
@@ -41,59 +40,8 @@ namespace MultiplayerProject.Source
             }
         }
 
-        public void CheckCollision(List<Enemy> enemies, List<Laser> lasers, ExplosionManager explosionManager)
-        {
-            Rectangle rectangle2;
-            Rectangle laserRectangle;
-
-            // detect collisions between the player and all enemies.
-            enemies.ForEach(e =>
-            {
-                //create a retangle for the enemy
-                rectangle2 = new Rectangle(
-                    (int)e.CentrePosition.X,
-                    (int)e.CentrePosition.Y,
-                    e.Width,
-                    e.Height);
-
-                // now see if this enemy collide with any laser shots
-                lasers.ForEach(lb =>
-                {
-                    // create a rectangle for this laserbeam
-                    laserRectangle = new Rectangle(
-                    (int)lb.Position.X,
-                    (int)lb.Position.Y,
-                    lb.Width,
-                    lb.Height);
-
-                    // test the bounds of the laer and enemy
-                    if (laserRectangle.Intersects(rectangle2))
-                    {
-                        // play the sound of explosion using AudioManager singleton
-                        AudioManager.Instance.PlayExplosionSound();
-
-                        // Get the color of the player who fired this laser
-                        var pc = _game.GetPlayerByID(lb.PlayerFiredID).Colour;
-                        Color playerColor = new Color(pc.R, pc.G, pc.B);
-
-                        // Trigger the explosion with the player's color
-                        explosionManager.AddExplosion(lb.Position, playerColor);
-
-                        // kill off the enemy
-                        e.Health = 0;
-
-                        //record the kill
-                        //myGame.Stage.EnemiesKilled++;
-
-                        // kill off the laserbeam
-                        lb.Active = false;
-
-                        // record your score
-                        //myGame.Score += e.Value;
-                    }
-                });
-            });
-        }
+        // NOTE: The explosion-handling overload was removed - use the main CheckCollision(players, enemies, lasers)
+        // if you need explosion creation, call ExplosionManager from the caller with player lookup available.
 
         public List<Collision> CheckCollision(List<Player> players, List<Enemy> enemies, List<Laser> lasers)
         {

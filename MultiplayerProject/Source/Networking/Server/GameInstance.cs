@@ -42,7 +42,7 @@ namespace MultiplayerProject.Source
         private TimeSpan _enemySpawnTime;
         private TimeSpan _previousEnemySpawnTime;
         private int framesSinceLastSend;
-        private EnemyType[] _enemyTypes = new[] { EnemyType.Mine, EnemyType.Bird, EnemyType.Blackbird };
+        private EnemyType[] _enemyTypes = new[] { EnemyType.Bird, EnemyType.Blackbird };
         private int _enemySpawnCounter = 0; // Track how many enemies have been spawned
 
         public GameInstance(List<ServerConnection> clients, string gameRoomID)
@@ -70,6 +70,9 @@ namespace MultiplayerProject.Source
 
             var playerColours = GenerateRandomColours(clients.Count);
 
+            // Assign elements in a fixed order: Fire, Water, Electric, Fire, ...
+            ElementalType[] elementOrder = { ElementalType.Fire, ElementalType.Water, ElementalType.Electric };
+
             for (int i = 0; i < ComponentClients.Count; i++)
             {
                 ComponentClients[i].AddServerComponent(this);
@@ -84,6 +87,9 @@ namespace MultiplayerProject.Source
                 Player player = new Player();
                 player.NetworkID = ComponentClients[i].ID;
                 _players[ComponentClients[i].ID] = player;
+
+                // Assign elemental type for Abstract Factory pattern
+                _playerElements[ComponentClients[i].ID] = elementOrder[i % elementOrder.Length];
             }
         }
 
@@ -141,7 +147,29 @@ namespace MultiplayerProject.Source
 
         public void RemoveClient(ServerConnection client)
         {
-            throw new NotImplementedException();
+            // Remove the client from the component clients list
+            ComponentClients.Remove(client);
+            
+            // Clean up player-related data for this client
+            if (_playerUpdates.ContainsKey(client.ID))
+                _playerUpdates.Remove(client.ID);
+            
+            if (_playerScores.ContainsKey(client.ID))
+                _playerScores.Remove(client.ID);
+            
+            if (_playerNames.ContainsKey(client.ID))
+                _playerNames.Remove(client.ID);
+            
+            if (_players.ContainsKey(client.ID))
+                _players.Remove(client.ID);
+            
+            if (_playerColours.ContainsKey(client.ID))
+                _playerColours.Remove(client.ID);
+            
+            if (_playerElements.ContainsKey(client.ID))
+                _playerElements.Remove(client.ID);
+            
+            Console.WriteLine($"Client {client.Name} ({client.ID}) removed from game instance");
         }
 
         public void Update(GameTime gameTime)
@@ -199,13 +227,20 @@ namespace MultiplayerProject.Source
 
                 if (isDeepClone)
                 {
-                    // Every enemy gets minions (deep clone)
+                    // Every even enemy gets minions (deep clone - Prototype pattern)
                     for (int i = 0; i < 2; i++)
                     {
                         var minion = (Enemy)enemy.DeepClone(); // Clone the parent to get the same type and animation base
                         minion.EnemyID = Guid.NewGuid().ToString(); // Give it a new unique ID
                         minion.Scale *= 0.6f; // Make it smaller
                         minion.EnemyAnimation.SetColor(new Color(255, 255, 150)); // Give it a yellowish tint
+                        
+                        // Position minions around the parent (above and below)
+                        minion.Position = new Vector2(
+                            enemy.Position.X - 50, // Slightly behind parent
+                            enemy.Position.Y + (i == 0 ? -40 : 40) // One above, one below
+                        );
+                        
                         enemy.Minions.Add(minion);
                     }
                 }
@@ -285,9 +320,6 @@ namespace MultiplayerProject.Source
                     if (collisions[iCollision].CollisionType == CollisionManager.CollisionType.LaserToEnemy)
                     {                      
                         _gameFacade.DeactivateEnemy(collisions[iCollision].DefeatedEnemyID); // Deactivate collided enemy
-
-                        // Track enemy kill for movement changes
-                        _enemyManager.OnEnemyKilled();
 
                         // INCREMENT PLAYER SCORE HERE
                         _playerScores[collisions[iCollision].AttackingPlayerID]++;

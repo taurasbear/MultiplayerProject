@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace MultiplayerProject.Source
 {
-    class ExplosionManager
+    public class ExplosionManager
     {
         // Collections of explosions
         private List<Explosion> _explosions;

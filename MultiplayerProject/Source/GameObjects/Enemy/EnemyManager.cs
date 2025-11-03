@@ -67,23 +67,6 @@ namespace MultiplayerProject.Source
             _enemyFactory = enemyFactory;
         }
 
-        public void SetEnemyType(EnemyType enemyType)
-        {
-            EnemyFactory enemyFactory = null;
-
-            switch (enemyType)
-            {
-                case EnemyType.Bird:
-                    enemyFactory = new BirdEnemyFactory();
-                    break;
-                case EnemyType.Blackbird:
-                    enemyFactory = new BlackbirdEnemyFactory();
-                    break;
-            }
-
-            _enemyFactory = enemyFactory;
-        }
-
         public void Initalise(ContentManager content)
         {
             _mineTexture = content.Load<Texture2D>("mineAnimation");
@@ -143,6 +126,19 @@ namespace MultiplayerProject.Source
 
                 enemy.Update(gameTime);
 
+                // Update minions (Prototype pattern - deep clones)
+                for (int j = enemy.Minions.Count - 1; j >= 0; j--)
+                {
+                    var minion = enemy.Minions[j];
+                    minion.Update(gameTime);
+
+                    // Remove inactive minions
+                    if (!minion.Active)
+                    {
+                        enemy.Minions.RemoveAt(j);
+                    }
+                }
+
                 // Check if the enemy (parent or clone) is inactive and should be removed
                 if (enemy.Active == false)
                 {
@@ -157,6 +153,12 @@ namespace MultiplayerProject.Source
             {
                 var enemy = _enemies[i];
                 enemy.UpdateOnEnemyEvent(eventType);
+
+                // Notify minions too
+                foreach (var minion in enemy.Minions)
+                {
+                    minion.UpdateOnEnemyEvent(eventType);
+                }
             }
         }
 
@@ -166,6 +168,12 @@ namespace MultiplayerProject.Source
             {
                 var enemy = _enemies[i];
                 enemy?.Draw(spriteBatch);
+
+                // Draw minions (Prototype pattern - deep clones)
+                foreach (var minion in enemy.Minions)
+                {
+                    minion?.Draw(spriteBatch);
+                }
             }
         }
 
@@ -183,11 +191,13 @@ namespace MultiplayerProject.Source
             switch (enemyType.ToLower())
             {
                 case "boss":
-                    enemy = new BossEnemy(_currentRenderer);
+                    enemy = new BlackbirdEnemy(_currentRenderer);
                     break;
                 case "standard":
                 default:
-                    enemy = _enemyFactory?.CreateEnemy() ?? new StandardEnemy(_currentRenderer);
+                    enemy = _enemyFactory?.CreateEnemy() ?? new BirdEnemy(_currentRenderer);
+                    break;
+            }
 
             if (enemy is BirdEnemy)
             {
@@ -200,8 +210,6 @@ namespace MultiplayerProject.Source
             else
             {
                 enemyAnimation.Initialize(_mineTexture, Vector2.Zero, 0, 47, 61, 8, 30, Color.White, 1f, true);
-            }
-                    break;
             }
 
             // Initialize the enemy
@@ -221,33 +229,43 @@ namespace MultiplayerProject.Source
             // Create the animation object
             Animation enemyAnimation = new Animation();
 
-            // Create an enemy
+            // Create an enemy using Bridge Pattern with current renderer
             Enemy enemy;
             switch (type)
             {
                 case EnemyType.Bird:
-                    enemy = new BirdEnemy();
-                    enemyAnimation.Initialize(_birdTexture, Vector2.Zero, 0, 68, 68, 7, 30, Color.White, 1f, true);
+                    enemy = new BirdEnemy(_currentRenderer);
+                    if (_birdTexture != null)
+                    {
+                        enemyAnimation.Initialize(_birdTexture, Vector2.Zero, 0, 68, 68, 7, 30, Color.White, 1f, true);
+                    }
+                    else
+                    {
+                        Logger.Instance?.Warning("BirdTexture is null! Using fallback.");
+                    }
                     break;
                 case EnemyType.Blackbird:
-                    enemy = new BlackbirdEnemy();
-                    enemyAnimation.Initialize(_blackbirdTexture, Vector2.Zero, 0, 16, 18, 8, 30, Color.White, 1f, true);
+                    enemy = new BlackbirdEnemy(_currentRenderer);
+                    if (_blackbirdTexture != null)
+                    {
+                        enemyAnimation.Initialize(_blackbirdTexture, Vector2.Zero, 0, 16, 18, 8, 30, Color.White, 1f, true);
+                    }
+                    else
+                    {
+                        Logger.Instance?.Warning("BlackbirdTexture is null! Using fallback.");
+                    }
                     break;
+                case EnemyType.Mine:
                 default:
-                    enemy = new Enemy();
-                    enemyAnimation.Initialize(_mineTexture, Vector2.Zero, 0, 47, 61, 8, 30, Color.White, 1f, true);
-                    break;
-            }
-            // Create appropriate enemy type using Bridge pattern
-            Enemy enemy;
-            switch (enemyType.ToLower())
-            {
-                case "boss":
-                    enemy = new BossEnemy(enemyID, _currentRenderer);
-                    break;
-                case "standard":
-                default:
-                    enemy = new StandardEnemy(enemyID, _currentRenderer);
+                    enemy = new BirdEnemy(_currentRenderer); // Use BirdEnemy for Mine type (no separate Mine class)
+                    if (_birdTexture != null)
+                    {
+                        enemyAnimation.Initialize(_birdTexture, Vector2.Zero, 0, 68, 68, 7, 30, Color.White, 1f, true);
+                    }
+                    else
+                    {
+                        Logger.Instance?.Warning("BirdTexture is null for Mine type! Using fallback.");
+                    }
                     break;
             }
 
@@ -256,7 +274,6 @@ namespace MultiplayerProject.Source
 
             // Set the current movement pattern
             SetCurrentMovementPattern(enemy);
-
 
             _enemies.Add(enemy);
             return enemy;
@@ -380,6 +397,13 @@ namespace MultiplayerProject.Source
                 // Create and set the new movement algorithm
                 IMoveAlgorithm newMovement = (IMoveAlgorithm)Activator.CreateInstance(currentMovementType);
                 enemy.SetMovementAlgorithm(newMovement);
+
+                // Also change movement for minions (they should move with parent)
+                foreach (var minion in enemy.Minions)
+                {
+                    IMoveAlgorithm minionMovement = (IMoveAlgorithm)Activator.CreateInstance(currentMovementType);
+                    minion.SetMovementAlgorithm(minionMovement);
+                }
             }
             
             // Move to next movement in cycle
