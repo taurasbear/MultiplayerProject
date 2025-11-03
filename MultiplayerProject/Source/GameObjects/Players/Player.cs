@@ -6,11 +6,13 @@ using MultiplayerProject.Source.GameObjects;
 
 namespace MultiplayerProject.Source
 {
-    public class Player : GameObject, INetworkedObject
+    public class Player : GameObject, INetworkedObject, IPlayer
     {
         public override bool Active { get; set; }
-        public int Health;
+        public int Health { get; set; }
         public PlayerColour Colour { get; set; }  
+        public string PlayerName { get; set; } = "Player";
+        // Removed HasShield - now handled by ShieldDecorator
 
         public int Width { get; set; }
         public int Height { get; set; }
@@ -117,6 +119,13 @@ namespace MultiplayerProject.Source
             PlayerAnimation.Draw(spriteBatch);
         }
 
+        public virtual void Draw(SpriteBatch spriteBatch, SpriteFont font)
+        {
+            // Base player only draws the core player animation
+            // Decorators are responsible for drawing enhancements (name tags, shields, etc.)
+            PlayerAnimation.Draw(spriteBatch);
+        }
+
         public void SetPlayerState(PlayerUpdatePacket packet)
         {
             PlayerState.Position = new Vector2(packet.XPosition, packet.YPosition);
@@ -159,6 +168,23 @@ namespace MultiplayerProject.Source
             float speed = (float)Math.Round((decimal)PlayerState.Speed, 1);
             float rot = (float)Math.Round((decimal)PlayerState.Rotation, 1);
             return NetworkPacketFactory.Instance.MakePlayerUpdatePacket(pos.X, pos.Y, speed, rot);
+        }
+
+        // IPlayer interface implementation for decorators
+        public virtual bool GetHasShield()
+        {
+            return false; // Base player has no shield
+        }
+
+        public virtual float GetFireRateMultiplier()
+        {
+            return 1.0f; // Base player has normal fire rate
+        }
+
+        public virtual void TakeDamage(int damage)
+        {
+            // Base player takes damage directly to health
+            Health -= damage;
         }
 
         public void SetColour(PlayerColour colour)

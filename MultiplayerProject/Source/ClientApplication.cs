@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,6 +22,9 @@ namespace MultiplayerProject.Source
 
         private int _width;
         private int _height;
+
+        private Keys _customLeft, _customRight, _customUp, _customDown, _customFire;
+        private bool _customBindingsSet = false;
 
         public ClientApplication(GraphicsDevice graphicsDevice, ContentManager contentManager)
         {
@@ -110,6 +114,17 @@ namespace MultiplayerProject.Source
 
             var newScene = new GameScene(_width, _height, gameInstance.PlayerCount, gameInstance.PlayerIDs, gameInstance.PlayerNames, gameInstance.PlayerColours, gameInstance.LocalPlayerID, _client);
             newScene.Initalise(_contentManager, _graphicsDevice);
+
+            // Apply custom bindings if set
+            if (_customBindingsSet)
+            {
+                newScene.BindKey(_customLeft, new GameScene.MoveLeftCommand());
+                newScene.BindKey(_customRight, new GameScene.MoveRightCommand());
+                newScene.BindKey(_customUp, new GameScene.MoveUpCommand());
+                newScene.BindKey(_customDown, new GameScene.MoveDownCommand());
+                newScene.BindKey(_customFire, new GameScene.FireCommand());
+            }
+
             SetNewScene(newScene);
         }
 
@@ -134,6 +149,21 @@ namespace MultiplayerProject.Source
         {
             _currentScene = scene;
             _client.SetCurrentScene(scene);
+        }
+
+        public GameScene GetCurrentGameScene()
+        {
+            return _currentScene as GameScene;
+        }
+
+        public void SetCustomBindings(Keys left, Keys right, Keys up, Keys down, Keys fire)
+        {
+            _customLeft = left;
+            _customRight = right;
+            _customUp = up;
+            _customDown = down;
+            _customFire = fire;
+            _customBindingsSet = true;
         }
     }
 }

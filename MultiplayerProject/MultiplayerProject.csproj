@@ -65,6 +65,17 @@
     <Compile Include="Source\GameObjects\Enemy\BirdEnemy.cs" />
     <Compile Include="Source\GameObjects\Enemy\BirdEnemyFactory.cs" />
     <Compile Include="Source\GameObjects\Enemy\Enemy.cs" />
+    <Compile Include="Source\GameObjects\Enemy\IMoveAlgorithm.cs" />
+    <Compile Include="Source\GameObjects\Enemy\IEnemyRenderer.cs" />
+    <Compile Include="Source\GameObjects\Enemy\AnimatedRenderer.cs" />
+    <Compile Include="Source\GameObjects\Enemy\StaticRenderer.cs" />
+    <Compile Include="Source\GameObjects\Enemy\ParticleRenderer.cs" />
+    <Compile Include="Source\GameObjects\Enemy\StandardEnemy.cs" />
+    <Compile Include="Source\GameObjects\Enemy\BossEnemy.cs" />
+    <Compile Include="Source\GameObjects\Enemy\VerticalPacing.cs" />
+    <Compile Include="Source\GameObjects\Enemy\ZigZag.cs" />
+    <Compile Include="Source\GameObjects\Enemy\Spinning.cs" />
+    <Compile Include="Source\GameObjects\Enemy\FlyRight.cs" />
     <Compile Include="Source\GameObjects\Enemy\EnemyEventType.cs" />
     <Compile Include="Source\GameObjects\Enemy\EnemyFactory.cs" />
     <Compile Include="Source\GameObjects\Enemy\EnemyType.cs" />
@@ -87,6 +98,14 @@
     <Compile Include="Source\Application.cs" />
     <Compile Include="Source\GameObjects\Lasers\FireLaser.cs" />
     <Compile Include="Source\Helpers\BackwardReader.cs" />
+    <Compile Include="Source\Helpers\AudioManager.cs" />
+    <Compile Include="Source\Helpers\Audio\AudioConfiguration.cs" />
+    <Compile Include="Source\Helpers\Audio\AudioBuilder.cs" />
+    <Compile Include="Source\Helpers\Audio\ScoreBasedAudioController.cs" />
+    <Compile Include="Source\Helpers\Audio\Tiers\CalmAudioTier.cs" />
+    <Compile Include="Source\Helpers\Audio\Tiers\TensionAudioTier.cs" />
+    <Compile Include="Source\Helpers\Audio\Tiers\ActionAudioTier.cs" />
+    <Compile Include="Source\Helpers\Audio\Tiers\ChaosAudioTier.cs" />
     <Compile Include="Source\Helpers\Factories\ElectricFactory.cs" />
     <Compile Include="Source\Helpers\Factories\GameObjectFactory.cs" />
     <Compile Include="Source\Helpers\Factories\WaterFactory.cs" />
@@ -116,6 +135,12 @@
     <Compile Include="Source\Networking\Server\Server.cs" />
     <Compile Include="Source\Effects\ParallaxingBackground.cs" />
     <Compile Include="Source\GameObjects\Players\Player.cs" />
+    <Compile Include="Source\GameObjects\Players\IPlayer.cs" />
+    <Compile Include="Source\GameObjects\Players\Decorators\PlayerDecorator.cs" />
+    <Compile Include="Source\GameObjects\Players\Decorators\NameTagDecorator.cs" />
+    <Compile Include="Source\GameObjects\Players\Decorators\RapidFireDecorator.cs" />
+    <Compile Include="Source\GameObjects\Players\Decorators\ShieldDecorator.cs" />
+    <Compile Include="Source\GameObjects\Players\Decorators\PlayerDecoratorUsageExample.cs" />
     <Compile Include="Source\Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Source\Scenes\Client\Menus\LeaderboardScene.cs" />
@@ -202,6 +227,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Content\shipAnimation.xnb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\laserSound.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\backgroundMusic.wav">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

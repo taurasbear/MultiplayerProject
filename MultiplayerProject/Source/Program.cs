@@ -1,4 +1,5 @@
 ﻿using System;
+using MultiplayerProject.Source.Helpers;
 
 namespace MultiplayerProject
 {
@@ -13,8 +14,20 @@ namespace MultiplayerProject
         [STAThread]
         static void Main()
         {
-            using (var app = new Application())
-                app.Run();
+            // Add additional cleanup handlers for unexpected termination
+            Console.CancelKeyPress += (sender, e) => AudioManager.ForceCleanup();
+            AppDomain.CurrentDomain.UnhandledException += (sender, e) => AudioManager.ForceCleanup();
+
+            try
+            {
+                using (var app = new Application())
+                    app.Run();
+            }
+            finally
+            {
+                // Ensure cleanup happens even if the application crashes
+                AudioManager.ForceCleanup();
+            }
         }
     }
 }

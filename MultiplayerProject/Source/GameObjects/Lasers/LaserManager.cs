@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using MultiplayerProject.Source.Helpers;
 using MultiplayerProject.Source.Helpers.Factories;
 using System;
 using System.Collections.Generic;
@@ -23,6 +24,9 @@ namespace MultiplayerProject.Source
         private const float SECONDS_IN_MINUTE = 60f;
         private const float RATE_OF_FIRE = 200f;
         private const float LASER_SPAWN_DISTANCE = 40f;
+        
+        // Dynamic fire rate based on score
+        private float _currentFireRate = RATE_OF_FIRE;
 
         public string NetworkID { get; set; }
 
@@ -31,7 +35,8 @@ namespace MultiplayerProject.Source
             // Init our laser
             _laserBeams = new List<Laser>();
 
-            _laserSpawnTime = TimeSpan.FromSeconds(SECONDS_IN_MINUTE / RATE_OF_FIRE);
+            _currentFireRate = RATE_OF_FIRE;
+            _laserSpawnTime = TimeSpan.FromSeconds(SECONDS_IN_MINUTE / _currentFireRate);
             _previousLaserSpawnTime = TimeSpan.Zero;
         }
 
@@ -70,17 +75,41 @@ namespace MultiplayerProject.Source
 
         public Laser FireLocalLaserClient(GameObjectFactory factory, GameTime gameTime, Vector2 position, float rotation)
         {
-            // Govern the rate of fire for our lasers
             if (gameTime.TotalGameTime - _previousLaserSpawnTime > _laserSpawnTime)
             {
                 _previousLaserSpawnTime = gameTime.TotalGameTime;
-                // Add the laer to our list.
+                
+                // Use builder pattern for laser sound with dynamic properties
+                // Note: You'll need to pass current score from GameScene
+                AudioManager.Instance.CreateAudioBuilder()
+                    .WithSound("laser")
+                    .WithVolume(0.6f)
+                    .WithPitch(0.0f)
+                    .BuildAndPlay();
+                
                 return AddLaser(factory, position, rotation, "", "");
             }
 
             return null;
         }
+        /// <summary>
+        /// Update fire rate based on player score
+        /// Higher scores = faster fire rate
+        /// </summary>
+        public void UpdateFireRate(int playerScore)
+        {
+            // Increase fire rate based on score
+            // Base rate: 200, increases by 50 for every 3 points
+            float scoreMultiplier = 1.0f + (playerScore / 3) * 0.25f; // 25% increase per 3 points
+            _currentFireRate = RATE_OF_FIRE * scoreMultiplier;
 
+            // Cap the maximum fire rate to prevent it from getting too crazy
+            _currentFireRate = Math.Min(_currentFireRate, RATE_OF_FIRE * 3.0f); // Max 3x fire rate
+
+            // Update the spawn time
+            _laserSpawnTime = TimeSpan.FromSeconds(SECONDS_IN_MINUTE / _currentFireRate);
+        }
+        
         public void FireRemoteLaserClient(GameObjectFactory factory, Vector2 position, float rotation, string playerID, DateTime originalTimeFired, string laserID)
         {
             var timeDifference = (originalTimeFired - DateTime.UtcNow).TotalSeconds;

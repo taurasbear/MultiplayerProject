@@ -4,15 +4,17 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MultiplayerProject.Source.GameObjects;
 using MultiplayerProject.Source.Helpers.Factories;
-using System;
-using System.Collections.Generic;
+using MultiplayerProject.Source.Helpers.Audio;
+using System.Collections.Generic; // Add this line
+using System.Linq;
 using MultiplayerProject.Source.GameObjects.Enemy;
 
 namespace MultiplayerProject.Source
 {
     public class GameScene : IScene
     {
-        private Dictionary<string, Player> _players;
+        private Dictionary<string, IPlayer> _players;
+        private Dictionary<string, string> _playerNames;
         private List<RemotePlayer> _remotePlayers;
         private LocalPlayer _localPlayer;
         private Dictionary<string, PlayerColour> _playerColours;
@@ -24,6 +26,12 @@ namespace MultiplayerProject.Source
         private LaserManager _laserManager;
         private ExplosionManager _explosionManager;
         private BackgroundManager _backgroundManager;
+        
+        // Add audio controller field
+        private ScoreBasedAudioController _audioController;
+        
+        // Font for drawing player names
+        private SpriteFont _font;
 
         private int framesSinceLastSend;
 
@@ -34,9 +42,12 @@ namespace MultiplayerProject.Source
 
         public Client Client { get; set; }
 
+        private int _localPlayerScore;
+
         public GameScene(int width, int height, int playerCount, string[] playerIDs, string[] playerNames, PlayerColour[] playerColours, string localClientID, Client client)
         {
-            _players = new Dictionary<string, Player>();
+            _players = new Dictionary<string, IPlayer>();
+            _playerNames = new Dictionary<string, string>();
             _playerColours = new Dictionary<string, PlayerColour>();
             _playerElements = new Dictionary<string, ElementalType>();
             _remotePlayers = new List<RemotePlayer>();
@@ -45,7 +56,8 @@ namespace MultiplayerProject.Source
 
             for (int i = 0; i < playerCount; i++)
             {
-                Player player;
+                Player player; // Add this declaration
+                
 
                 if (playerIDs[i] == localClientID)
                 {
@@ -62,17 +74,22 @@ namespace MultiplayerProject.Source
                 player.NetworkID = playerIDs[i];
                 // Set all player colors to white
                 var whiteColour = new PlayerColour { R = 255, G = 255, B = 255 };
+                player.PlayerName = playerNames[i]; // Set the player name
                 _playerColours[player.NetworkID] = whiteColour;
                 player.SetColour(whiteColour);
 
                 // Assign elements in a fixed order: Fire, Water, Electric, Fire, ...
                 ElementalType[] elementOrder = { ElementalType.Fire, ElementalType.Water, ElementalType.Electric, ElementalType.Fire };
                 _playerElements[player.NetworkID] = elementOrder[i % elementOrder.Length];
+                _playerNames[player.NetworkID] = playerNames[i]; // Store player names
 
-                _players.Add(player.NetworkID, player);
+                // Wrap all players with NameTagDecorator by default to show names
+                IPlayer decoratedPlayer = new NameTagDecorator(player, showEnhancements: true);
+                _players.Add(player.NetworkID, decoratedPlayer);
             }
 
-            _GUI = new GameSceneGUI(width, height, playerIDs, playerNames, playerColours);
+            // Pass localClientID to GameSceneGUI
+            _GUI = new GameSceneGUI(width, height, playerIDs, playerNames, playerColours, localClientID);
 
             _updatePackets = new Queue<PlayerUpdatePacket>();
 
@@ -81,11 +98,53 @@ namespace MultiplayerProject.Source
             _backgroundManager = new BackgroundManager();
 
             _explosionManager = new ExplosionManager();
+            
+            // Initialize audio controller
+            _audioController = new ScoreBasedAudioController();
+        }
+
+        /// <summary>
+        /// Helper method to unwrap decorators and get the base Player object
+        /// </summary>
+        private T GetBasePlayer<T>(IPlayer decoratedPlayer) where T : Player
+        {
+            IPlayer current = decoratedPlayer;
+            
+            // Unwrap decorators to find the base player
+            while (current is PlayerDecorator decorator)
+            {
+                current = decorator.WrappedPlayer;
+            }
+            
+            return current as T;
+        }
+
+        /// <summary>
+        /// Helper method to find a specific decorator type in the decorator chain
+        /// </summary>
+        private T FindDecorator<T>(IPlayer decoratedPlayer) where T : PlayerDecorator
+        {
+            IPlayer current = decoratedPlayer;
+            
+            // Walk through the decorator chain to find the specific type
+            while (current is PlayerDecorator decorator)
+            {
+                if (decorator is T targetDecorator)
+                {
+                    return targetDecorator;
+                }
+                current = decorator.WrappedPlayer;
+            }
+            
+            return null;
         }
 
         public void Initalise(ContentManager content, GraphicsDevice graphicsDevice)
         {
-            foreach (KeyValuePair<string, Player> player in _players)
+            // Load font for player names
+            _font = content.Load<SpriteFont>("Font");
+            
+            foreach (KeyValuePair<string, IPlayer> player in _players)
             {
                 //player.Value.Initialize(content, _playerColours[player.Key]);
                 player.Value.Initialize(content);
@@ -97,6 +156,16 @@ namespace MultiplayerProject.Source
             _laserManager.Initalise(content);
             _explosionManager.Initalise(content);
             _backgroundManager.Initalise(content);
+            
+            // Set default key bindings ONLY if none exist
+            if (_keyCommandMap == null || _keyCommandMap.Count == 0)
+            {
+                InitializeDefaultKeyBindings();
+            }
+
+            // Start the audio controller
+            _audioController.Start();
+            Logger.Instance.Info("Audio controller started in GameScene");
         }
 
         public void Update(GameTime gameTime)
@@ -111,6 +180,153 @@ namespace MultiplayerProject.Source
             _enemyManager.Update(gameTime);
             _laserManager.Update(gameTime);
             _explosionManager.Update(gameTime);
+            
+            // Update audio based on local player score
+            if (_localPlayer != null && _GUI != null)
+            {
+                int currentScore = _GUI.GetLocalPlayerScore();
+                _audioController.Update(currentScore);
+                
+                // Update shield status based on score
+                UpdatePlayerShields();
+                
+                // Update rapid fire status based on score  
+                UpdatePlayerRapidFire(currentScore);
+                
+                // Update fire rate based on score (keeping existing for compatibility)
+                _laserManager.UpdateFireRate(currentScore);
+            }
+        }
+        
+        private void UpdatePlayerShields()
+        {
+            // Give shield to players who reach score of 5 or higher
+            const int SHIELD_SCORE_THRESHOLD = 5;
+            
+            foreach (var kvp in _players.ToList()) // ToList to avoid modification during iteration
+            {
+                var player = kvp.Value;
+                int playerScore = _GUI.GetPlayerScore(player.NetworkID);
+                
+                // Check if player should have shield but doesn't have one yet
+                if (playerScore >= SHIELD_SCORE_THRESHOLD)
+                {
+                    // Look for existing ShieldDecorator in the decorator chain
+                    var existingShield = FindDecorator<ShieldDecorator>(player);
+                    
+                    if (existingShield == null)
+                    {
+                        // No shield exists, add one while preserving NameTagDecorator as outermost
+                        if (player is NameTagDecorator nameTagDecorator)
+                        {
+                            // Extract the player beneath the NameTagDecorator
+                            var playerBelowNameTag = nameTagDecorator.WrappedPlayer;
+                            var newShieldPlayer = new ShieldDecorator(playerBelowNameTag);
+                            
+                            // Rebuild: Base -> Shield -> NameTag
+                            _players[kvp.Key] = new NameTagDecorator(newShieldPlayer, showEnhancements: true);
+                        }
+                        else
+                        {
+                            // No NameTagDecorator present, add Shield and then NameTag
+                            var newShieldPlayer = new ShieldDecorator(player);
+                            _players[kvp.Key] = new NameTagDecorator(newShieldPlayer, showEnhancements: true);
+                        }
+                    }
+                    // If shield already exists, do nothing (prevents infinite updates)
+                }
+                // Note: We don't remove shields when score drops to keep it simple
+                // In a full implementation, you might want to track shield state differently
+            }
+        }
+        
+        private void UpdatePlayerRapidFire(int localPlayerScore)
+        {
+            // Apply rapid fire decorator to local player based on score
+            if (_localPlayer != null && localPlayerScore > 0)
+            {
+                // Check if the local player needs rapid fire enhancement
+                var currentPlayer = _players[_localPlayer.NetworkID];
+                
+                // Look for existing RapidFireDecorator in the decorator chain
+                var existingRapidFire = FindDecorator<RapidFireDecorator>(currentPlayer);
+                
+                if (existingRapidFire != null)
+                {
+                    // Check if the fire rate needs updating (score changed significantly)
+                    float expectedMultiplier = 1.0f + (localPlayerScore / 3) * 0.25f;
+                    expectedMultiplier = System.Math.Min(expectedMultiplier, 3.0f);
+                    
+                    if (System.Math.Abs(existingRapidFire.GetFireRateMultiplier() - expectedMultiplier) > 0.1f)
+                    {
+                        // Score changed significantly, reapply rapid fire with new multiplier
+                        var basePlayer = GetBasePlayer<Player>(currentPlayer);
+                        
+                        // Rebuild the decoration chain: Base -> RapidFire -> NameTag (to preserve name display)
+                        var newRapidFirePlayer = RapidFireDecorator.FromScore(basePlayer, localPlayerScore);
+                        _players[_localPlayer.NetworkID] = new NameTagDecorator(newRapidFirePlayer, showEnhancements: true);
+                    }
+                    // If multiplier is close enough, do nothing (prevents infinite updates)
+                }
+                else
+                {
+                    // Apply rapid fire decorator for the first time
+                    // Check if currentPlayer is already a NameTagDecorator to preserve it
+                    if (currentPlayer is NameTagDecorator nameTagDecorator)
+                    {
+                        // Extract the player beneath the NameTagDecorator
+                        var playerBelowNameTag = nameTagDecorator.WrappedPlayer;
+                        var newRapidFirePlayer = RapidFireDecorator.FromScore(playerBelowNameTag, localPlayerScore);
+                        
+                        // Rebuild: Base -> RapidFire -> NameTag
+                        _players[_localPlayer.NetworkID] = new NameTagDecorator(newRapidFirePlayer, showEnhancements: true);
+                    }
+                    else
+                    {
+                        // No NameTagDecorator present, just add RapidFire and then NameTag
+                        var newRapidFirePlayer = RapidFireDecorator.FromScore(currentPlayer, localPlayerScore);
+                        _players[_localPlayer.NetworkID] = new NameTagDecorator(newRapidFirePlayer, showEnhancements: true);
+                    }
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Helper method to unwrap decorators and get the base player
+        /// This is a simplified version - in a full implementation you might want a more sophisticated approach
+        /// </summary>
+        private IPlayer GetBasePlayer(IPlayer decoratedPlayer)
+        {
+            // For now, just return the decorated player as we're keeping decorations
+            // In a full implementation, you might want to unwrap to the actual base Player
+            return decoratedPlayer;
+        }
+        
+        /// <summary>
+        /// Test method to demonstrate decorator pattern usage
+        /// </summary>
+        private void TestDecoratorPattern()
+        {
+            // Example: Create a player with multiple decorators
+            if (_localPlayer != null)
+            {
+                IPlayer basePlayer = _localPlayer;
+                
+                // Apply decorators in sequence
+                IPlayer decoratedPlayer = new NameTagDecorator(
+                    new RapidFireDecorator(
+                        new ShieldDecorator(basePlayer),
+                        2.0f, 15f
+                    ), 
+                    showEnhancements: true
+                );
+                
+                // Test that the player has all enhancements
+                bool hasShield = decoratedPlayer.GetHasShield();
+                float fireRate = decoratedPlayer.GetFireRateMultiplier();
+                
+                Logger.Instance?.Info($"Decorated player - Shield: {hasShield}, Fire Rate: {fireRate}x");
+            }
 
         }
 
@@ -122,9 +338,10 @@ namespace MultiplayerProject.Source
 
             _laserManager.Draw(spriteBatch);
 
-            foreach (KeyValuePair<string, Player> player in _players)
+            foreach (KeyValuePair<string, IPlayer> player in _players)
             {
-                player.Value.Draw(spriteBatch);
+                // Use the new Draw method that shows player names
+                player.Value.Draw(spriteBatch, _font);
             }
 
             _explosionManager.Draw(spriteBatch);
@@ -164,29 +381,70 @@ namespace MultiplayerProject.Source
             }
         }
 
+        // 1. Command interface and concrete commands
+        public interface IInputCommand
+        {
+            void Execute(KeyboardMovementInput input);
+        }
+
+        public class MoveLeftCommand : IInputCommand
+        {
+            public void Execute(KeyboardMovementInput input) => input.LeftPressed = true;
+        }
+
+        public class MoveRightCommand : IInputCommand
+        {
+            public void Execute(KeyboardMovementInput input) => input.RightPressed = true;
+        }
+
+        public class MoveUpCommand : IInputCommand
+        {
+            public void Execute(KeyboardMovementInput input) => input.UpPressed = true;
+        }
+
+        public class MoveDownCommand : IInputCommand
+        {
+            public void Execute(KeyboardMovementInput input) => input.DownPressed = true;
+        }
+
+        public class FireCommand : IInputCommand
+        {
+            public void Execute(KeyboardMovementInput input) => input.FirePressed = true;
+        }
+
+        // 2. Add a mapping from Keys to commands
+        private Dictionary<Keys, IInputCommand> _keyCommandMap = new Dictionary<Keys, IInputCommand>();
+
+        // 3. Initialize default mapping (call in constructor or Initalise)
+        private void InitializeDefaultKeyBindings()
+        {
+            _keyCommandMap = new Dictionary<Keys, IInputCommand>
+            {
+                { Keys.Left, new MoveLeftCommand() },
+                { Keys.Right, new MoveRightCommand() },
+                { Keys.Up, new MoveUpCommand() },
+                { Keys.Down, new MoveDownCommand() },
+                { Keys.Space, new FireCommand() }
+                // Add more or allow remapping
+            };
+        }
+
+        // 4. Refactor ProcessInputForLocalPlayer to use commands
         private KeyboardMovementInput ProcessInputForLocalPlayer(GameTime gameTime, InputInformation inputInfo)
         {
             KeyboardMovementInput input = new KeyboardMovementInput();
 
             // Keyboard/Dpad controls
-            if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Left) || inputInfo.CurrentGamePadState.DPad.Left == ButtonState.Pressed)
+            foreach (var kvp in _keyCommandMap)
             {
-                input.LeftPressed = true;
-            }
-            if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Right) || inputInfo.CurrentGamePadState.DPad.Right == ButtonState.Pressed)
-            {
-                input.RightPressed = true;
-            }
-            if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Up) || inputInfo.CurrentGamePadState.DPad.Up == ButtonState.Pressed)
-            {
-                input.UpPressed = true;
-            }
-            if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Down) || inputInfo.CurrentGamePadState.DPad.Down == ButtonState.Pressed)
-            {
-                input.DownPressed = true;
+                if (inputInfo.CurrentKeyboardState.IsKeyDown(kvp.Key))
+                {
+                    kvp.Value.Execute(input);
+                }
             }
 
-            if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Space) || inputInfo.CurrentGamePadState.Buttons.X == ButtonState.Pressed)
+            // Fire logic (unchanged, but now uses input.FirePressed)
+            if (input.FirePressed)
             {
                 // Use the local player's factory to create the correct laser
                 GameObjectFactory factory = GetFactoryFromPlayer(_localPlayer);
@@ -195,9 +453,14 @@ namespace MultiplayerProject.Source
                 if (laser != null)
                 {
                     input.FirePressed = true;
+                    
+                    // Play laser sound with score-based dynamics
+                    int currentScore = _GUI?.GetLocalPlayerScore() ?? 0;
+                    _audioController?.PlayLaserSound(currentScore);
+                    
                     var dataPacket = _localPlayer.BuildUpdatePacket();
                     PlayerFiredPacket packet = NetworkPacketFactory.Instance.MakePlayerFiredPacket(dataPacket.XPosition, dataPacket.YPosition, dataPacket.Speed, dataPacket.Rotation);
-                    packet.TotalGameTime = (float)gameTime.TotalGameTime.TotalSeconds; // TOTAL GAME TIME NOT ELAPSED TIME!
+                    packet.TotalGameTime = (float)gameTime.TotalGameTime.TotalSeconds;
                     packet.LaserID = laser.LaserID;
 
                     // Send the packet to the server
@@ -288,7 +551,7 @@ namespace MultiplayerProject.Source
             }
             else
             {
-                RemotePlayer remotePlayer = _players[serverUpdate.PlayerID] as RemotePlayer;
+                RemotePlayer remotePlayer = GetBasePlayer<RemotePlayer>(_players[serverUpdate.PlayerID]);
                 remotePlayer.SetUpdatePacket(serverUpdate);
             }
         }
@@ -482,6 +745,10 @@ namespace MultiplayerProject.Source
                     {
                         var enemyPacket = (EnemyDefeatedPacket)recievedPacket;
                         ClientMessenger_OnEnemyDefeatedPacket(enemyPacket);
+                        
+                        // Play explosion sound with score-based dynamics
+                        int currentScore = _GUI?.GetLocalPlayerScore() ?? 0;
+                        _audioController?.PlayExplosionSound(currentScore);
                         break;
                     }
 
@@ -503,6 +770,12 @@ namespace MultiplayerProject.Source
         public void SendMessageToTheServer(BasePacket packet, MessageType messageType)
         {
             Client.SendMessageToServer(packet, messageType);
+        }
+
+        // Add this method to GameScene
+        public void BindKey(Keys key, IInputCommand command)
+        {
+            _keyCommandMap[key] = command;
         }
     }
 }

@@ -286,6 +286,9 @@ namespace MultiplayerProject.Source
                     {                      
                         _gameFacade.DeactivateEnemy(collisions[iCollision].DefeatedEnemyID); // Deactivate collided enemy
 
+                        // Track enemy kill for movement changes
+                        _enemyManager.OnEnemyKilled();
+
                         // INCREMENT PLAYER SCORE HERE
                         _playerScores[collisions[iCollision].AttackingPlayerID]++;
 
