@@ -553,7 +553,15 @@ namespace MultiplayerProject.Source
             else
             {
                 RemotePlayer remotePlayer = GetBasePlayer<RemotePlayer>(_players[serverUpdate.PlayerID]);
-                remotePlayer.SetUpdatePacket(serverUpdate);
+                if (remotePlayer != null)
+                {
+                    remotePlayer.SetUpdatePacket(serverUpdate);
+                    Logger.Instance?.Trace($"Updated remote player {serverUpdate.PlayerID}: Pos=({serverUpdate.XPosition:F1}, {serverUpdate.YPosition:F1})");
+                }
+                else
+                {
+                    Logger.Instance?.Warning($"Received update for unknown player: {serverUpdate.PlayerID}");
+                }
             }
         }
 

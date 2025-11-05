@@ -160,10 +160,17 @@ namespace MultiplayerProject.Source
                     }
                 }
             }
-            catch
+            catch (IOException ex)
             {
-                throw;
-            }   
+                // File is being used by another process (likely another instance of the game)
+                // Just write to console instead of crashing
+                Console.WriteLine($"[Logger Warning] Could not write to log file: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                // Other unexpected errors - log to console but don't crash
+                Console.WriteLine($"[Logger Error] Unexpected error writing to log: {ex.Message}");
+            }
             
             if (OnNewLogItem != null)
             {

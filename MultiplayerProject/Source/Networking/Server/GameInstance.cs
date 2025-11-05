@@ -111,6 +111,7 @@ namespace MultiplayerProject.Source
                         var packet = (PlayerUpdatePacket)recievedPacket;
                         packet.PlayerID = client.ID;
                         _playerUpdates[client.ID] = packet;
+                        Logger.Instance.Trace($"Received player update from {client.Name}: Pos=({packet.XPosition:F1}, {packet.YPosition:F1}), Seq={packet.SequenceNumber}");
                         break;
                     }
 
@@ -121,7 +122,7 @@ namespace MultiplayerProject.Source
 
                         var timeDifference = (packet.SendDate - DateTime.UtcNow).TotalSeconds;
 
-                        Console.WriteLine("---> Player I think shot!");
+                        Logger.Instance.Debug("Player " + client.Name + " fired a laser");
                         _gameFacade.NotifyEnemies(EnemyEventType.PlayerShot);
                         var enemyEventPacket = NetworkPacketFactory.Instance.MakeEnemyEventPacket(EnemyEventType.PlayerShot);
                         for (int i = 0; i < ComponentClients.Count; i++)
@@ -354,6 +355,7 @@ namespace MultiplayerProject.Source
         private void SendPlayerStatesToClients()
         {
             // Send a copy of the simulation on the server to all clients
+            Logger.Instance.Trace($"Sending player states to {ComponentClients.Count} clients");
             for (int i = 0; i < ComponentClients.Count; i++)
             {
                 foreach (KeyValuePair<string, Player> player in _players)
