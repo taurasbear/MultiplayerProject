@@ -304,7 +304,6 @@ namespace MultiplayerProject.Source
                 }
 
                 var randomType = _enemyTypes[_random.Next(_enemyTypes.Length)];
-                Logger.Instance.Trace($"Next enemy type set to: {randomType}");
                 _gameFacade.SetNextEnemyType(randomType);
             }
         }
