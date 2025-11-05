@@ -71,7 +71,7 @@ namespace MultiplayerProject.Source
         protected override void OnDeath()
         {
             // Boss death behavior - could trigger special effects, cutscenes, etc.
-            Logger.Instance?.Info($"Boss enemy {EnemyID} has been defeated!");
+            //Logger.Instance?.Info($"Boss enemy {EnemyID} has been defeated!");
             
             // Could switch to particle renderer for death effect
             // SetRenderer(new ParticleRenderer());
@@ -80,7 +80,7 @@ namespace MultiplayerProject.Source
         protected override void OnDamage(int damageAmount)
         {
             // Boss damage behavior - could trigger defensive measures
-            Logger.Instance?.Info($"Blackbird boss enemy {EnemyID} took {damageAmount} damage!");
+            //Logger.Instance?.Info($"Blackbird boss enemy {EnemyID} took {damageAmount} damage!");
             
             // Could change renderer based on damage state
             if (Health <= 30 && _berserkMode)
@@ -107,14 +107,14 @@ namespace MultiplayerProject.Source
             Damage = _originalDamage * 2; // Double damage in berserk mode
             
             // Could add more aggressive movement or special attacks here
-            Logger.Instance?.Info($"Blackbird boss enemy {EnemyID} entered berserk mode!");
+            //Logger.Instance?.Info($"Blackbird boss enemy {EnemyID} entered berserk mode!");
         }
 
         public override void UpdateOnEnemyEvent(EnemyEventType eventType)
         {
             if(eventType is EnemyEventType.GameCloseToFinishing)
             {
-                Speed += 8f;
+                EnemyAnimation.Scale = 3f;
             }
             else if (eventType is EnemyEventType.PlayerShot)
             {

@@ -177,7 +177,7 @@ namespace MultiplayerProject.Source
             }
         }
 
-        public Enemy AddEnemy(string enemyType = "standard")
+        public Enemy AddEnemy()
         {
             // Create the animation object
             Animation enemyAnimation = new Animation();
@@ -187,17 +187,8 @@ namespace MultiplayerProject.Source
                 _random.Next(100, Application.WINDOW_HEIGHT - 100));
 
             // Create appropriate enemy type using Bridge pattern
-            Enemy enemy;
-            switch (enemyType.ToLower())
-            {
-                case "boss":
-                    enemy = new BlackbirdEnemy(_currentRenderer);
-                    break;
-                case "standard":
-                default:
-                    enemy = _enemyFactory?.CreateEnemy() ?? new BirdEnemy(_currentRenderer);
-                    break;
-            }
+            Enemy enemy = _enemyFactory?.CreateEnemy() ?? new Enemy();
+            enemy.SetRenderer(_currentRenderer);
 
             if (enemy is BirdEnemy)
             {
@@ -257,14 +248,15 @@ namespace MultiplayerProject.Source
                     break;
                 case EnemyType.Mine:
                 default:
-                    enemy = new BirdEnemy(_currentRenderer); // Use BirdEnemy for Mine type (no separate Mine class)
-                    if (_birdTexture != null)
+                    enemy = new Enemy();
+                    enemy.SetRenderer(_currentRenderer);
+                    if (_mineTexture != null)
                     {
-                        enemyAnimation.Initialize(_birdTexture, Vector2.Zero, 0, 68, 68, 7, 30, Color.White, 1f, true);
+                        enemyAnimation.Initialize(_mineTexture, Vector2.Zero, 0, 47, 61, 8, 30, Color.White, 1f, true);
                     }
                     else
                     {
-                        Logger.Instance?.Warning("BirdTexture is null for Mine type! Using fallback.");
+                        Logger.Instance?.Warning("MineTexture is null for Mine type! Using fallback.");
                     }
                     break;
             }

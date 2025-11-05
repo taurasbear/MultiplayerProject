@@ -42,7 +42,7 @@ namespace MultiplayerProject.Source
         private TimeSpan _enemySpawnTime;
         private TimeSpan _previousEnemySpawnTime;
         private int framesSinceLastSend;
-        private EnemyType[] _enemyTypes = new[] { EnemyType.Bird, EnemyType.Blackbird };
+        private EnemyType[] _enemyTypes = new[] { EnemyType.Bird, EnemyType.Blackbird, EnemyType.Mine };
         private int _enemySpawnCounter = 0; // Track how many enemies have been spawned
 
         public GameInstance(List<ServerConnection> clients, string gameRoomID)
@@ -111,7 +111,7 @@ namespace MultiplayerProject.Source
                         var packet = (PlayerUpdatePacket)recievedPacket;
                         packet.PlayerID = client.ID;
                         _playerUpdates[client.ID] = packet;
-                        Logger.Instance.Trace($"Received player update from {client.Name}: Pos=({packet.XPosition:F1}, {packet.YPosition:F1}), Seq={packet.SequenceNumber}");
+                        //Logger.Instance.Trace($"Received player update from {client.Name}: Pos=({packet.XPosition:F1}, {packet.YPosition:F1}), Seq={packet.SequenceNumber}");
                         break;
                     }
 
@@ -249,7 +249,7 @@ namespace MultiplayerProject.Source
 
                 // Every enemy, send a clone request, alternating between deep and shallow
                 var clonePacket = NetworkPacketFactory.Instance.MakeEnemyClonePacket(enemy.EnemyID, isDeepClone);
-                Logger.Instance.Info($"Sending {(isDeepClone ? "deep" : "shallow")} clone request for EnemyID: {enemy.EnemyID}");
+                //Logger.Instance.Info($"Sending {(isDeepClone ? "deep" : "shallow")} clone request for EnemyID: {enemy.EnemyID}");
                 for (int i = 0; i < ComponentClients.Count; i++)
                 {
                     ComponentClients[i].SendPacketToClient(clonePacket, MessageType.GI_ServerSend_EnemyClone);
@@ -304,6 +304,7 @@ namespace MultiplayerProject.Source
                 }
 
                 var randomType = _enemyTypes[_random.Next(_enemyTypes.Length)];
+                Logger.Instance.Trace($"Next enemy type set to: {randomType}");
                 _gameFacade.SetNextEnemyType(randomType);
             }
         }
@@ -355,7 +356,7 @@ namespace MultiplayerProject.Source
         private void SendPlayerStatesToClients()
         {
             // Send a copy of the simulation on the server to all clients
-            Logger.Instance.Trace($"Sending player states to {ComponentClients.Count} clients");
+            //Logger.Instance.Trace($"Sending player states to {ComponentClients.Count} clients");
             for (int i = 0; i < ComponentClients.Count; i++)
             {
                 foreach (KeyValuePair<string, Player> player in _players)
