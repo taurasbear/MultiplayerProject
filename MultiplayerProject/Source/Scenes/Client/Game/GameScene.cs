@@ -4,8 +4,9 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MultiplayerProject.Source.Helpers.Factories;
 using MultiplayerProject.Source.Helpers.Audio;
+using MultiplayerProject.Source.Helpers; // ADD THIS LINE
 using MultiplayerProject.Source.GameObjects.Enemy;
-using System.Collections.Generic; // Add this line
+using System.Collections.Generic;
 using System.Linq;
 
 namespace MultiplayerProject.Source
@@ -400,6 +401,19 @@ namespace MultiplayerProject.Source
             {
                 // Send the packet to the server
                 SendMessageToTheServer(packet, MessageType.GI_ClientSend_PlayerUpdate);
+            }
+
+            // Add these lines for pause/undo (press P to pause, U to undo)
+            if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.P) && 
+                !inputInfo.PreviousKeyboardState.IsKeyDown(Keys.P))
+            {
+                ExecuteUndoableCommand(new PauseMusicCommand());
+            }
+
+            if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.U) && 
+                !inputInfo.PreviousKeyboardState.IsKeyDown(Keys.U))
+            {
+                UndoLastCommand();
             }
         }
 
@@ -800,6 +814,69 @@ namespace MultiplayerProject.Source
         public void BindKey(Keys key, IInputCommand command)
         {
             _keyCommandMap[key] = command;
+        }
+
+        // Add separate interface for undoable commands that don't need input
+        public interface IUndoableCommand
+        {
+            void Execute();
+            void Undo();
+        }
+
+        // Music pause command with undo
+        public class PauseMusicCommand : IUndoableCommand
+        {
+            private bool _wasPaused;
+
+            public void Execute()
+            {
+                if (AudioManager.Instance.IsInitialized)
+                {
+                    _wasPaused = !AudioManager.Instance.IsMusicEnabled;
+                    
+                    if (AudioManager.Instance.IsMusicEnabled)
+                    {
+                        AudioManager.Instance.ToggleBackgroundMusic(); // Pause it
+                        Logger.Instance?.Info("Music paused via Command");
+                    }
+                }
+            }
+
+            public void Undo()
+            {
+                if (AudioManager.Instance.IsInitialized)
+                {
+                    if (!AudioManager.Instance.IsMusicEnabled && !_wasPaused)
+                    {
+                        AudioManager.Instance.ToggleBackgroundMusic(); // Unpause it
+                        Logger.Instance?.Info("Music resumed via Undo");
+                    }
+                }
+            }
+        }
+
+        // Add command history stack
+        private Stack<IUndoableCommand> _commandHistory = new Stack<IUndoableCommand>();
+
+        // Method to execute undoable commands and store in history
+        private void ExecuteUndoableCommand(IUndoableCommand command)
+        {
+            command.Execute();
+            _commandHistory.Push(command);
+        }
+
+        // Method to undo the last command
+        private void UndoLastCommand()
+        {
+            if (_commandHistory.Count > 0)
+            {
+                var command = _commandHistory.Pop();
+                command.Undo();
+            }
+            else
+            {
+                Logger.Instance?.Info("No commands to undo");
+            }
         }
     }
 }
