@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace MultiplayerProject.Source.GameObjects.Enemy
 {
-    public abstract class Enemy : IPrototype<Enemy>
+    public class Enemy : IPrototype<Enemy>
     {
         public Animation EnemyAnimation;
         public Vector2 Position;
@@ -157,10 +157,16 @@ namespace MultiplayerProject.Source.GameObjects.Enemy
         }
 
         // Abstract method that must be implemented by concrete enemy classes
-        protected abstract void UpdateEnemySpecific(GameTime gameTime);
+        protected virtual void UpdateEnemySpecific(GameTime gameTime)
+        {
+            // Default implementation does nothing
+        }
 
         // Abstract method for enemy-specific death behavior
-        protected abstract void OnDeath();
+        protected virtual void OnDeath()
+        {
+            // Default death behavior - can be overridden
+        }
 
         // Virtual method for taking damage - can be overridden for special behavior
         protected virtual void OnDamage(int damageAmount)
