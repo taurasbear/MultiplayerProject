@@ -307,7 +307,7 @@ namespace MultiplayerProject.Source.Helpers
                     {
                         // Music finished, restart it (manual looping)
                         _backgroundMusicInstance.Play();
-                        Logger.Instance.Trace("Background music restarted (manual loop)");
+                        //Logger.Instance.Trace("Background music restarted (manual loop)");
                     }
                 }
             }

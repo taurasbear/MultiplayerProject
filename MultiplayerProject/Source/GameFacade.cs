@@ -10,15 +10,19 @@ namespace MultiplayerProject.Source
 {
     public class GameFacade
     {
+        public EnemyManager EnemyManager { get; private set; }
+        public LaserManager LaserManager { get; private set; }
+
         private readonly Dictionary<string, LaserManager> _playerLasers;
         private readonly CollisionManager _collisionManager;
-        private readonly EnemyManager _enemyManager;
 
         public GameFacade()
         {
+            EnemyManager = new EnemyManager();
+            LaserManager = new LaserManager();
+
             _playerLasers = new Dictionary<string, LaserManager>();
             _collisionManager = new CollisionManager();
-            _enemyManager = new EnemyManager();
         }
 
         public void AddPlayer(string playerId)
@@ -35,7 +39,7 @@ namespace MultiplayerProject.Source
             {
                 laserManager.Update(gameTime);
             }
-            _enemyManager.Update(gameTime);
+            EnemyManager.Update(gameTime);
         }
 
         public Laser FireLaser(string playerId, GameObjectFactory factory, double totalGameTime, float deltaTime, Vector2 position, float rotation, string laserId)
@@ -46,17 +50,17 @@ namespace MultiplayerProject.Source
         public List<CollisionManager.Collision> CheckCollisions(List<Player> players)
         {
             var activeLasers = _playerLasers.Values.SelectMany(lm => lm.Lasers).ToList();
-            return _collisionManager.CheckCollision(players, _enemyManager.Enemies, activeLasers);
+            return _collisionManager.CheckCollision(players, EnemyManager.Enemies, activeLasers);
         }
 
         public void DeactivateLaser(string playerId, string laserId) => _playerLasers[playerId].DeactivateLaser(laserId);
 
-        public void DeactivateEnemy(string enemyId) => _enemyManager.DeactivateEnemy(enemyId);
+        public void DeactivateEnemy(string enemyId) => EnemyManager.DeactivateEnemy(enemyId);
 
-        public Enemy AddNewEnemy() => _enemyManager.AddEnemy();
+        public Enemy AddNewEnemy() => EnemyManager.AddEnemy();
 
-        public void SetNextEnemyType(EnemyType enemyType) => _enemyManager.SetEnemyType(enemyType);
+        public void SetNextEnemyType(EnemyType enemyType) => EnemyManager.SetEnemyType(enemyType);
 
-        public void NotifyEnemies(EnemyEventType eventType) => _enemyManager.NotifyEnemies(eventType);
+        public void NotifyEnemies(EnemyEventType eventType) => EnemyManager.NotifyEnemies(eventType);
     }
 }
