@@ -88,6 +88,11 @@
     <Compile Include="Source\GameObjects\Lasers\ElectricLaser.cs" />
     <Compile Include="Source\GameObjects\Lasers\WaterLaser.cs" />
     <Compile Include="Source\GameObjects\Lasers\Laser.cs" />
+    <Compile Include="Source\GameObjects\Lasers\LaserFlyweight.cs" />
+    <Compile Include="Source\GameObjects\Lasers\FireLaserFlyweight.cs" />
+    <Compile Include="Source\GameObjects\Lasers\WaterLaserFlyweight.cs" />
+    <Compile Include="Source\GameObjects\Lasers\ElectricLaserFlyweight.cs" />
+    <Compile Include="Source\GameObjects\Lasers\LaserFlyweightFactory.cs" />
     <Compile Include="Source\Effects\BackgroundManager.cs" />
     <Compile Include="Source\Collisions\CollisionManager.cs" />
     <Compile Include="Source\GameObjects\Enemy\EnemyManager.cs" />

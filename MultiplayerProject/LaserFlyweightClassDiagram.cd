@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Comment CommentText="FLYWEIGHT PATTERN&#xD;&#xA;&#xD;&#xA;Intrinsic State (Shared):&#xD;&#xA;- Texture, Color, Dimensions&#xD;&#xA;- Damage, Speed, Range&#xD;&#xA;&#xD;&#xA;Extrinsic State (Per Instance):&#xD;&#xA;- Position, Rotation&#xD;&#xA;- Active Status, Owner">
+    <Position X="0.5" Y="0.5" Height="1.677" Width="2.419" />
+  </Comment>
+  <Comment CommentText="Factory creates only 3 flyweight instances (one per element type) that are shared across ALL lasers">
+    <Position X="10.5" Y="0.5" Height="0.927" Width="2.377" />
+  </Comment>
+  <Class Name="MultiplayerProject.Source.LaserFlyweight">
+    <Position X="5" Y="0.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAIAAAAAAAAAEAAAAAAQgAAAgAAAAAAAAIAAAAAA=</HashCode>
+      <FileName>Source\GameObjects\Lasers\LaserFlyweight.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Texture" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="MultiplayerProject.Source.FireLaserFlyweight">
+    <Position X="3.25" Y="4" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Source\GameObjects\Lasers\FireLaserFlyweight.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MultiplayerProject.Source.WaterLaserFlyweight">
+    <Position X="5.5" Y="4" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Source\GameObjects\Lasers\WaterLaserFlyweight.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MultiplayerProject.Source.ElectricLaserFlyweight">
+    <Position X="7.75" Y="4" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Source\GameObjects\Lasers\ElectricLaserFlyweight.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MultiplayerProject.Source.LaserFlyweightFactory">
+    <Position X="10.5" Y="2" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAIAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAggAAAAAA=</HashCode>
+      <FileName>Source\GameObjects\Lasers\LaserFlyweightFactory.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Instance" />
+    </ShowAsAssociation>
+    <ShowAsCollectionAssociation>
+      <Field Name="_flyweights" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="MultiplayerProject.Source.Laser">
+    <Position X="5" Y="7" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAYAAIAAAAAiAAAgAAAAAAQAAEAAABIAAQAAAAAAAAA=</HashCode>
+      <FileName>Source\GameObjects\Lasers\Laser.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="_flyweight" />
+      <Field Name="_elementalType" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="MultiplayerProject.Source.FireLaser">
+    <Position X="2" Y="10.25" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Source\GameObjects\Lasers\FireLaser.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MultiplayerProject.Source.WaterLaser">
+    <Position X="5" Y="10.25" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Source\GameObjects\Lasers\WaterLaser.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MultiplayerProject.Source.ElectricLaser">
+    <Position X="8" Y="10.25" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Source\GameObjects\Lasers\ElectricLaser.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Xna.Framework.Graphics.Texture2D" Collapsed="true">
+    <Position X="8.25" Y="1" Width="1.5" />
+    <TypeIdentifier />
+  </Class>
+  <Enum Name="MultiplayerProject.Source.GameObjects.ElementalType">
+    <Position X="8.25" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAI=</HashCode>
+      <FileName>Source\GameObjects\ElementalType.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

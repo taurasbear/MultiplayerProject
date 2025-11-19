@@ -12,7 +12,7 @@ namespace MultiplayerProject.Source.Helpers.Initialization
         /// <summary>
         /// Template method for initialization. Calls steps in order.
         /// </summary>
-        public sealed void Initialize(ContentManager content)
+        public void Initialize(ContentManager content)
         {
             try
             {

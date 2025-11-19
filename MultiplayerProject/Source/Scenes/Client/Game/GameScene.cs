@@ -169,6 +169,11 @@ namespace MultiplayerProject.Source
             // Load font for player names
             _font = content.Load<SpriteFont>("Font");
             
+            // Initialize Flyweight Factory for lasers (Flyweight Pattern)
+            // This creates shared flyweight instances for all laser types
+            LaserFlyweightFactory.Instance.Initialize(content);
+            Logger.Instance.Info("LaserFlyweightFactory initialized - " + LaserFlyweightFactory.Instance.GetMemoryStats());
+            
             foreach (KeyValuePair<string, IPlayer> player in _players)
             {
                 player.Value.Initialize(content);

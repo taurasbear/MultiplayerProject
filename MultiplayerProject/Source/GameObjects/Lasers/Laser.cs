@@ -18,30 +18,87 @@ namespace MultiplayerProject.Source
         // set the laser to active
         public override bool Active { get; set; }
 
-        // the width of the laser image.
+        // Reference to shared flyweight (intrinsic state)
+        protected LaserFlyweight _flyweight;
+
+        // Elemental type for this laser instance
+        protected ElementalType _elementalType;
+
+        // the width of the laser image (from flyweight)
         public int Width
         {
-            get { return LaserAnimation.FrameWidth; }
+            get { return _flyweight != null ? _flyweight.Width : LaserAnimation.FrameWidth; }
         }
 
-        // the height of the laser image.
+        // the height of the laser image (from flyweight)
         public int Height
         {
-            get { return LaserAnimation.FrameHeight; }
+            get { return _flyweight != null ? _flyweight.Height : LaserAnimation.FrameHeight; }
         }
 
         public string PlayerFiredID { get; set; }
         public Color LaserColor;
         public string LaserID { get; set; }
 
-        // a multiplier for the damage of the laser
-        public float Damage { get; set; }
+        // a multiplier for the damage of the laser (from flyweight or fallback)
+        public float Damage 
+        { 
+            get 
+            { 
+                if (_flyweight != null) 
+                    return _flyweight.Damage;
+                
+                // Fallback values for server-side (no flyweight)
+                switch (_elementalType)
+                {
+                    case ElementalType.Fire: return 15f;
+                    case ElementalType.Water: return 8f;
+                    case ElementalType.Electric: return 7f;
+                    default: return 10f;
+                }
+            }
+            set { } // Keep setter for backward compatibility
+        }
 
-        // the speed the laser travels
-        public float Speed { get; set; }
+        // the speed the laser travels (from flyweight or fallback)
+        public float Speed 
+        { 
+            get 
+            { 
+                if (_flyweight != null) 
+                    return _flyweight.Speed;
+                
+                // Fallback values for server-side (no flyweight)
+                switch (_elementalType)
+                {
+                    case ElementalType.Fire: return 30f;
+                    case ElementalType.Water: return 25f;
+                    case ElementalType.Electric: return 40f;
+                    default: return 30f;
+                }
+            }
+            set { } // Keep setter for backward compatibility
+        }
 
-        // the distance the laser can travel
-        public float Range { get; set; }
+        // the distance the laser can travel (from flyweight or fallback)
+        public float Range 
+        { 
+            get 
+            { 
+                if (_flyweight != null) 
+                    return _flyweight.Range;
+                
+                // Fallback values for server-side (no flyweight)
+                switch (_elementalType)
+                {
+                    case ElementalType.Fire: return 600f;
+                    case ElementalType.Water: return 800f;
+                    case ElementalType.Electric: return 1200f;
+                    default: return 1000f;
+                }
+            }
+            set { } // Keep setter for backward compatibility
+        }
 
         private float distanceTraveled;
 
@@ -49,18 +106,43 @@ namespace MultiplayerProject.Source
         {
             LaserID = Guid.NewGuid().ToString();
             PlayerFiredID = "";
-            Damage = 10f;
-            Speed = 30f;
-            Range = 1000f;
+            _elementalType = ElementalType.Fire; // Default
         }
 
         public Laser(string ID, string playerFiredID)
         {
             LaserID = ID;
             PlayerFiredID = playerFiredID;
-            Damage = 10f;
-            Speed = 30f;
-            Range = 1000f;
+            _elementalType = ElementalType.Fire; // Default
+        }
+
+        public Laser(ElementalType elementalType)
+        {
+            LaserID = Guid.NewGuid().ToString();
+            PlayerFiredID = "";
+            _elementalType = elementalType;
+            TryInitializeFlyweight(elementalType);
+        }
+
+        public Laser(string ID, string playerFiredID, ElementalType elementalType)
+        {
+            LaserID = ID;
+            PlayerFiredID = playerFiredID;
+            _elementalType = elementalType;
+            TryInitializeFlyweight(elementalType);
+        }
+
+        private void TryInitializeFlyweight(ElementalType elementalType)
+        {
+            try
+            {
+                _flyweight = LaserFlyweightFactory.Instance.GetFlyweight(elementalType);
+            }
+            catch (InvalidOperationException)
+            {
+                // Flyweight factory not initialized (server-side), flyweight will remain null
+                _flyweight = null;
+            }
         }
 
         public virtual void Initialize(Animation animation, Vector2 position, float rotation)
@@ -70,6 +152,14 @@ namespace MultiplayerProject.Source
             Position = position;
             Rotation = rotation;
             Active = true;
+
+            // If flyweight is set, use it to initialize animation properties
+            if (_flyweight != null)
+            {
+                _flyweight.InitializeAnimation(animation);
+                LaserColor = _flyweight.TintColor;
+            }
+            // Otherwise, subclasses will set their own properties directly
         }
 
         public override void Update(GameTime gameTime)
@@ -98,7 +188,23 @@ namespace MultiplayerProject.Source
 
         public override void Draw(SpriteBatch spriteBatch)
         {
-            LaserAnimation.Draw(spriteBatch);
+            // Use flyweight to draw if available
+            if (_flyweight != null)
+            {
+                _flyweight.Draw(spriteBatch, LaserAnimation);
+            }
+            else
+            {
+                LaserAnimation.Draw(spriteBatch);
+            }
+        }
+
+        /// <summary>
+        /// Get the elemental effect description from flyweight
+        /// </summary>
+        public string GetElementalEffect()
+        {
+            return _flyweight?.GetElementalEffect() ?? "Standard laser";
         }
     }
 }
