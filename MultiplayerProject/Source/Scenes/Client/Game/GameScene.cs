@@ -6,7 +6,6 @@ using MultiplayerProject.Source.Helpers.Factories;
 using MultiplayerProject.Source.Helpers.Audio;
 using MultiplayerProject.Source.Helpers;
 using MultiplayerProject.Source.GameObjects.Enemy;
-using MultiplayerProject.Source.Helpers.Initialization;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -182,10 +181,8 @@ namespace MultiplayerProject.Source
             _GUI.Initalise(content);
 
             // Use Template Method pattern for manager initialization
-            var enemyManagerInit = new EnemyManagerInitializer(_enemyManager);
-            enemyManagerInit.Initialize(content);
-            var laserManagerInit = new LaserManagerInitializer(_laserManager);
-            laserManagerInit.Initialize(content);
+            _enemyManager.Initalise(content);
+            _laserManager.Initalise(content);
             _explosionManager.Initalise(content);
             _backgroundManager.Initalise(content);
             

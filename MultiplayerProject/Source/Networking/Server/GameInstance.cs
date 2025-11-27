@@ -5,7 +5,6 @@ using Microsoft.Xna.Framework;
 using MultiplayerProject.Source.GameObjects;
 using MultiplayerProject.Source.Helpers.Factories;
 using MultiplayerProject.Source.GameObjects.Enemy;
-using MultiplayerProject.Source.Helpers.Initialization;
 
 
 namespace MultiplayerProject.Source
@@ -93,11 +92,6 @@ namespace MultiplayerProject.Source
                 _playerElements[ComponentClients[i].ID] = elementOrder[i % elementOrder.Length];
             }
 
-            // Template Method pattern for manager initialization (server-side)
-            var enemyManagerInit = new EnemyManagerInitializer(_gameFacade.EnemyManager);
-            enemyManagerInit.Initialize(null); // Pass ContentManager if available, otherwise null for server logic
-            var laserManagerInit = new LaserManagerInitializer(_gameFacade.LaserManager);
-            laserManagerInit.Initialize(null); // Pass ContentManager if available, otherwise null for server logic
         }
 
         private GameObjectFactory GetFactoryFromPlayer(Player player)
