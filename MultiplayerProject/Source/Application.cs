@@ -102,7 +102,7 @@ namespace MultiplayerProject
 
             _mainMenu.Initalise(Content, _graphics.GraphicsDevice);
 
-            // Initialize AudioManager singleton
+            // Initalise AudioManager singleton
             MultiplayerProject.Source.Helpers.AudioManager.Instance.Initialize(Content);
             
             // Start background music immediately

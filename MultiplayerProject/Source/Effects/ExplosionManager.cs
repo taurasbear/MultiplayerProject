@@ -1,37 +1,51 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using MultiplayerProject.Source.Helpers;
 using MultiplayerProject.Source.Helpers.Factories;
-using System.Collections.Generic;
 
 namespace MultiplayerProject.Source
 {
-    public class ExplosionManager
+    public sealed class ExplosionManager : EntityManagerBase<Explosion>
     {
-        // Collections of explosions
-        private List<Explosion> _explosions;
-
-        //Texture to hold explosion animation.
+        // Explosion-specific texture
         private Texture2D _explosionTexture;
 
-        public void Initalise(ContentManager content)
+        public ExplosionManager() : base()
         {
-            // init our collection of explosions.
-            _explosions = new List<Explosion>();
+        }
 
-            // load the explosion sheet
+        /// <summary>
+        /// Implements abstract method: Initalise explosion-specific resources.
+        /// </summary>
+        public override void Initalise(ContentManager content)
+        {
             _explosionTexture = content.Load<Texture2D>("explosion");
         }
 
-        public void Update(GameTime gameTime)
+        /// <summary>
+        /// Implements abstract method: Update single explosion entity.
+        /// </summary>
+        protected override void UpdateEntity(Explosion explosion, GameTime gameTime)
         {
-            for (var e = 0; e < _explosions.Count; e++)
-            {
-                _explosions[e].Update(gameTime);
+            explosion.Update(gameTime);
+        }
 
-                if (!_explosions[e].Active)
-                    _explosions.Remove(_explosions[e]);
-            }
+        /// <summary>
+        /// Implements abstract method: Explosion removal criteria.
+        /// </summary>
+        protected override bool ShouldRemoveEntity(Explosion explosion)
+        {
+            // Remove if explosion animation is complete
+            return !explosion.Active;
+        }
+
+        /// <summary>
+        /// Implements abstract method: Draw single explosion entity.
+        /// </summary>
+        protected override void DrawEntity(Explosion explosion, SpriteBatch spriteBatch)
+        {
+            explosion.Draw(spriteBatch);
         }
 
         public void AddExplosion(Vector2 position, GameObjectFactory factory, Color color)
@@ -41,28 +55,23 @@ namespace MultiplayerProject.Source
 
             // Create a base animation that does NOT loop
             Animation baseAnimation = new Animation();
-            baseAnimation.Initialize(_explosionTexture,
+            baseAnimation.Initialize(
+                _explosionTexture,
                 position,
                 0,
                 134,
                 134,
                 12,
                 30,
-                color, // Pass the color to the animation
+                color,
                 1.0f,
-                false); // <-- This is the fix! Explosions should not loop.
+                false  // Explosions should not loop
+            );
 
-            _explosions.Add(explosion);
             explosion.Initialize(baseAnimation, position, color);
-        }
 
-        public void Draw(SpriteBatch spriteBatch)
-        {
-            // draw explosions
-            for(int i = 0; i < _explosions.Count; i++)
-            {
-                _explosions[i].Draw(spriteBatch);
-            }
+            // Use base class method to add to collection
+            AddEntityToCollection(explosion);
         }
     }
 }
