@@ -30,6 +30,9 @@ namespace MultiplayerProject.Source
         private string _path;
         private float yGap;
 
+    // For scrolling
+    private int scrollOffset = 0;
+
         public ServerScene(int width, int height)
         {
             Width = width;
@@ -38,7 +41,7 @@ namespace MultiplayerProject.Source
             _path = Assembly.GetExecutingAssembly().GetName().Name + ".log";
 
             bool b;
-            logLines = Logger.Instance.ReadLastLines(0, 30, out b);
+            logLines = Logger.Instance.ReadLastLines(0, 60, out b);
 
             Logger.OnNewLogItem += Logger_OnNewLogItem;
         }
@@ -46,6 +49,11 @@ namespace MultiplayerProject.Source
         private void Logger_OnNewLogItem(string str)
         {
             logLines.Insert(0, str);
+            // Optionally, keep scroll at bottom if already at bottom
+            if (scrollOffset == 0)
+            {
+                // No action needed, stays at bottom
+            }
         }
 
         public void Draw(SpriteBatch spriteBatch)
@@ -53,10 +61,19 @@ namespace MultiplayerProject.Source
             // Draw title
             spriteBatch.DrawString(_font, _titleText, _titlePosition, Color.White);
 
+            // Calculate how many lines fit in the window
+            int maxVisibleLines = (int)((Height - START_Y_POS) / yGap);
+            if (maxVisibleLines < 1) maxVisibleLines = 1;
+
+            // Clamp scrollOffset
+            int maxOffset = Math.Max(0, logLines.Count - maxVisibleLines);
+            if (scrollOffset > maxOffset) scrollOffset = maxOffset;
+            if (scrollOffset < 0) scrollOffset = 0;
+
             int count = 0;
-            for (int i = 0; i < logLines.Count; i++)
+            for (int i = scrollOffset; i < logLines.Count && count < maxVisibleLines; i++)
             {
-                if (logLines.Count > i && logLines[i] != null && !string.IsNullOrEmpty(logLines[i]))
+                if (logLines[i] != null && !string.IsNullOrEmpty(logLines[i]))
                 {
                     try
                     {
@@ -65,7 +82,7 @@ namespace MultiplayerProject.Source
                     }
                     catch { /* This is bad */ }
                 }
-            }          
+            }
         }
 
         public void Initalise(ContentManager content, GraphicsDevice graphicsDevice)
@@ -80,7 +97,15 @@ namespace MultiplayerProject.Source
 
         public void ProcessInput(GameTime gameTime, InputInformation inputInfo)
         {
-            
+            // Mouse wheel scroll: positive delta = up, negative = down
+            int wheelDelta = inputInfo.CurrentMouseState.ScrollWheelValue - inputInfo.PreviousMouseState.ScrollWheelValue;
+            if (wheelDelta != 0)
+            {
+                // Typical mouse wheel delta is 120 per notch
+                int linesToScroll = wheelDelta / 120;
+                // Invert so wheel up scrolls up (older logs), wheel down scrolls down (newer logs)
+                scrollOffset -= linesToScroll;
+            }
         }
 
         public void Update(GameTime gameTime)

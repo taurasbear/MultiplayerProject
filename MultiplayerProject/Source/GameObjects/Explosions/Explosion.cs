@@ -17,7 +17,16 @@ namespace MultiplayerProject.Source
         public float Radius { get; set; }
         public float Duration { get; set; }
 
-        public Vector2 Position { get { return ExplosionAnimation?.Position ?? Vector2.Zero; } }
+        // Server-side timing for explosions without animation
+        private float _timeAlive = 0f;
+        private Vector2 _position = Vector2.Zero;
+        private bool _isServerSide = false;
+
+        public Vector2 Position 
+        { 
+            get { return ExplosionAnimation?.Position ?? _position; } 
+            set { _position = value; }
+        }
         public float Width { get { return ExplosionAnimation?.FrameWidth ?? 0; } }
         public float Height { get { return ExplosionAnimation?.FrameHeight ?? 0; } }
 
@@ -33,15 +42,45 @@ namespace MultiplayerProject.Source
             ExplosionAnimation = animation;
             Active = true;
             ExplosionColor = color;
-            ExplosionAnimation.SetColor(ExplosionColor);
-            ExplosionAnimation.Position = centerPosition;
-            ExplosionAnimation.Reset();
+            _position = centerPosition;
+            _isServerSide = false;
+            
+            if (animation != null)
+            {
+                ExplosionAnimation.SetColor(ExplosionColor);
+                ExplosionAnimation.Position = centerPosition;
+                ExplosionAnimation.Reset();
+            }
+        }
+
+        /// <summary>
+        /// Initialize explosion for server-side use (no animation, timer-based)
+        /// </summary>
+        public virtual void InitializeServerSide(Vector2 centerPosition, Color color, float duration = 1.0f)
+        {
+            ExplosionAnimation = null;
+            Active = true;
+            ExplosionColor = color;
+            _position = centerPosition;
+            Duration = duration;
+            _timeAlive = 0f;
+            _isServerSide = true;
         }
 
         public override void Update(GameTime gameTime)
         {
-            if (ExplosionAnimation != null)
+            if (_isServerSide)
             {
+                // Server-side timer-based update
+                _timeAlive += (float)gameTime.ElapsedGameTime.TotalSeconds;
+                if (_timeAlive >= Duration)
+                {
+                    Active = false;
+                }
+            }
+            else if (ExplosionAnimation != null)
+            {
+                // Client-side animation-based update
                 ExplosionAnimation.Update(gameTime);
                 if (ExplosionAnimation.IsFinished)
                 {

@@ -13,7 +13,7 @@ namespace MultiplayerProject
         #region Values
 
         public const int WINDOW_HEIGHT = 480;
-        public const int WINDOW_WIDTH = 800;
+        public const int WINDOW_WIDTH = 900;
 
         public const bool APPLY_CLIENT_SIDE_PREDICTION = true;
         public const bool APPLY_SERVER_RECONCILLIATION = true;

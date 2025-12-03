@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework;
 using MultiplayerProject.Source.GameObjects;
 using MultiplayerProject.Source.Helpers.Factories;
 using MultiplayerProject.Source.GameObjects.Enemy;
+using MultiplayerProject.Source.Visitors;
 
 
 namespace MultiplayerProject.Source
@@ -44,6 +45,11 @@ namespace MultiplayerProject.Source
         private int framesSinceLastSend;
         private EnemyType[] _enemyTypes = new[] { EnemyType.Bird, EnemyType.Blackbird, EnemyType.Mine };
         private int _enemySpawnCounter = 0; // Track how many enemies have been spawned
+
+        // Visitor Pattern - Server-side statistics tracking
+        private ActiveObjectsVisitor _activeStatsVisitor;
+        private LifetimeStatisticsVisitor _lifetimeStatsVisitor;
+        private PlayerScoreVisitor _scoreVisitor;
 
         public GameInstance(List<ServerConnection> clients, string gameRoomID)
         {
@@ -92,6 +98,11 @@ namespace MultiplayerProject.Source
                 _playerElements[ComponentClients[i].ID] = elementOrder[i % elementOrder.Length];
             }
 
+            // Initialize visitor pattern objects for server-side statistics tracking
+            _activeStatsVisitor = new ActiveObjectsVisitor();
+            _lifetimeStatsVisitor = new LifetimeStatisticsVisitor();
+            _scoreVisitor = new PlayerScoreVisitor();
+
         }
 
         private GameObjectFactory GetFactoryFromPlayer(Player player)
@@ -137,6 +148,12 @@ namespace MultiplayerProject.Source
                         var laser = _gameFacade.FireLaser(client.ID, factory, packet.TotalGameTime, (float)timeDifference, new Vector2(packet.XPosition, packet.YPosition), packet.Rotation, packet.LaserID);
                         if (laser != null)
                         {
+                            // Track laser fired for lifetime statistics
+                            laser.Accept(_lifetimeStatsVisitor);
+                            
+                            // Track laser fired for 5-second window statistics
+                            _activeStatsVisitor.AddRecentEvents(1, 0, 0);
+                            
                             for (int i = 0; i < ComponentClients.Count; i++)
                             {
                                 ComponentClients[i].SendPacketToClient(packet, MessageType.GI_ServerSend_RemotePlayerFired);
@@ -193,6 +210,9 @@ namespace MultiplayerProject.Source
 
             CheckCollisions();
 
+            // Visitor Pattern: Track statistics on server side
+            UpdateGameStatistics(gameTime);
+
             if (sendPacketThisFrame)
             {
                 SendPlayerStatesToClients();
@@ -215,6 +235,70 @@ namespace MultiplayerProject.Source
             }
         }
 
+        /// <summary>
+        /// Update game statistics using visitor pattern
+        /// This tracks active objects and logs statistics on the server side
+        /// </summary>
+        private void UpdateGameStatistics(GameTime gameTime)
+        {
+            // Visitor Pattern: Count active objects RIGHT NOW (current frame)
+            _activeStatsVisitor.Reset();
+            
+            // Visit all players
+            foreach (var player in _players.Values)
+            {
+                player.Accept(_activeStatsVisitor);
+            }
+            
+            // Visit all enemies (including minions)
+            foreach (var enemy in _gameFacade.EnemyManager.Enemies)
+            {
+                enemy.Accept(_activeStatsVisitor);
+                
+                // Also count minions
+                foreach (var minion in enemy.Minions)
+                {
+                    minion.Accept(_activeStatsVisitor);
+                }
+            }
+            
+            // Visit all active lasers across all players  
+            // Get the active laser count from GameFacade and manually set it
+            int activeLaserCount = _gameFacade.GetActiveLaserCount();
+            _activeStatsVisitor.SetActiveLaserCount(activeLaserCount);
+            
+            // Visit all active explosions
+            _gameFacade.ApplyVisitorToAllExplosions(_activeStatsVisitor);
+            
+            // Finalize the snapshot for recent activity tracking
+            _activeStatsVisitor.FinalizeSnapshot();
+            
+            // Check if it's time to log statistics (every 5 seconds based on real time)
+            if (_activeStatsVisitor.ShouldLogAndReset())
+            {
+                Logger.Instance?.Info($"[V] SERVER =======================Time: {gameTime.TotalGameTime.TotalSeconds:F1}s ============================");
+
+                // Log activity from last 5 seconds (this shows the 5-second window data)
+                _activeStatsVisitor.LogCurrentStatus();
+                
+                // Log lifetime totals since game start
+                _lifetimeStatsVisitor.LogLifetimeReport();
+
+                // Get score statistics from server data
+                _scoreVisitor.Reset();
+                foreach (var kvp in _players)
+                {
+                    int score = _playerScores.ContainsKey(kvp.Key) ? _playerScores[kvp.Key] : 0;
+                    _scoreVisitor.AddPlayerScore(kvp.Key, score);
+                    kvp.Value.Accept(_scoreVisitor);
+                }
+                _scoreVisitor.LogScoreReport();
+                
+                // Reset the recent event counters after logging
+                _activeStatsVisitor.ResetRecentCounters();
+            }
+        }
+
         private void UpdateEnemies(GameTime gameTime)
         {
             // Spawn a new enemy enemy every 1.5 seconds
@@ -223,6 +307,12 @@ namespace MultiplayerProject.Source
                 _previousEnemySpawnTime = gameTime.TotalGameTime;
 
                 var enemy = _gameFacade.AddNewEnemy();
+
+                // Track enemy spawned for lifetime statistics
+                enemy.Accept(_lifetimeStatsVisitor);
+                
+                // Track enemy spawned for 5-second window statistics
+                int totalEnemiesAdded = 1; // Count the main enemy
 
                 _enemySpawnCounter++;
                 bool isDeepClone = _enemySpawnCounter % 2 == 0; // Even enemies get deep clone, odd get shallow
@@ -244,8 +334,15 @@ namespace MultiplayerProject.Source
                         );
                         
                         enemy.Minions.Add(minion);
+                        
+                        // Track each minion for lifetime statistics too
+                        minion.Accept(_lifetimeStatsVisitor);
+                        totalEnemiesAdded++; // Count each minion
                     }
                 }
+                
+                // Track enemy spawn events for 5-second window
+                _activeStatsVisitor.AddRecentEvents(0, 0, totalEnemiesAdded);
                 // If not deep clone, enemy remains single (no minions)
 
                 // Every enemy, send a clone request, alternating between deep and shallow
@@ -321,7 +418,54 @@ namespace MultiplayerProject.Source
 
                     if (collisions[iCollision].CollisionType == CollisionManager.CollisionType.LaserToEnemy)
                     {                      
+                        var defeatedEnemy = _gameFacade.EnemyManager.Enemies.FirstOrDefault(e => e.EnemyID == collisions[iCollision].DefeatedEnemyID);
+                        
+                        // If not found as a main enemy, check if it's a minion
+                        if (defeatedEnemy == null)
+                        {
+                            foreach (var parentEnemy in _gameFacade.EnemyManager.Enemies)
+                            {
+                                var minion = parentEnemy.Minions.FirstOrDefault(m => m.EnemyID == collisions[iCollision].DefeatedEnemyID);
+                                if (minion != null)
+                                {
+                                    defeatedEnemy = minion;
+                                    break;
+                                }
+                            }
+                        }
+                        
                         _gameFacade.DeactivateEnemy(collisions[iCollision].DefeatedEnemyID); // Deactivate collided enemy
+
+                        // Create explosion on server for visitor pattern tracking
+                        if (defeatedEnemy != null)
+                        {
+                            Player attackingPlayer = _players[collisions[iCollision].AttackingPlayerID];
+                            GameObjectFactory factory = GetFactoryFromPlayer(attackingPlayer);
+                            
+                            // Choose explosion color based on element
+                            Color explosionColor = Color.White;
+                            var element = _playerElements[attackingPlayer.NetworkID];
+                            switch (element)
+                            {
+                                case ElementalType.Fire:
+                                    explosionColor = Color.Red;
+                                    break;
+                                case ElementalType.Electric:
+                                    explosionColor = Color.Yellow;
+                                    break;
+                                case ElementalType.Water:
+                                    explosionColor = Color.Blue;
+                                    break;
+                            }
+                            
+                            var explosion = _gameFacade.CreateExplosion(defeatedEnemy.Position, factory, explosionColor);
+                            if (explosion != null)
+                            {
+                                explosion.Accept(_lifetimeStatsVisitor);
+                                // Track explosion created for 5-second window statistics
+                                _activeStatsVisitor.AddRecentEvents(0, 1, 0);
+                            }
+                        }
 
                         // INCREMENT PLAYER SCORE HERE
                         _playerScores[collisions[iCollision].AttackingPlayerID]++;
@@ -338,6 +482,34 @@ namespace MultiplayerProject.Source
                         // DECCREMENT PLAYER SCORE HERE
                         if (_playerScores[collisions[iCollision].DefeatedPlayerID] > 0)
                             _playerScores[collisions[iCollision].DefeatedPlayerID]--;
+
+                        // Create explosion on server for visitor pattern tracking (player death)
+                        var defeatedPlayer = _players[collisions[iCollision].DefeatedPlayerID];
+                        GameObjectFactory factory = GetFactoryFromPlayer(defeatedPlayer);
+                        
+                        // Choose explosion color based on element
+                        Color explosionColor = Color.White;
+                        var element = _playerElements[defeatedPlayer.NetworkID];
+                        switch (element)
+                        {
+                            case ElementalType.Fire:
+                                explosionColor = Color.Red;
+                                break;
+                            case ElementalType.Electric:
+                                explosionColor = Color.Yellow;
+                                break;
+                            case ElementalType.Water:
+                                explosionColor = Color.Blue;
+                                break;
+                        }
+                        
+                        var explosion = _gameFacade.CreateExplosion(defeatedPlayer.Position, factory, explosionColor);
+                        if (explosion != null)
+                        {
+                            explosion.Accept(_lifetimeStatsVisitor);
+                            // Track explosion created for 5-second window statistics
+                            _activeStatsVisitor.AddRecentEvents(0, 1, 0);
+                        }
 
                         // Create packet to send to clients
                         // TODO: In future move player to a random spot on the map and send that data with this packet

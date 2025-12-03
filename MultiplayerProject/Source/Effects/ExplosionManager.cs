@@ -73,5 +73,21 @@ namespace MultiplayerProject.Source
             // Use base class method to add to collection
             AddEntityToCollection(explosion);
         }
+
+        /// <summary>
+        /// Server-side explosion creation without graphics (for statistics tracking only)
+        /// This allows the server to track explosions in the visitor pattern without needing textures
+        /// </summary>
+        public void AddServerExplosion(Vector2 position, GameObjectFactory factory, Color color)
+        {
+            // Get the correct explosion type from the factory
+            Explosion explosion = (Explosion)factory.CreateExplosion();
+
+            // Initialize for server-side use (no graphics, timer-based)
+            explosion.InitializeServerSide(position, color, 1.0f); // 1 second duration
+            
+            // Use base class method to add to collection
+            AddEntityToCollection(explosion);
+        }
     }
 }

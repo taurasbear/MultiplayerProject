@@ -34,6 +34,10 @@ namespace MultiplayerProject.Source
 
         private EnemyFactory _enemyFactory;
 
+        // Add ExplosionManager
+        private ExplosionManager _explosionManager;
+        public ExplosionManager ExplosionManager => _explosionManager;
+
         public EnemyManager()
         {
             // Initialize the enemies list
@@ -48,6 +52,9 @@ namespace MultiplayerProject.Source
             _totalGameTime = 0.0;
             _lastMovementChangeTime = 0.0;
             _currentMovementIndex = 0;
+
+            // Initialize ExplosionManager
+            _explosionManager = new ExplosionManager();
         }
 
         public void SetEnemyType(EnemyType enemyType)
