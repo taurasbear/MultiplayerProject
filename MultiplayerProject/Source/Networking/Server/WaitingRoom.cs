@@ -176,5 +176,13 @@ namespace MultiplayerProject.Source
                 _activeRooms[i].Update(gameTime);
             }
         }
+
+        /// <summary>
+        /// Get all active game rooms for command interpreter access
+        /// </summary>
+        public List<GameRoom> GetActiveRooms()
+        {
+            return new List<GameRoom>(_activeRooms);
+        }
     }
 }

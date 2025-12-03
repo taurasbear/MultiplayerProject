@@ -1,0 +1,231 @@
+@startuml Interpreter_Pattern_Implementation
+!define LIGHTBLUE #E6F3FF
+!define LIGHTGREEN #E6FFE6
+!define LIGHTYELLOW #FFFACD
+!define LIGHTCORAL #FFE4E1
+!define LIGHTGRAY #F5F5F5
+
+title "Interpreter Pattern Implementation - MultiplayerProject"
+
+package "Core Interface" as CoreInterface LIGHTBLUE {
+    interface ICommandExpression {
+        +string Interpret(GameCommandContext context)
+    }
+}
+
+package "Context & Parser" as ContextParser LIGHTGREEN {
+    class GameCommandContext {
+        +Server Server
+        +GameInstance CurrentGameInstance
+        +List<ServerConnection> Connections
+        +Dictionary<string, object> Variables
+        --
+        +GameCommandContext()
+        +ServerConnection FindPlayerByName(string playerName)
+        +T GetVariable<T>(string name, T defaultValue)
+        +void SetVariable<T>(string name, T value)
+        +void RefreshConnections()
+        +int GetPlayerScore(string playerId)
+        +bool SetPlayerScore(string playerId, int score)
+    }
+    
+    class CommandParser {
+        -Dictionary<string, Func<string[], ICommandExpression>> _commandFactories
+        --
+        +CommandParser()
+        +ICommandExpression Parse(string commandText)
+        +string[] GetAvailableCommands()
+        -int ParseInt(string value, int defaultValue)
+        -float ParseFloat(string value, float defaultValue)
+        -bool ParseBool(string value, bool defaultValue)
+        -EnemyType ParseEnemyType(string value)
+    }
+    
+    class CommandInterpreter {
+        -CommandParser _parser
+        -GameCommandContext _context
+        --
+        +CommandInterpreter(Server server)
+        +string ExecuteCommand(string commandText)
+        +void UpdateGameInstance(GameInstance gameInstance)
+    }
+}
+
+package "Unified Command Classes" as Commands LIGHTYELLOW {
+    class PlayerCommand {
+        <<enumeration>> PlayerAction
+        - PlayerAction _action
+        - string _playerName
+        --
+        +PlayerCommand(PlayerAction action)
+        +PlayerCommand(PlayerAction action, string playerName)
+        +string Interpret(GameCommandContext context)
+        -string KickPlayer(GameCommandContext context)
+        -string ListPlayers(GameCommandContext context)
+        -string GetPlayerInfo(GameCommandContext context)
+    }
+    
+    class GameCommand {
+        <<enumeration>> GameAction
+        - GameAction _action
+        - string _playerName
+        - int _score
+        --
+        +GameCommand(GameAction action)
+        +GameCommand(GameAction action, string playerName, int score)
+        +string Interpret(GameCommandContext context)
+        -string GetGameStats(GameCommandContext context)
+        -string SetPlayerScore(GameCommandContext context)
+        -string RestartGame(GameCommandContext context)
+        -string TriggerStats(GameCommandContext context)
+    }
+    
+    class EnemyCommand {
+        <<enumeration>> EnemyAction
+        - EnemyAction _action
+        - EnemyType _enemyType
+        - float _x, _y, _spawnRate
+        --
+        +EnemyCommand(EnemyAction action)
+        +EnemyCommand(EnemyAction action, EnemyType enemyType, float x, float y)
+        +EnemyCommand(EnemyAction action, float spawnRate)
+        +string Interpret(GameCommandContext context)
+        -string SpawnEnemy(GameCommandContext context)
+        -string ClearEnemies(GameCommandContext context)
+        -string SetSpawnRate(GameCommandContext context)
+    }
+    
+    class ServerCommand {
+        <<enumeration>> ServerAction
+        - ServerAction _action
+        - string _errorMessage
+        - string _originalCommand
+        --
+        +ServerCommand(ServerAction action)
+        +ServerCommand(ServerAction action, string errorMessage, string originalCommand)
+        +string Interpret(GameCommandContext context)
+        -string ShutdownServer(GameCommandContext context)
+        -string ShowHelp(GameCommandContext context)
+        -string HandleInvalidCommand(GameCommandContext context)
+    }
+}
+
+package "Alias Classes" as Aliases LIGHTCORAL {
+    class ShutdownServerCommand {
+        +string Interpret(GameCommandContext context)
+    }
+    
+    class HelpCommand {
+        +string Interpret(GameCommandContext context)
+    }
+    
+    class InvalidCommand {
+        - string _errorMessage
+        - string _originalCommand
+        --
+        +InvalidCommand(string errorMessage, string originalCommand)
+        +string Interpret(GameCommandContext context)
+    }
+}
+
+package "Game Integration" as GameIntegration LIGHTGRAY {
+    class Server {
+        +const int MAX_ROOMS
+        +List<ServerConnection> ComponentClients
+        --
+        +void RemoveClient(ServerConnection client)
+        +void SendMessageToAllClients(BasePacket packet, MessageType packetType)
+    }
+    
+    class GameInstance {
+        -Dictionary<string, int> _playerScores
+        -Dictionary<string, string> _playerNames
+        -GameFacade _gameFacade
+        -TimeSpan _enemySpawnTime
+        -ActiveObjectsVisitor _activeStatsVisitor
+        -LifetimeStatisticsVisitor _lifetimeStatsVisitor
+        -PlayerScoreVisitor _scoreVisitor
+        --
+        +void RemoveClient(ServerConnection client)
+        +void Update(GameTime gameTime)
+    }
+    
+    class ServerConnection {
+        +string ID
+        +string Name
+        +Socket ClientSocket
+        --
+        +void StopAll()
+    }
+}
+
+package "Action Enumerations" as Enums LIGHTBLUE {
+    enum PlayerAction {
+        Kick
+        List
+        Info
+    }
+    
+    enum GameAction {
+        Stats
+        SetScore
+        Restart
+        TriggerStats
+    }
+    
+    enum EnemyAction {
+        Spawn
+        Clear
+        SetSpawnRate
+    }
+    
+    enum ServerAction {
+        Shutdown
+        Help
+        Invalid
+    }
+}
+
+' Relationships
+ICommandExpression <|.. PlayerCommand
+ICommandExpression <|.. GameCommand
+ICommandExpression <|.. EnemyCommand
+ICommandExpression <|.. ServerCommand
+
+ICommandExpression <|.. ShutdownServerCommand
+ICommandExpression <|.. HelpCommand
+ICommandExpression <|.. InvalidCommand
+
+CommandParser --> ICommandExpression : creates
+CommandInterpreter --> CommandParser : uses
+CommandInterpreter --> GameCommandContext : manages
+CommandInterpreter --> ICommandExpression : executes
+
+PlayerCommand --> PlayerAction : uses
+GameCommand --> GameAction : uses
+EnemyCommand --> EnemyAction : uses
+ServerCommand --> ServerAction : uses
+
+GameCommandContext --> Server : references
+GameCommandContext --> GameInstance : references
+GameCommandContext --> ServerConnection : references
+
+PlayerCommand --> GameCommandContext : operates on
+GameCommand --> GameCommandContext : operates on
+EnemyCommand --> GameCommandContext : operates on
+ServerCommand --> GameCommandContext : operates on
+
+ShutdownServerCommand --> ServerCommand : delegates to
+HelpCommand --> ServerCommand : delegates to
+InvalidCommand --> ServerCommand : delegates to
+
+note top of PlayerCommand : **3 Commands:**\nkick, list, info
+note top of GameCommand : **4 Commands:**\nstats, set_score, restart, trigger_stats
+note top of EnemyCommand : **3 Commands:**\nspawn, clear, spawn_rate
+note top of ServerCommand : **2 Commands:**\nshutdown, help
+
+note bottom of Commands : **Total: 12 Core Commands**\n**4 Unified Classes**\n**Action-Based Design Pattern**
+
+note right of GameCommandContext : **Reflection-Based Access:**\n• _playerScores\n• _lifetimeStatsVisitor\n• _gameFacade\n• Private GameInstance fields
+
+@enduml

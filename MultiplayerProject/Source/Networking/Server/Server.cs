@@ -6,6 +6,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.Linq;
 
 namespace MultiplayerProject
 {
@@ -29,6 +30,42 @@ namespace MultiplayerProject
 
             // Create waiting room for connections
             _waitingRoom = new WaitingRoom(MAX_ROOMS);
+        }
+
+        /// <summary>
+        /// Get the currently active game instance (if any)
+        /// </summary>
+        public GameInstance GetActiveGameInstance()
+        {
+            // Find the first game room that has an active game instance
+            var activeRooms = _waitingRoom.GetActiveRooms();
+            foreach (var room in activeRooms)
+            {
+                var gameInstance = room.GetCurrentGameInstance();
+                if (gameInstance != null)
+                {
+                    return gameInstance;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Get all active game instances
+        /// </summary>
+        public List<GameInstance> GetAllActiveGameInstances()
+        {
+            var gameInstances = new List<GameInstance>();
+            var activeRooms = _waitingRoom.GetActiveRooms();
+            foreach (var room in activeRooms)
+            {
+                var gameInstance = room.GetCurrentGameInstance();
+                if (gameInstance != null)
+                {
+                    gameInstances.Add(gameInstance);
+                }
+            }
+            return gameInstances;
         }
 
         public void Start(string ipAddress, int port)
