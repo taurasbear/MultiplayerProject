@@ -1,24 +1,28 @@
-﻿using System;
+﻿// File: Player.cs
+// Location: MultiplayerProject/Source/Player.cs
+
+using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using MultiplayerProject.Source.GameObjects;
+using MultiplayerProject.Source.Visitors;
 
 namespace MultiplayerProject.Source
 {
-    public class Player : GameObject, INetworkedObject, IPlayer
+    public class Player : GameObject, INetworkedObject, IPlayer, IVisitable
     {
         public override bool Active { get; set; }
         public int Health { get; set; }
-        public PlayerColour Colour { get; set; }  
+        public PlayerColour Colour { get; set; }
         public string PlayerName { get; set; } = "Player";
-        // Removed HasShield - now handled by ShieldDecorator
 
         public int Width { get; set; }
         public int Height { get; set; }
 
         public Vector2 Position { get { return PlayerState.Position; } }
         public float Rotation { get { return PlayerState.Rotation; } }
+        public float Speed { get { return PlayerState.Speed; } }
 
         public string NetworkID { get; set; }
         public int LastSequenceNumberProcessed { get; set; }
@@ -26,19 +30,13 @@ namespace MultiplayerProject.Source
 
         public struct ObjectState
         {
-            public Vector2 Position; // VECTOR2 NOT SERIALISABLE
+            public Vector2 Position;
             public Vector2 Velocity;
             public float Rotation;
             public float Speed;
         }
 
-        // Animation representing the player
         private Animation PlayerAnimation;
-
-        // This is the player state that is drawn onto the screen. It is gradually
-        // interpolated from the previousState toward the simultationState, in
-        // order to smooth out any sudden jumps caused by discontinuities when
-        // a network packet suddenly modifies the simultationState.
         protected ObjectState PlayerState;
 
         public Player()
@@ -47,19 +45,18 @@ namespace MultiplayerProject.Source
             PlayerState.Velocity = Vector2.Zero;
             PlayerState.Rotation = 0;
 
-            Width = 115; // HARDCODED WIDTH AND HEIGHT
+            Width = 115;
             Height = 69;
 
-            // Set the player to be active
             Active = true;
-
-            // Set the player health
             Health = Application.PLAYER_STARTING_HEALTH;
         }
+
         public Player(PlayerColour colour) : this()
         {
             Colour = colour;
         }
+
         public void Initialize(ContentManager content)
         {
             Animation playerAnimation = new Animation();
@@ -70,15 +67,13 @@ namespace MultiplayerProject.Source
             PlayerAnimation = playerAnimation;
         }
 
-        // Keep the old Initialize for backward compatibility with existing code
         public void Initialize(ContentManager content, PlayerColour colour)
         {
             Colour = colour;
             Initialize(content);
         }
 
-
-        public override void Update(GameTime gameTime) // was Update
+        public override void Update(GameTime gameTime)
         {
             if (PlayerAnimation != null)
             {
@@ -96,7 +91,6 @@ namespace MultiplayerProject.Source
 
         public void Update(ref ObjectState state, float deltaTime)
         {
-            // Limit the max speed
             if (state.Speed > Application.PLAYER_MAX_SPEED)
                 state.Speed = Application.PLAYER_MAX_SPEED;
             else if (state.Speed < -Application.PLAYER_MAX_SPEED)
@@ -109,7 +103,6 @@ namespace MultiplayerProject.Source
             state.Position += direction * state.Speed;
             state.Speed *= Application.PLAYER_DECELERATION_AMOUNT;
 
-            // Make sure that the player does not go out of bounds
             state.Position.X = MathHelper.Clamp(state.Position.X, 0, Application.WINDOW_WIDTH);
             state.Position.Y = MathHelper.Clamp(state.Position.Y, 0, Application.WINDOW_HEIGHT);
         }
@@ -121,8 +114,6 @@ namespace MultiplayerProject.Source
 
         public virtual void Draw(SpriteBatch spriteBatch, SpriteFont font)
         {
-            // Base player only draws the core player animation
-            // Decorators are responsible for drawing enhancements (name tags, shields, etc.)
             PlayerAnimation.Draw(spriteBatch);
         }
 
@@ -131,7 +122,6 @@ namespace MultiplayerProject.Source
             PlayerState.Position = new Vector2(packet.XPosition, packet.YPosition);
             PlayerState.Rotation = packet.Rotation;
             PlayerState.Speed = packet.Speed;
-            // VELOCITY????/
         }
 
         public void ApplyInputToPlayer(KeyboardMovementInput input, float deltaTime)
@@ -170,26 +160,29 @@ namespace MultiplayerProject.Source
             return NetworkPacketFactory.Instance.MakePlayerUpdatePacket(pos.X, pos.Y, speed, rot);
         }
 
-        // IPlayer interface implementation for decorators
         public virtual bool GetHasShield()
         {
-            return false; // Base player has no shield
+            return false;
         }
 
         public virtual float GetFireRateMultiplier()
         {
-            return 1.0f; // Base player has normal fire rate
+            return 1.0f;
         }
 
         public virtual void TakeDamage(int damage)
         {
-            // Base player takes damage directly to health
             Health -= damage;
         }
 
         public void SetColour(PlayerColour colour)
         {
             this.Colour = colour;
+        }
+
+        public void Accept(IGameObjectVisitor visitor)
+        {
+            visitor.Visit(this);
         }
     }
 }

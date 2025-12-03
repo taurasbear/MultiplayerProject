@@ -159,6 +159,11 @@
     <Compile Include="Source\Scenes\Client\Menus\WaitingRoomScene.cs" />
     <Compile Include="Source\Scenes\Server\ServerScene.cs" />
     <Compile Include="Source\ServerApplication.cs" />
+    <Compile Include="Source\Visitors\ActiveObjectsVisitor.cs" />
+    <Compile Include="Source\Visitors\IGameObjectVisitor.cs" />
+    <Compile Include="Source\Visitors\IVisitable.cs" />
+    <Compile Include="Source\Visitors\LifetimeStatisticsVisitor.cs" />
+    <Compile Include="Source\Visitors\PlayerScoreVisitor.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

@@ -28,7 +28,7 @@ namespace MultiplayerProject
         public const float PLAYER_MAX_SPEED = 15f;
         public const float PLAYER_DECELERATION_AMOUNT = 0.95f;
 
-        public const int SCORE_TO_WIN = 30;
+        public const int SCORE_TO_WIN = 10;
 
         #endregion
 

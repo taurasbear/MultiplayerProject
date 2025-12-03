@@ -2,10 +2,12 @@
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using MultiplayerProject.Source.Helpers.Factories;
-using MultiplayerProject.Source.Helpers.Audio;
-using MultiplayerProject.Source.Helpers;
 using MultiplayerProject.Source.GameObjects.Enemy;
+using MultiplayerProject.Source.Helpers;
+using MultiplayerProject.Source.Helpers.Audio;
+using MultiplayerProject.Source.Helpers.Factories;
+using MultiplayerProject.Source.Visitors;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -32,7 +34,11 @@ namespace MultiplayerProject.Source
         
         // Add audio controller field
         private ScoreBasedAudioController _audioController;
-        
+
+        private ActiveObjectsVisitor _activeStatsVisitor;
+        private LifetimeStatisticsVisitor _lifetimeStatsVisitor;
+        private PlayerScoreVisitor _scoreVisitor;
+
         // Font for drawing player names
         private SpriteFont _font;
 
@@ -103,6 +109,10 @@ namespace MultiplayerProject.Source
             
             // Initialize audio controller
             _audioController = new ScoreBasedAudioController();
+
+            _activeStatsVisitor = new ActiveObjectsVisitor();
+            _lifetimeStatsVisitor = new LifetimeStatisticsVisitor();
+            _scoreVisitor = new PlayerScoreVisitor();
         }
 
         /// <summary>
@@ -199,6 +209,8 @@ namespace MultiplayerProject.Source
 
         public void Update(GameTime gameTime)
         {
+            //Logger.Instance?.Info($"Update called at {gameTime.TotalGameTime.TotalSeconds:F1} seconds");
+
             for (int i = 0; i < _remotePlayers.Count; i++)
             {
                 _remotePlayers[i].UpdateRemote(Application.CLIENT_UPDATE_RATE, (float)gameTime.ElapsedGameTime.TotalSeconds);
@@ -224,6 +236,45 @@ namespace MultiplayerProject.Source
                 
                 // Update fire rate based on score (keeping existing for compatibility)
                 _laserManager.UpdateFireRate(currentScore);
+
+                // Visitor Pattern: Count active objects on screen RIGHT NOW
+                _activeStatsVisitor.Reset();
+                foreach (var player in _players.Values)
+                {
+                    var basePlayer = GetBasePlayer<Player>(player);
+                    basePlayer?.Accept(_activeStatsVisitor);
+                }
+                foreach (var enemy in _enemyManager.Enemies)
+                {
+                    enemy.Accept(_activeStatsVisitor);
+                }
+                foreach (var laser in _laserManager.GetEntities())
+                {
+                    laser.Accept(_activeStatsVisitor);
+                }
+                foreach (var explosion in _explosionManager.GetEntities())
+                {
+                    explosion.Accept(_activeStatsVisitor);
+                }
+                // Log statistics every 5 seconds
+                if ((int)gameTime.TotalGameTime.TotalSeconds % 5 == 0 && gameTime.TotalGameTime.TotalMilliseconds % 1000 < 16)
+                {
+                    Logger.Instance?.Info($"[V] =======================Time: {gameTime.TotalGameTime.TotalSeconds} ============================");
+
+                    _activeStatsVisitor.LogCurrentStatus();
+                    _lifetimeStatsVisitor.LogLifetimeReport();
+
+                    // Get score statistics
+                    _scoreVisitor.Reset();
+                    foreach (var kvp in _players)
+                    {
+                        int score = _GUI.GetPlayerScore(kvp.Key);
+                        _scoreVisitor.AddPlayerScore(kvp.Key, score);
+                        var basePlayer = GetBasePlayer<Player>(kvp.Value);
+                        basePlayer?.Accept(_scoreVisitor);
+                    }
+                    _scoreVisitor.LogScoreReport();
+                }
             }
         }
         
@@ -496,7 +547,8 @@ namespace MultiplayerProject.Source
                 if (laser != null)
                 {
                     input.FirePressed = true;
-                    
+                    laser.Accept(_lifetimeStatsVisitor);
+
                     // Play laser sound with score-based dynamics
                     int currentScore = _GUI?.GetLocalPlayerScore() ?? 0;
                     _audioController?.PlayLaserSound(currentScore);
@@ -579,7 +631,7 @@ namespace MultiplayerProject.Source
                 if (remotePlayer != null)
                 {
                     remotePlayer.SetUpdatePacket(serverUpdate);
-                    Logger.Instance?.Trace($"Updated remote player {serverUpdate.PlayerID}: Pos=({serverUpdate.XPosition:F1}, {serverUpdate.YPosition:F1})");
+                    //Logger.Instance?.Trace($"Updated remote player {serverUpdate.PlayerID}: Pos=({serverUpdate.XPosition:F1}, {serverUpdate.YPosition:F1})");
                 }
                 else
                 {
@@ -603,18 +655,18 @@ namespace MultiplayerProject.Source
         private void ClientMessenger_OnEnemySpawnedPacket(BasePacket packet)
         {
             EnemySpawnedPacket enemySpawn = (EnemySpawnedPacket)packet;
-            Logger.Instance?.Info($"Client received enemy spawn: Type={enemySpawn.EnemyType}, Position=({enemySpawn.XPosition}, {enemySpawn.YPosition}), MinionCount={enemySpawn.Minions?.Count ?? 0}");
+            //Logger.Instance?.Info($"Client received enemy spawn: Type={enemySpawn.EnemyType}, Position=({enemySpawn.XPosition}, {enemySpawn.YPosition}), MinionCount={enemySpawn.Minions?.Count ?? 0}");
             
             // Add enemy using the type from the packet and create parent-minion relationships
             var parentEnemy = _enemyManager.AddEnemy(enemySpawn.EnemyType, new Vector2(enemySpawn.XPosition, enemySpawn.YPosition));
             parentEnemy.EnemyID = enemySpawn.EnemyID;
 
-            Logger.Instance?.Info($"Created parent enemy: Type={parentEnemy.GetType().Name}, TextureName={parentEnemy.EnemyAnimation?.Texture?.Name ?? "NULL"}");
+            //Logger.Instance?.Info($"Created parent enemy: Type={parentEnemy.GetType().Name}, TextureName={parentEnemy.EnemyAnimation?.Texture?.Name ?? "NULL"}");
 
             // If the packet contains minion info, create them using Prototype pattern
             if (enemySpawn.Minions != null && enemySpawn.Minions.Count > 0)
             {
-                Logger.Instance?.Info($"Creating {enemySpawn.Minions.Count} minions...");
+                //Logger.Instance?.Info($"Creating {enemySpawn.Minions.Count} minions...");
                 foreach (var minionInfo in enemySpawn.Minions)
                 {
                     // Use the prototype pattern to create minions (DeepClone)
@@ -629,9 +681,10 @@ namespace MultiplayerProject.Source
                     minion.EnemyAnimation.Position = minion.Position;
                     
                     parentEnemy.Minions.Add(minion);
-                    Logger.Instance?.Info($"Created minion at ({minion.Position.X}, {minion.Position.Y})");
+                    //Logger.Instance?.Info($"Created minion at ({minion.Position.X}, {minion.Position.Y})");
                 }
             }
+            parentEnemy.Accept(_lifetimeStatsVisitor);
         }
 
         private void ClientMessenger_OnEnemyDefeatedPacket(EnemyDefeatedPacket packet)
@@ -664,6 +717,11 @@ namespace MultiplayerProject.Source
                     break;
             }
             _explosionManager.AddExplosion(enemy.Position, factory, explosionColor);
+            var explosions = _explosionManager.GetEntities();
+            if (explosions.Count > 0)
+            {
+                explosions[explosions.Count - 1].Accept(_lifetimeStatsVisitor);
+            }
         }
 
         private void ClientMessenger_OnPlayerDefeatedPacket(BasePacket packet)

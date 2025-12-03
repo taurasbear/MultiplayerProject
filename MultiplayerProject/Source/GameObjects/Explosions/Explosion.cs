@@ -1,18 +1,25 @@
-﻿using Microsoft.Xna.Framework;
+﻿// File: Explosion.cs
+// Location: MultiplayerProject/Source/Explosion.cs
+
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MultiplayerProject.Source.GameObjects;
+using MultiplayerProject.Source.Visitors;
 
 namespace MultiplayerProject.Source
 {
-    public class Explosion : GameObject
+    public class Explosion : GameObject, IVisitable
     {
         public override bool Active { get; set; }
-        protected Animation ExplosionAnimation;
-        protected Color ExplosionColor = Color.White; // Default
-
+        public Animation ExplosionAnimation;
+        protected Color ExplosionColor = Color.White;
         public float Damage { get; set; }
-        public float Radius { get; set; } // a scale multiplier
-        public float Duration { get; set; } // an animation speed multiplier
+        public float Radius { get; set; }
+        public float Duration { get; set; }
+
+        public Vector2 Position { get { return ExplosionAnimation?.Position ?? Vector2.Zero; } }
+        public float Width { get { return ExplosionAnimation?.FrameWidth ?? 0; } }
+        public float Height { get { return ExplosionAnimation?.FrameHeight ?? 0; } }
 
         public Explosion()
         {
@@ -27,11 +34,7 @@ namespace MultiplayerProject.Source
             Active = true;
             ExplosionColor = color;
             ExplosionAnimation.SetColor(ExplosionColor);
-
-            // Center animation
             ExplosionAnimation.Position = centerPosition;
-
-            // Reset animation so it starts from first frame
             ExplosionAnimation.Reset();
         }
 
@@ -53,6 +56,11 @@ namespace MultiplayerProject.Source
             {
                 ExplosionAnimation.Draw(spriteBatch);
             }
+        }
+
+        public void Accept(IGameObjectVisitor visitor)
+        {
+            visitor.Visit(this);
         }
     }
 }

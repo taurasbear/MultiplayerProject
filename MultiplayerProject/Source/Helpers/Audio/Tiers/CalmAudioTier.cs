@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework.Audio;
 
-namespace MultiplayerProject.Source.Helpers.Audio.Tiers
+namespace MultiplayerProject.Source.Helpers.Audio.
+    s
 {
     /// <summary>
     /// Tier 1: Calm ambient atmosphere

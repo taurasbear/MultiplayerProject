@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Audio;
 using System;
 using System.Collections.Generic;
 using MultiplayerProject.Source.Helpers.Audio.Tiers;
+using MultiplayerProject.Source.Helpers.Audio.s;
 
 namespace MultiplayerProject.Source.Helpers.Audio
 {
@@ -87,7 +88,7 @@ namespace MultiplayerProject.Source.Helpers.Audio
 
             if (newTier != _currentTier)
             {
-                Logger.Instance.Info($"Score changed from {_previousScore} to {currentScore}, transitioning from tier {_currentTier} to tier {newTier}");
+                //Logger.Instance.Info($"Score changed from {_previousScore} to {currentScore}, transitioning from tier {_currentTier} to tier {newTier}");
                 TransitionToTier(newTier);
                 _currentTier = newTier;
             }
@@ -125,7 +126,7 @@ namespace MultiplayerProject.Source.Helpers.Audio
             if (tier >= 0 && tier < _musicProgression.Count)
             {
                 _currentBackgroundMusic = _musicProgression[tier].Play();
-                Logger.Instance.Info($"Transitioned to music tier {tier}");
+                //Logger.Instance.Info($"Transitioned to music tier {tier}");
             }
         }
 

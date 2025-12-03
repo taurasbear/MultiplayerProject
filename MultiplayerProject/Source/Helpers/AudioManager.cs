@@ -182,11 +182,11 @@ namespace MultiplayerProject.Source.Helpers
                 try
                 {
                     _backgroundMusic = content.Load<Song>("backgroundMusic");
-                    Logger.Instance.Info("Background music loaded successfully as Song");
+                    //Logger.Instance.Info("Background music loaded successfully as Song");
                 }
                 catch (Exception ex)
                 {
-                    Logger.Instance.Warning($"Song background music not found: {ex.Message}");
+                    //Logger.Instance.Warning($"Song background music not found: {ex.Message}");
                     _backgroundMusic = null;
                     
                     // Try loading background music as SoundEffect instead
@@ -205,17 +205,17 @@ namespace MultiplayerProject.Source.Helpers
                                 // ADD THIS: Register in dictionary so builder can find it
                                 _soundEffects["backgroundMusic"] = _backgroundMusicEffect;
                                 
-                                Logger.Instance.Info("Background music loaded successfully as SoundEffect (no loop)");
+                                //Logger.Instance.Info("Background music loaded successfully as SoundEffect (no loop)");
                             }
                         }
                         else
                         {
-                            Logger.Instance.Warning($"Background music file not found at: {audioPath}");
+                            //Logger.Instance.Warning($"Background music file not found at: {audioPath}");
                         }
                     }
                     catch (Exception fileEx)
                     {
-                        Logger.Instance.Warning($"Failed to load background music from file: {fileEx.Message}");
+                        //Logger.Instance.Warning($"Failed to load background music from file: {fileEx.Message}");
                     }
                 }
 
@@ -223,22 +223,22 @@ namespace MultiplayerProject.Source.Helpers
                 try
                 {
                     _soundEffects["explosion"] = content.Load<SoundEffect>("explosion");
-                    Logger.Instance.Info("Explosion sound loaded successfully");
+                    //Logger.Instance.Info("Explosion sound loaded successfully");
                 }
                 catch (Exception ex)
                 {
-                    Logger.Instance.Warning($"Explosion sound not found: {ex.Message}");
+                    //Logger.Instance.Warning($"Explosion sound not found: {ex.Message}");
                 }
 
                 try
                 {
                     // Try loading using the content pipeline first
                     _soundEffects["laser"] = content.Load<SoundEffect>("laserSound");
-                    Logger.Instance.Info("Laser sound loaded successfully from content pipeline");
+                    //Logger.Instance.Info("Laser sound loaded successfully from content pipeline");
                 }
                 catch (Exception ex)
                 {
-                    Logger.Instance.Warning($"Content pipeline laser sound not found: {ex.Message}");
+                    //Logger.Instance.Warning($"Content pipeline laser sound not found: {ex.Message}");
                     
                     // Try loading directly from file as fallback
                     try
@@ -249,17 +249,17 @@ namespace MultiplayerProject.Source.Helpers
                             using (var fileStream = new FileStream(audioPath, FileMode.Open))
                             {
                                 _soundEffects["laser"] = SoundEffect.FromStream(fileStream);
-                                Logger.Instance.Info("Laser sound loaded successfully from file");
+                                //Logger.Instance.Info("Laser sound loaded successfully from file");
                             }
                         }
                         else
                         {
-                            Logger.Instance.Warning($"Laser sound file not found at: {audioPath}");
+                            //Logger.Instance.Warning($"Laser sound file not found at: {audioPath}");
                         }
                     }
                     catch (Exception fileEx)
                     {
-                        Logger.Instance.Warning($"Failed to load laser sound from file: {fileEx.Message}");
+                        //Logger.Instance.Warning($"Failed to load laser sound from file: {fileEx.Message}");
                     }
                 }
 
@@ -270,7 +270,7 @@ namespace MultiplayerProject.Source.Helpers
                 }
                 catch (Exception ex)
                 {
-                    Logger.Instance.Warning($"Enemy hit sound not found: {ex.Message}");
+                    //Logger.Instance.Warning($"Enemy hit sound not found: {ex.Message}");
                 }
 
                 // Set initial volume
@@ -278,11 +278,11 @@ namespace MultiplayerProject.Source.Helpers
                 MediaPlayer.IsRepeating = true;
 
                 _isInitialized = true;
-                Logger.Instance.Info($"AudioManager initialized - Music: {(_backgroundMusic != null ? "Yes" : "No")}, Sound Effects: {_soundEffects.Count}");
+                //Logger.Instance.Info($"AudioManager initialized - Music: {(_backgroundMusic != null ? "Yes" : "No")}, Sound Effects: {_soundEffects.Count}");
             }
             catch (Exception ex)
             {
-                Logger.Instance.Error($"Failed to initialize AudioManager: {ex.Message}");
+                //Logger.Instance.Error($"Failed to initialize AudioManager: {ex.Message}");
                 _isInitialized = false;
             }
         }
@@ -313,7 +313,7 @@ namespace MultiplayerProject.Source.Helpers
             }
             catch (Exception ex)
             {
-                Logger.Instance.Error($"Error in AudioManager Update: {ex.Message}");
+                //Logger.Instance.Error($"Error in AudioManager Update: {ex.Message}");
             }
         }
         #endregion
@@ -336,7 +336,7 @@ namespace MultiplayerProject.Source.Helpers
                     {
                         MediaPlayer.Play(_backgroundMusic);
                         _isMusicPlaying = true;
-                        Logger.Instance.Info("Background music started (Song)");
+                        //Logger.Instance.Info("Background music started (Song)");
                     }
                 }
                 // Fall back to SoundEffect approach
@@ -346,17 +346,17 @@ namespace MultiplayerProject.Source.Helpers
                     {
                         _backgroundMusicInstance.Play();
                         _isMusicPlaying = true;
-                        Logger.Instance.Info("Background music started (SoundEffect - no loop)");
+                        //Logger.Instance.Info("Background music started (SoundEffect - no loop)");
                     }
                 }
                 else
                 {
-                    Logger.Instance.Warning("No background music loaded to play");
+                    //Logger.Instance.Warning("No background music loaded to play");
                 }
             }
             catch (Exception ex)
             {
-                Logger.Instance.Error($"Failed to play background music: {ex.Message}");
+                //Logger.Instance.Error($"Failed to play background music: {ex.Message}");
             }
         }
 
@@ -373,7 +373,7 @@ namespace MultiplayerProject.Source.Helpers
                 if (MediaPlayer.State == MediaState.Playing)
                 {
                     MediaPlayer.Stop();
-                    Logger.Instance.Info("Background music stopped (Song)");
+                    //Logger.Instance.Info("Background music stopped (Song)");
                 }
                 
                 // Stop SoundEffect if playing - use immediate stop
@@ -382,7 +382,7 @@ namespace MultiplayerProject.Source.Helpers
                     if (_backgroundMusicInstance.State == SoundState.Playing)
                     {
                         _backgroundMusicInstance.Stop(true); // Immediate stop, don't fade
-                        Logger.Instance.Info("Background music stopped (SoundEffect)");
+                        //Logger.Instance.Info("Background music stopped (SoundEffect)");
                     }
                     // Also reset the instance state
                     _backgroundMusicInstance.Stop(true);
@@ -390,7 +390,7 @@ namespace MultiplayerProject.Source.Helpers
             }
             catch (Exception ex)
             {
-                Logger.Instance.Error($"Failed to stop background music: {ex.Message}");
+                //Logger.Instance.Error($"Failed to stop background music: {ex.Message}");
             }
         }
 
@@ -531,7 +531,7 @@ namespace MultiplayerProject.Source.Helpers
                 _soundEffects.Clear();
                 
                 _isInitialized = false;
-                Logger.Instance.Info("AudioManager disposed completely");
+                //Logger.Instance.Info("AudioManager disposed completely");
             }
             catch (Exception ex)
             {
