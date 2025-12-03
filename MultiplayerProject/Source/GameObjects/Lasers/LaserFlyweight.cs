@@ -28,6 +28,41 @@ namespace MultiplayerProject.Source
         }
 
         /// <summary>
+        /// Draw laser directly using flyweight's shared intrinsic state and provided extrinsic state
+        /// This is the TRUE flyweight approach - no Animation object needed
+        /// </summary>
+        public virtual void DrawLaser(SpriteBatch spriteBatch, Vector2 position, float rotation)
+        {
+            if (Texture == null) return;
+
+            // Source rectangle (single frame, frame 0)
+            Rectangle sourceRect = new Rectangle(0, 0, Width, Height);
+
+            // Destination rectangle with scaling
+            float scale = LengthMultiplier;
+            Rectangle destinationRect = new Rectangle(
+                (int)position.X - (int)(Width * scale) / 2,
+                (int)position.Y - (int)(Height * scale) / 2,
+                (int)(Width * scale),
+                (int)(Height * scale)
+            );
+
+            // Draw with rotation around center
+            Vector2 origin = new Vector2(Width / 2f, Height / 2f);
+            spriteBatch.Draw(
+                Texture,
+                position,
+                sourceRect,
+                TintColor,
+                rotation,
+                origin,
+                scale,
+                SpriteEffects.None,
+                0f
+            );
+        }
+
+        /// <summary>
         /// Get elemental-specific effects or properties
         /// </summary>
         public abstract string GetElementalEffect();

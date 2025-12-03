@@ -108,6 +108,12 @@ namespace MultiplayerProject
             // Start background music immediately
             MultiplayerProject.Source.Helpers.AudioManager.Instance.PlayBackgroundMusic();
 
+            // Run Flyweight benchmark automatically in Debug mode
+            #if DEBUG
+            Console.WriteLine("\n=== AUTO-RUNNING FLYWEIGHT BENCHMARK ON STARTUP ===\n");
+            FlyweightBenchmarkRunner.RunBenchmark(Content, 1000);
+            #endif
+
             base.LoadContent();
         }
 

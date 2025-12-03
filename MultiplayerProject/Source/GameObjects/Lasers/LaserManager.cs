@@ -119,6 +119,9 @@ namespace MultiplayerProject.Source
             Laser laser = (Laser)factory.CreateLaser();
 
             Animation laserAnimation = new Animation();
+            
+            // Flyweight pattern: Use shared flyweight data instead of creating duplicate animation data
+            // The flyweight handles color, damage, speed, range - we only need position/rotation (extrinsic state)
             laserAnimation.Initialize(_laserTexture, position, rotation, 46, 16, 1, 30, Color.White, 1f, true);
 
             Vector2 direction = new Vector2((float)Math.Cos(rotation), (float)Math.Sin(rotation));
@@ -134,6 +137,37 @@ namespace MultiplayerProject.Source
 
             // Use base class method to add to collection
             AddEntityToCollection(laser);
+
+            return laser;
+        }
+
+        /// <summary>
+        /// Add a lightweight laser using TRUE flyweight pattern (no Animation objects)
+        /// </summary>
+        public LightweightLaser AddLightweightLaser(ElementalType elementalType, Vector2 position, float rotation, string laserID, string playerFiredID)
+        {
+            // Get the shared flyweight for this elemental type
+            LaserFlyweight flyweight = LaserFlyweightFactory.Instance.GetFlyweight(elementalType);
+
+            // Create lightweight laser - only stores position, rotation, IDs
+            LightweightLaser laser = string.IsNullOrEmpty(laserID) 
+                ? new LightweightLaser() 
+                : new LightweightLaser(laserID, playerFiredID);
+
+            Vector2 direction = new Vector2((float)Math.Cos(rotation), (float)Math.Sin(rotation));
+            direction.Normalize();
+
+            var laserPosition = position + direction * LASER_SPAWN_DISTANCE;
+            
+            // Initialize with shared flyweight - NO Animation object created!
+            laser.Initialize(flyweight, laserPosition, rotation);
+
+            if (!string.IsNullOrEmpty(playerFiredID))
+                laser.PlayerFiredID = playerFiredID;
+
+            // Note: LightweightLaser is not added to the main collection
+            // as EntityManagerBase<Laser> expects Laser type.
+            // This method is only used for benchmarking purposes.
 
             return laser;
         }

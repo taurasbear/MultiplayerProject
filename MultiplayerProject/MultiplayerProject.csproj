@@ -81,6 +81,9 @@
     <Compile Include="Source\GameObjects\Enemy\BlackbirdEnemyFactory.cs" />
     <Compile Include="Source\GameObjects\Enemy\IPrototype.cs" />
     <Compile Include="Source\GameObjects\Explosions\Explosion.cs" />
+    <Compile Include="Source\GameObjects\Explosions\ExplosionFlyweight.cs" />
+    <Compile Include="Source\GameObjects\Explosions\ExplosionFlyweightFactory.cs" />
+    <Compile Include="Source\GameObjects\Explosions\LightweightExplosion.cs" />
     <Compile Include="Source\GameObjects\Explosions\WaterExplosion.cs" />
     <Compile Include="Source\GameObjects\Explosions\FireExplosion.cs" />
     <Compile Include="Source\GameObjects\Explosions\ElectricExplosion.cs" />
@@ -88,6 +91,7 @@
     <Compile Include="Source\GameObjects\Lasers\ElectricLaser.cs" />
     <Compile Include="Source\GameObjects\Lasers\WaterLaser.cs" />
     <Compile Include="Source\GameObjects\Lasers\Laser.cs" />
+    <Compile Include="Source\GameObjects\Lasers\LightweightLaser.cs" />
     <Compile Include="Source\GameObjects\Lasers\LaserFlyweight.cs" />
     <Compile Include="Source\GameObjects\Lasers\FireLaserFlyweight.cs" />
     <Compile Include="Source\GameObjects\Lasers\WaterLaserFlyweight.cs" />
@@ -117,6 +121,9 @@
     <Compile Include="Source\Helpers\GamepadAdapter.cs" />
     <Compile Include="Source\Helpers\IGameInput.cs" />
     <Compile Include="Source\Helpers\KeyboardAdapter.cs" />
+    <Compile Include="Source\Helpers\LaserMemoryBenchmark.cs" />
+    <Compile Include="Source\Helpers\ExplosionMemoryBenchmark.cs" />
+    <Compile Include="Source\Helpers\FlyweightBenchmarkRunner.cs" />
     <Compile Include="Source\Helpers\Logger.cs" />
     <Compile Include="Source\Helpers\PlayerColour.cs" />
     <Compile Include="Source\MonoGame\TextBox\Cursor.cs" />
