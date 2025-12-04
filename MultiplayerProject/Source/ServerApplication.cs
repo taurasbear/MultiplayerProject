@@ -25,6 +25,9 @@ namespace MultiplayerProject.Source
 
             _currentScene = new ServerScene(_graphicsDevice.Viewport.Width, _graphicsDevice.Viewport.Height);
             _currentScene.Initalise(_contentManager, _graphicsDevice);
+            
+            // Connect the server instance to the scene for command interpreter
+            _currentScene.SetServer(_server);
         }
 
         public void Update(GameTime gameTime)

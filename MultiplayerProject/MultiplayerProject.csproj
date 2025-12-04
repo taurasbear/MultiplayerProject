@@ -126,6 +126,14 @@
     <Compile Include="Source\Helpers\FlyweightBenchmarkRunner.cs" />
     <Compile Include="Source\Helpers\Logger.cs" />
     <Compile Include="Source\Helpers\PlayerColour.cs" />
+    <Compile Include="Source\Interpreter\CommandInterpreter.cs" />
+    <Compile Include="Source\Interpreter\CommandParser.cs" />
+    <Compile Include="Source\Interpreter\Commands\EnemyCommands.cs" />
+    <Compile Include="Source\Interpreter\Commands\GameCommands.cs" />
+    <Compile Include="Source\Interpreter\Commands\PlayerCommands.cs" />
+    <Compile Include="Source\Interpreter\Commands\ServerCommands.cs" />
+    <Compile Include="Source\Interpreter\GameCommandContext.cs" />
+    <Compile Include="Source\Interpreter\ICommandExpression.cs" />
     <Compile Include="Source\MonoGame\TextBox\Cursor.cs" />
     <Compile Include="Source\MonoGame\TextBox\Extensions.cs" />
     <Compile Include="Source\MonoGame\TextBox\KeyboardInput.cs" />

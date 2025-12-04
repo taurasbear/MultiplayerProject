@@ -183,5 +183,13 @@ namespace MultiplayerProject.Source
                 OnRoomStateChanged();
             }
         }
+
+        /// <summary>
+        /// Get the current game instance for command interpreter access
+        /// </summary>
+        public GameInstance GetCurrentGameInstance()
+        {
+            return roomState == GameRoomState.InSession ? _gameInstance : null;
+        }
     }
 }

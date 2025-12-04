@@ -276,13 +276,13 @@ namespace MultiplayerProject.Source
             // Check if it's time to log statistics (every 5 seconds based on real time)
             if (_activeStatsVisitor.ShouldLogAndReset())
             {
-                Logger.Instance?.Info($"[V] SERVER =======================Time: {gameTime.TotalGameTime.TotalSeconds:F1}s ============================");
+                //Logger.Instance?.Info($"[V] SERVER =======================Time: {gameTime.TotalGameTime.TotalSeconds:F1}s ============================");
 
-                // Log activity from last 5 seconds (this shows the 5-second window data)
-                _activeStatsVisitor.LogCurrentStatus();
+                // Log activity from last 5 seconds
+                //_activeStatsVisitor.LogCurrentStatus();
                 
                 // Log lifetime totals since game start
-                _lifetimeStatsVisitor.LogLifetimeReport();
+                //_lifetimeStatsVisitor.LogLifetimeReport();
 
                 // Get score statistics from server data
                 _scoreVisitor.Reset();
@@ -290,9 +290,9 @@ namespace MultiplayerProject.Source
                 {
                     int score = _playerScores.ContainsKey(kvp.Key) ? _playerScores[kvp.Key] : 0;
                     _scoreVisitor.AddPlayerScore(kvp.Key, score);
-                    kvp.Value.Accept(_scoreVisitor);
+                    // Note: We don't call kvp.Value.Accept(_scoreVisitor) here to avoid double-counting players
                 }
-                _scoreVisitor.LogScoreReport();
+                //_scoreVisitor.LogScoreReport();
                 
                 // Reset the recent event counters after logging
                 _activeStatsVisitor.ResetRecentCounters();

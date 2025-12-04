@@ -48,6 +48,7 @@ namespace MultiplayerProject.Source.Visitors
         public void AddPlayerScore(string playerID, int score)
         {
             TotalScore += score;
+            PlayerCount++;  // Increment player count when adding a score
 
             if (score > HighestScore)
             {
@@ -65,15 +66,13 @@ namespace MultiplayerProject.Source.Visitors
             return PlayerCount > 0 ? TotalScore / PlayerCount : 0;
         }
 
-        public void LogScoreReport()
+        public string LogScoreReport()
         {
-            if (PlayerCount == 0)
-            {
-                Logger.Instance?.Info("[V] Player Scores - No players");
-                return;
-            }
-
-            Logger.Instance?.Info($"[V] Play Scores - Average: {GetAverageScore()}, Highest: {HighestScore}, Lowest: {LowestScore}");
+            string result;
+            
+                result = $"Average: {GetAverageScore()}, Highest: {HighestScore}, Lowest: {LowestScore}";
+                Logger.Instance?.Info($"[V] Play Scores - Average: {GetAverageScore()}, Highest: {HighestScore}, Lowest: {LowestScore}");
+                      return result;
         }
     }
 }
