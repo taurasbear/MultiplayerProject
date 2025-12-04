@@ -125,9 +125,11 @@ namespace MultiplayerProject.Source.Visitors
             // Don't reset RecentPlayerCount as it should always show current active players
         }
 
-        public void LogCurrentStatus()
+        public string LogCurrentStatus()
         {
+            string result = $"Players: {RecentPlayerCount}, Enemies: {RecentEnemyCount}, Lasers: {RecentLaserCount}, Explosions: {RecentExplosionCount}";
             Logger.Instance?.Info($"[V] In Last 5 Seconds - Play: {RecentPlayerCount}, Enem: {RecentEnemyCount}, Lase: {RecentLaserCount}, Expl: {RecentExplosionCount}");
+            return result;
         }
 
         public void LogRecentActivity()

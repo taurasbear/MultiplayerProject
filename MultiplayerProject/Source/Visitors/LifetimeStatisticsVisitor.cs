@@ -35,9 +35,11 @@ namespace MultiplayerProject.Source.Visitors
         {
             TotalExplosions++;
         }
-        public void LogLifetimeReport()
+        public string LogLifetimeReport()
         {
+            string result = $"Lasers Fired: {TotalLasersFired}, Explosions: {TotalExplosions}, Enemies Spawned: {TotalEnemiesSpawned}";
             Logger.Instance?.Info($"[V] Total Since Game Start - Lase Fired: {TotalLasersFired}, Expl: {TotalExplosions}, Enem: {TotalEnemiesSpawned}");
+            return result;
         }
     }
 }

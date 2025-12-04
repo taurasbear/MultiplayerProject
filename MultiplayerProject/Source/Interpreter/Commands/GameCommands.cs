@@ -58,35 +58,42 @@ namespace MultiplayerProject.Source.Commands
         private string GetGameStats(GameCommandContext context)
         {
             var result = new StringBuilder();
-            result.Append("=== COMPREHENSIVE GAME STATISTICS ===|");
-            
-            // Server information
-            if (context.Server != null)
-            {
-                result.Append($"Server Status: Running|");
-                result.Append($"Connected Players: {context.Connections.Count}|");
-                result.Append($"Max Rooms: {GetPrivateField(context.Server, "MAX_ROOMS")}|");
-            }
-            else
-            {
-                result.Append("Server: Not available|");
-            }
 
             // Game instance information
             if (context.CurrentGameInstance != null)
             {
-                result.Append("|=== ACTIVE GAME INSTANCE ===|");
                 
                 var playerScores = GetPrivateField(context.CurrentGameInstance, "_playerScores") as System.Collections.IDictionary;
                 var playerNames = GetPrivateField(context.CurrentGameInstance, "_playerNames") as System.Collections.IDictionary;
+                var scoreVisitor = GetPrivateField(context.CurrentGameInstance, "_scoreVisitor");
                 
-                if (playerScores != null)
+                if (playerScores != null && scoreVisitor != null)
                 {
                     result.Append($"Active Players in Game: {playerScores.Count}|");
+                    result.Append("|=== PLAYER SCORES ===|");
+                    
+                    // Reset the visitor and populate it with current scores
+                    var resetMethod = scoreVisitor.GetType().GetMethod("Reset");
+                    resetMethod?.Invoke(scoreVisitor, null);
+                    
+                    var addPlayerScoreMethod = scoreVisitor.GetType().GetMethod("AddPlayerScore");
+                    
                     foreach (System.Collections.DictionaryEntry entry in playerScores)
                     {
                         string playerName = playerNames?[entry.Key]?.ToString() ?? entry.Key.ToString();
-                        result.Append($"  {playerName}: {entry.Value} points|");
+                        int score = (int)entry.Value;
+                        result.Append($"  {playerName}: {score} points|");
+                        
+                        // Add score to visitor for statistical analysis
+                        addPlayerScoreMethod?.Invoke(scoreVisitor, new object[] { entry.Key.ToString(), score });
+                    }
+                    
+                    // Use visitor's own logging method and get result
+                    var logScoreMethod = scoreVisitor.GetType().GetMethod("LogScoreReport");
+                    string scoreResult = (string)logScoreMethod?.Invoke(scoreVisitor, null);
+                    if (!string.IsNullOrEmpty(scoreResult))
+                    {
+                        result.Append($"{scoreResult}|");
                     }
                 }
 
@@ -95,29 +102,31 @@ namespace MultiplayerProject.Source.Commands
                 
                 if (activeVisitor != null)
                 {
-                    result.Append("|=== VISITOR PATTERN STATISTICS ===|");
-                    result.Append($"Recent Player Count: {GetPublicProperty(activeVisitor, "RecentPlayerCount")}|");
-                    result.Append($"Recent Enemy Count: {GetPublicProperty(activeVisitor, "RecentEnemyCount")}|");
-                    result.Append($"Recent Laser Count: {GetPublicProperty(activeVisitor, "RecentLaserCount")}|");
-                    result.Append($"Recent Explosion Count: {GetPublicProperty(activeVisitor, "RecentExplosionCount")}|");
+                    result.Append("|=== LAST 5 SEC STATISTICS ===|");
+                    var logCurrentMethod = activeVisitor.GetType().GetMethod("LogCurrentStatus");
+                    string activeResult = (string)logCurrentMethod?.Invoke(activeVisitor, null);
+                    if (!string.IsNullOrEmpty(activeResult))
+                    {
+                        result.Append($"{activeResult}|");
+                    }
                 }
 
                 if (lifetimeVisitor != null)
                 {
                     result.Append("|=== LIFETIME STATISTICS ===|");
-                    result.Append($"Total Lasers Fired: {GetPublicProperty(lifetimeVisitor, "TotalLasersFired")}|");
-                    result.Append($"Total Explosions: {GetPublicProperty(lifetimeVisitor, "TotalExplosions")}|");
-                    result.Append($"Total Enemies Spawned: {GetPublicProperty(lifetimeVisitor, "TotalEnemiesSpawned")}|");
+                    var logLifetimeMethod = lifetimeVisitor.GetType().GetMethod("LogLifetimeReport");
+                    string lifetimeResult = (string)logLifetimeMethod?.Invoke(lifetimeVisitor, null);
+                    if (!string.IsNullOrEmpty(lifetimeResult))
+                    {
+                        result.Append($"{lifetimeResult}|");
+                    }
                 }
             }
             else
             {
                 result.Append("|No active game instance. Statistics not available.|");
             }
-
-            result.Append("|=== INTERPRETER CONTEXT ===|");
-            result.Append($"Debug Mode: {context.GetVariable("debug_mode", false)}|");
-            result.Append($"Variables Stored: {context.Variables.Count}|");
+;
             
             return result.ToString();
         }
@@ -211,7 +220,7 @@ namespace MultiplayerProject.Source.Commands
                     var logCurrentMethod = activeVisitor.GetType().GetMethod("LogCurrentStatus");
                     var logRecentMethod = activeVisitor.GetType().GetMethod("LogRecentActivity");
                     
-                    logCurrentMethod?.Invoke(activeVisitor, null);
+                    string activeResult = (string)logCurrentMethod?.Invoke(activeVisitor, null);
                     logRecentMethod?.Invoke(activeVisitor, null);
                     
                     result += "Active Objects Visitor: Logged current and recent statistics|";
@@ -220,7 +229,7 @@ namespace MultiplayerProject.Source.Commands
                 if (lifetimeVisitor != null)
                 {
                     var logLifetimeMethod = lifetimeVisitor.GetType().GetMethod("LogLifetimeReport");
-                    logLifetimeMethod?.Invoke(lifetimeVisitor, null);
+                    string lifetimeResult = (string)logLifetimeMethod?.Invoke(lifetimeVisitor, null);
                     
                     result += "Lifetime Statistics Visitor: Logged lifetime report|";
                 }
@@ -228,7 +237,7 @@ namespace MultiplayerProject.Source.Commands
                 if (scoreVisitor != null)
                 {
                     var logScoreMethod = scoreVisitor.GetType().GetMethod("LogScoreReport");
-                    logScoreMethod?.Invoke(scoreVisitor, null);
+                    string scoreResult = (string)logScoreMethod?.Invoke(scoreVisitor, null);
                     
                     result += "Player Score Visitor: Logged score report|";
                 }
