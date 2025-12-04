@@ -133,6 +133,7 @@
     <Compile Include="Source\MonoGame\TextBox\TextBox.cs" />
     <Compile Include="Source\MonoGame\TextBox\TextRenderer.cs" />
     <Compile Include="Source\Networking\Client\Client.cs" />
+    <Compile Include="Source\Networking\Client\ClientProxy.cs" />
     <Compile Include="Source\Networking\Client\INetworkedObject.cs" />
     <Compile Include="Source\Networking\Client\LocalPlayer.cs" />
     <Compile Include="Source\Networking\Client\RemotePlayer.cs" />

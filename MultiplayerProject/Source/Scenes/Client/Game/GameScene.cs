@@ -7,6 +7,7 @@ using MultiplayerProject.Source.Helpers;
 using MultiplayerProject.Source.Helpers.Audio;
 using MultiplayerProject.Source.Helpers.Factories;
 using MultiplayerProject.Source.Visitors;
+using MultiplayerProject.Source.Networking.Client; // Add this using
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -52,6 +53,8 @@ namespace MultiplayerProject.Source
         public Client Client { get; set; }
 
         private int _localPlayerScore;
+
+        private ClientProxy _clientProxy; // Add this field
 
         public GameScene(int width, int height, int playerCount, string[] playerIDs, string[] playerNames, PlayerColour[] playerColours, string localClientID, Client client)
         {
@@ -113,6 +116,9 @@ namespace MultiplayerProject.Source
             _activeStatsVisitor = new ActiveObjectsVisitor();
             _lifetimeStatsVisitor = new LifetimeStatisticsVisitor();
             _scoreVisitor = new PlayerScoreVisitor();
+            
+            // Initialize _clientProxy AFTER _localPlayer is assigned
+            _clientProxy = new ClientProxy(Client, _localPlayer);
         }
 
         /// <summary>
@@ -874,7 +880,12 @@ namespace MultiplayerProject.Source
 
         public void SendMessageToTheServer(BasePacket packet, MessageType messageType)
         {
-            Client.SendMessageToServer(packet, messageType);
+            if (_clientProxy == null)
+            {
+                Logger.Instance?.Warning("[GameScene] _clientProxy is null! Packet not sent.");
+                return;
+            }
+            _clientProxy.SendMessageToServer(packet, messageType);
         }
 
         // Add this method to GameScene
