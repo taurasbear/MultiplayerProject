@@ -1,15 +1,8 @@
-﻿// File: LifetimeStatisticsVisitor.cs
-// Location: MultiplayerProject/Source/Visitors/LifetimeStatisticsVisitor.cs
-
-using MultiplayerProject.Source.GameObjects.Enemy;
+﻿using MultiplayerProject.Source.GameObjects.Enemy;
 using MultiplayerProject.Source;
 
 namespace MultiplayerProject.Source.Visitors
 {
-    /// <summary>
-    /// CONCRETE VISITOR 2: Tracks cumulative statistics during entire game.
-    /// Never resets - counts total objects created throughout the game.
-    /// </summary>
     public sealed class LifetimeStatisticsVisitor : IGameObjectVisitor
     {
         public int TotalLasersFired { get; private set; }
@@ -38,7 +31,6 @@ namespace MultiplayerProject.Source.Visitors
         public string LogLifetimeReport()
         {
             string result = $"Lasers Fired: {TotalLasersFired}, Explosions: {TotalExplosions}, Enemies Spawned: {TotalEnemiesSpawned}";
-            Logger.Instance?.Info($"[V] Total Since Game Start - Lase Fired: {TotalLasersFired}, Expl: {TotalExplosions}, Enem: {TotalEnemiesSpawned}");
             return result;
         }
     }

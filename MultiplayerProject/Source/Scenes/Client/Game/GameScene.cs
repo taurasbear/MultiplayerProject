@@ -528,11 +528,16 @@ namespace MultiplayerProject.Source
         {
             PlayerUpdatePacket serverUpdate = (PlayerUpdatePacket)packet;
 
+            // Always update GUI score for this player
+            if (_GUI != null && serverUpdate.PlayerID != null)
+            {
+                _GUI.UpdatePlayerScore(serverUpdate.PlayerID, serverUpdate.Score);
+            }
+
             if (Application.APPLY_SERVER_RECONCILLIATION &&
                 serverUpdate.PlayerID == _localPlayer.NetworkID && serverUpdate.SequenceNumber >= 0
                 && _updatePackets.Count > 0)
             {
-
                 PlayerUpdatePacket localUpdate = GetUpdateAtSequenceNumber(serverUpdate.SequenceNumber);
 
                 if (localUpdate.XPosition != serverUpdate.XPosition
@@ -812,6 +817,16 @@ namespace MultiplayerProject.Source
                 case MessageType.GI_ServerSend_EnemyClone:
                     {
                         HandleEnemyClonePacket((EnemyClonePacket)recievedPacket);
+                        break;
+                    }
+
+                case MessageType.GI_ServerSend_PlayerScoreSet:
+                    {
+                        var scorePacket = (PlayerScoreSetPacket)recievedPacket;
+                        if (_GUI != null && scorePacket.PlayerID != null)
+                        {
+                            _GUI.UpdatePlayerScore(scorePacket.PlayerID, scorePacket.NewScore);
+                        }
                         break;
                     }
             }

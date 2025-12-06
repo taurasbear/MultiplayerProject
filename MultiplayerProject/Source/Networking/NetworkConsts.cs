@@ -81,6 +81,8 @@ namespace MultiplayerProject.Source
         GI_ServerSend_EnemyClone,
         GI_ServerSend_PlayerDefeated,
 
+
+        GI_ServerSend_PlayerScoreSet, // New: Sent when /set_score is used
         GI_ServerSend_GameOver,
 
         // Leaderboard
@@ -209,6 +211,8 @@ namespace MultiplayerProject.Source
         public string PlayerID { get; set; }
         [ProtoMember(8)]
         public int SequenceNumber { get; set; }
+        [ProtoMember(9)]
+        public int Score { get; set; } // Added for real-time score sync
     }
 
     [ProtoContract]
@@ -359,5 +363,14 @@ namespace MultiplayerProject.Source
         public int PlayerReadyCount { get; set; }
         [ProtoMember(3)]
         public bool IsClientReady { get; set; }
+    }
+
+    [ProtoContract]
+    public class PlayerScoreSetPacket : BasePacket
+    {
+        [ProtoMember(1)]
+        public string PlayerID { get; set; }
+        [ProtoMember(2)]
+        public int NewScore { get; set; }
     }
 }

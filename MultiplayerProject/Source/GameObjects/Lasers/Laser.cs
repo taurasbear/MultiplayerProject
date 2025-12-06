@@ -1,7 +1,4 @@
-﻿// File: Laser.cs
-// Location: MultiplayerProject/Source/Laser.cs
-
-using System;
+﻿using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MultiplayerProject.Source.GameObjects;

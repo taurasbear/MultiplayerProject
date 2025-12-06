@@ -538,6 +538,11 @@ namespace MultiplayerProject.Source
                     updatePacket.PlayerID = player.Key;
                     updatePacket.SequenceNumber = player.Value.LastSequenceNumberProcessed;
                     updatePacket.Input = player.Value.LastKeyboardMovementInput;
+                    // Set the Score field to the current score
+                    if (_playerScores.ContainsKey(player.Key))
+                        updatePacket.Score = _playerScores[player.Key];
+                    else
+                        updatePacket.Score = 0;
 
                     ComponentClients[i].SendPacketToClient(updatePacket, MessageType.GI_ServerSend_UpdateRemotePlayer);
                 }

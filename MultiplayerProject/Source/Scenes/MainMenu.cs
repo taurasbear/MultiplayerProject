@@ -15,7 +15,7 @@ namespace MultiplayerProject.Source
 
         private TextBox _textbox;
         private Rectangle _viewPort;
-        private string _textboxText = "New Player";
+        private string _textboxText = "Player";
 
         private SpriteFont _font;
 

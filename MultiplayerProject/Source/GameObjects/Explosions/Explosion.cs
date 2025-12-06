@@ -1,7 +1,4 @@
-﻿// File: Explosion.cs
-// Location: MultiplayerProject/Source/Explosion.cs
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MultiplayerProject.Source.GameObjects;
 using MultiplayerProject.Source.Visitors;

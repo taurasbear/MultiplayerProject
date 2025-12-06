@@ -250,5 +250,16 @@ namespace MultiplayerProject.Source
             };
             return packet;
         }
+
+        public PlayerScoreSetPacket MakePlayerScoreSetPacket(string playerId, int newScore)
+        {
+            PlayerScoreSetPacket packet = new PlayerScoreSetPacket
+            {
+                SendDate = DateTime.UtcNow,
+                PlayerID = playerId,
+                NewScore = newScore
+            };
+            return packet;
+        }
     }
 }

@@ -1,7 +1,4 @@
-﻿// File: ActiveObjectsVisitor.cs
-// Location: MultiplayerProject/Source/Visitors/ActiveObjectsVisitor.cs
-
-using MultiplayerProject.Source.GameObjects.Enemy;
+﻿using MultiplayerProject.Source.GameObjects.Enemy;
 using MultiplayerProject.Source.Helpers;
 using System;
 using System.Collections.Generic;
@@ -9,13 +6,8 @@ using System.Linq;
 
 namespace MultiplayerProject.Source.Visitors
 {
-    /// <summary>
-    /// CONCRETE VISITOR 1: Counts currently active objects on screen.
-    /// Also tracks event totals over the last 5 seconds (resets every 5 seconds).
-    /// </summary>
     public sealed class ActiveObjectsVisitor : IGameObjectVisitor
     {
-        // Current frame counts
         public int PlayerCount { get; private set; }
         public int EnemyCount { get; private set; }
         public int LaserCount { get; private set; }
@@ -66,41 +58,24 @@ namespace MultiplayerProject.Source.Visitors
             ExplosionCount++;
         }
 
-        /// <summary>
-        /// Manually set laser count for server-side tracking where laser objects can't be properly visited
-        /// </summary>
         public void SetActiveLaserCount(int count)
         {
             LaserCount = count;
         }
 
-        /// <summary>
-        /// Add event counts to the recent totals (like lifetime stats but resetting every 5 seconds)
-        /// Call this when events happen (laser fired, explosion created, etc.)
-        /// </summary>
         public void AddRecentEvents(int lasersFired, int explosionsCreated, int enemiesSpawned)
         {
             RecentLaserCount += lasersFired;
             RecentExplosionCount += explosionsCreated;
             RecentEnemyCount += enemiesSpawned;
-            // Player count doesn't accumulate - it's just current active players
             RecentPlayerCount = PlayerCount;
         }
 
-        /// <summary>
-        /// Call this after visiting all objects AND setting manual counts to finalize the current snapshot
-        /// and calculate recent activity totals
-        /// </summary>
         public void FinalizeSnapshot()
         {
-            // Update recent player count to current active players (always update this)
             RecentPlayerCount = PlayerCount;
         }
 
-        /// <summary>
-        /// Check if it's time to log statistics and reset counters
-        /// Call this from the game instance when logging
-        /// </summary>
         public bool ShouldLogAndReset()
         {
             var currentTime = DateTime.UtcNow;
@@ -114,27 +89,18 @@ namespace MultiplayerProject.Source.Visitors
             return false;
         }
 
-        /// <summary>
-        /// Reset the recent counters after logging
-        /// </summary>
         public void ResetRecentCounters()
         {
             RecentEnemyCount = 0;
             RecentLaserCount = 0;
             RecentExplosionCount = 0;
-            // Don't reset RecentPlayerCount as it should always show current active players
         }
 
         public string LogCurrentStatus()
         {
             string result = $"Players: {RecentPlayerCount}, Enemies: {RecentEnemyCount}, Lasers: {RecentLaserCount}, Explosions: {RecentExplosionCount}";
-            Logger.Instance?.Info($"[V] In Last 5 Seconds - Play: {RecentPlayerCount}, Enem: {RecentEnemyCount}, Lase: {RecentLaserCount}, Expl: {RecentExplosionCount}");
             return result;
         }
 
-        public void LogRecentActivity()
-        {
-            // This method is now unused since we combined the logs
-        }
     }
 }

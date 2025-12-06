@@ -1,15 +1,8 @@
-﻿// File: PlayerScoreVisitor.cs
-// Location: MultiplayerProject/Source/Visitors/PlayerScoreVisitor.cs
-
-using MultiplayerProject.Source.GameObjects.Enemy;
+﻿using MultiplayerProject.Source.GameObjects.Enemy;
 using MultiplayerProject.Source.Helpers;
 
 namespace MultiplayerProject.Source.Visitors
 {
-    /// <summary>
-    /// CONCRETE VISITOR 3: Analyzes player score statistics.
-    /// Tracks average, highest, and lowest scores among players.
-    /// </summary>
     public sealed class PlayerScoreVisitor : IGameObjectVisitor
     {
         public int TotalScore { get; private set; }
@@ -48,7 +41,7 @@ namespace MultiplayerProject.Source.Visitors
         public void AddPlayerScore(string playerID, int score)
         {
             TotalScore += score;
-            PlayerCount++;  // Increment player count when adding a score
+            PlayerCount++; 
 
             if (score > HighestScore)
             {
@@ -68,11 +61,9 @@ namespace MultiplayerProject.Source.Visitors
 
         public string LogScoreReport()
         {
-            string result;
-            
-                result = $"Average: {GetAverageScore()}, Highest: {HighestScore}, Lowest: {LowestScore}";
-                Logger.Instance?.Info($"[V] Play Scores - Average: {GetAverageScore()}, Highest: {HighestScore}, Lowest: {LowestScore}");
-                      return result;
+            string result;            
+            result = $"Average: {GetAverageScore()}, Highest: {HighestScore}, Lowest: {LowestScore}";
+            return result;
         }
     }
 }

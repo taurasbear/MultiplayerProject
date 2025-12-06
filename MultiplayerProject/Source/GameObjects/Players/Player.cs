@@ -1,7 +1,4 @@
-﻿// File: Player.cs
-// Location: MultiplayerProject/Source/Player.cs
-
-using System;
+﻿using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;

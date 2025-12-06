@@ -128,7 +128,6 @@
     <Compile Include="Source\Helpers\PlayerColour.cs" />
     <Compile Include="Source\Interpreter\CommandInterpreter.cs" />
     <Compile Include="Source\Interpreter\CommandParser.cs" />
-    <Compile Include="Source\Interpreter\Commands\EnemyCommands.cs" />
     <Compile Include="Source\Interpreter\Commands\GameCommands.cs" />
     <Compile Include="Source\Interpreter\Commands\PlayerCommands.cs" />
     <Compile Include="Source\Interpreter\Commands\ServerCommands.cs" />

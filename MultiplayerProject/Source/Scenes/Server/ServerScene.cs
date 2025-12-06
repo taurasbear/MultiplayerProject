@@ -277,11 +277,6 @@ namespace MultiplayerProject.Source
                 }
                 
                 Logger.Instance?.Info("[RESULT] ----------------------------------------");
-
-                if (_fullCommandInterpreter.IsShutdownRequested())
-                {
-                    Logger.Instance?.Info("[SHUTDOWN] Requested via command");
-                }
             }
             catch (Exception ex)
             {

@@ -1,30 +1,21 @@
-// File: GameCommands.cs
-// Location: MultiplayerProject/Source/Interpreter/Commands/GameCommands.cs
-
 using System.Text;
 using Microsoft.Xna.Framework;
 using System.Reflection;
 
 namespace MultiplayerProject.Source.Commands
 {
-    /// <summary>
-    /// Unified command for all game-related operations
-    /// </summary>
     public class GameCommand : ICommandExpression
     {
         public enum GameAction
         {
             Stats,
-            SetScore,
-            Restart,
-            TriggerStats
+            SetScore
         }
 
         private readonly GameAction _action;
         private readonly string _playerName;
         private readonly int _score;
 
-        // Constructor for actions with player and score
         public GameCommand(GameAction action, string playerName, int score)
         {
             _action = action;
@@ -32,7 +23,6 @@ namespace MultiplayerProject.Source.Commands
             _score = score;
         }
 
-        // Constructor for actions with no parameters
         public GameCommand(GameAction action)
         {
             _action = action;
@@ -46,10 +36,6 @@ namespace MultiplayerProject.Source.Commands
                     return GetGameStats(context);
                 case GameAction.SetScore:
                     return SetPlayerScore(context);
-                case GameAction.Restart:
-                    return RestartGame(context);
-                case GameAction.TriggerStats:
-                    return TriggerStats(context);
                 default:
                     return "Error: Unknown game action.";
             }
@@ -59,7 +45,6 @@ namespace MultiplayerProject.Source.Commands
         {
             var result = new StringBuilder();
 
-            // Game instance information
             if (context.CurrentGameInstance != null)
             {
                 
@@ -150,104 +135,34 @@ namespace MultiplayerProject.Source.Commands
                 {
                     playerScores[player.ID] = _score;
                     context.SetPlayerScore(player.ID, _score);
-                    return $"Player '{_playerName}' score set to {_score}. (GameInstance updated)";
+
+                    // Broadcast score change to all clients
+                    var gameInstance = context.CurrentGameInstance;
+                    var componentClientsProp = gameInstance.GetType().GetProperty("ComponentClients");
+                    var componentClients = componentClientsProp?.GetValue(gameInstance) as System.Collections.IEnumerable;
+                    var packet = MultiplayerProject.Source.NetworkPacketFactory.Instance.MakePlayerScoreSetPacket(player.ID, _score);
+                    packet.MessageType = (int)MultiplayerProject.Source.MessageType.GI_ServerSend_PlayerScoreSet;
+                    if (componentClients != null)
+                    {
+                        foreach (var client in componentClients)
+                        {
+                            var sendMethod = client.GetType().GetMethod("SendPacketToClient");
+                            sendMethod?.Invoke(client, new object[] { packet, MultiplayerProject.Source.MessageType.GI_ServerSend_PlayerScoreSet });
+                        }
+                    }
+
+                    return $"Player '{_playerName}' score set to {_score}. ";
                 }
                 else
                 {
                     context.SetPlayerScore(player.ID, _score);
-                    return $"Player '{_playerName}' score set to {_score}. (Context only - player may not be in active game)";
+                    return $"Player '{_playerName}' score set to {_score}. (player may not be in active game)";
                 }
             }
             catch (System.Exception ex)
             {
                 context.SetPlayerScore(player.ID, _score);
-                return $"Player '{_playerName}' score set to {_score}. (Context only - GameInstance update failed: {ex.Message})";
-            }
-        }
-
-        private string RestartGame(GameCommandContext context)
-        {
-            if (context.CurrentGameInstance == null)
-                return "No active game instance to restart.";
-
-            try
-            {
-                var lifetimeVisitor = GetPrivateField(context.CurrentGameInstance, "_lifetimeStatsVisitor");
-                if (lifetimeVisitor != null)
-                {
-                    SetPrivateField(lifetimeVisitor, "_totalLasersFired", 0);
-                    SetPrivateField(lifetimeVisitor, "_totalExplosions", 0);
-                    SetPrivateField(lifetimeVisitor, "_totalEnemiesSpawned", 0);
-                }
-
-                var playerScores = GetPrivateField(context.CurrentGameInstance, "_playerScores") as System.Collections.IDictionary;
-                if (playerScores != null)
-                {
-                    var keys = new object[playerScores.Count];
-                    playerScores.Keys.CopyTo(keys, 0);
-                    foreach (var key in keys)
-                    {
-                        playerScores[key] = 0;
-                    }
-                }
-
-                return "Game restart initiated:|" +
-                       "- Player scores reset to 0|" +
-                       "- Lifetime statistics reset|" +
-                       "- All players will be notified via normal game mechanics";
-            }
-            catch (System.Exception ex)
-            {
-                return $"Game restart partially completed. Error: {ex.Message}";
-            }
-        }
-
-        private string TriggerStats(GameCommandContext context)
-        {
-            if (context.CurrentGameInstance == null)
-                return "No active game instance. Cannot trigger statistics.";
-
-            try
-            {
-                var activeVisitor = GetPrivateField(context.CurrentGameInstance, "_activeStatsVisitor");
-                var lifetimeVisitor = GetPrivateField(context.CurrentGameInstance, "_lifetimeStatsVisitor");
-                var scoreVisitor = GetPrivateField(context.CurrentGameInstance, "_scoreVisitor");
-
-                var result = "=== MANUALLY TRIGGERED VISITOR STATISTICS ===|";
-                
-                if (activeVisitor != null)
-                {
-                    var logCurrentMethod = activeVisitor.GetType().GetMethod("LogCurrentStatus");
-                    var logRecentMethod = activeVisitor.GetType().GetMethod("LogRecentActivity");
-                    
-                    string activeResult = (string)logCurrentMethod?.Invoke(activeVisitor, null);
-                    logRecentMethod?.Invoke(activeVisitor, null);
-                    
-                    result += "Active Objects Visitor: Logged current and recent statistics|";
-                }
-
-                if (lifetimeVisitor != null)
-                {
-                    var logLifetimeMethod = lifetimeVisitor.GetType().GetMethod("LogLifetimeReport");
-                    string lifetimeResult = (string)logLifetimeMethod?.Invoke(lifetimeVisitor, null);
-                    
-                    result += "Lifetime Statistics Visitor: Logged lifetime report|";
-                }
-
-                if (scoreVisitor != null)
-                {
-                    var logScoreMethod = scoreVisitor.GetType().GetMethod("LogScoreReport");
-                    string scoreResult = (string)logScoreMethod?.Invoke(scoreVisitor, null);
-                    
-                    result += "Player Score Visitor: Logged score report|";
-                }
-
-                result += "|Check server logs for detailed visitor pattern output.";
-                return result;
-            }
-            catch (System.Exception ex)
-            {
-                return $"Error triggering visitor statistics: {ex.Message}";
+                return $"Player '{_playerName}' score set to {_score}. (GameInstance update failed: {ex.Message})";
             }
         }
 
@@ -258,18 +173,5 @@ namespace MultiplayerProject.Source.Commands
             return field?.GetValue(obj);
         }
 
-        private object GetPublicProperty(object obj, string propertyName)
-        {
-            if (obj == null) return null;
-            var property = obj.GetType().GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance);
-            return property?.GetValue(obj);
-        }
-
-        private void SetPrivateField(object obj, string fieldName, object value)
-        {
-            if (obj == null) return;
-            var field = obj.GetType().GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance);
-            field?.SetValue(obj, value);
-        }
     }
 }

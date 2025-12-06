@@ -1,20 +1,12 @@
-// File: PlayerCommands.cs
-// Location: MultiplayerProject/Source/Interpreter/Commands/PlayerCommands.cs
-
-using System.Linq;
 using System.Text;
 using System.Reflection;
 
 namespace MultiplayerProject.Source.Commands
 {
-    /// <summary>
-    /// Unified command for all player-related operations
-    /// </summary>
     public class PlayerCommand : ICommandExpression
     {
         public enum PlayerAction
         {
-            Kick,
             List,
             Info
         }
@@ -22,14 +14,12 @@ namespace MultiplayerProject.Source.Commands
         private readonly PlayerAction _action;
         private readonly string _playerName;
 
-        // Constructor for actions that need a player name
         public PlayerCommand(PlayerAction action, string playerName)
         {
             _action = action;
             _playerName = playerName;
         }
 
-        // Constructor for actions that don't need parameters
         public PlayerCommand(PlayerAction action)
         {
             _action = action;
@@ -39,8 +29,6 @@ namespace MultiplayerProject.Source.Commands
         {
             switch (_action)
             {
-                case PlayerAction.Kick:
-                    return KickPlayer(context);
                 case PlayerAction.List:
                     return ListPlayers(context);
                 case PlayerAction.Info:
@@ -50,33 +38,6 @@ namespace MultiplayerProject.Source.Commands
             }
         }
 
-        private string KickPlayer(GameCommandContext context)
-        {
-            if (string.IsNullOrWhiteSpace(_playerName))
-                return "Error: Player name required. Usage: /kick <playername>";
-
-            context.RefreshConnections();
-            var player = context.FindPlayerByName(_playerName);
-            if (player == null)
-                return $"Error: Player '{_playerName}' not found. Use /list to see connected players.";
-
-            try
-            {
-                if (context.CurrentGameInstance != null)
-                    context.CurrentGameInstance.RemoveClient(player);
-
-                if (context.Server != null)
-                    context.Server.RemoveClient(player);
-
-                player.StopAll();
-                
-                return $"Player '{_playerName}' (ID: {player.ID}) has been kicked from the server.";
-            }
-            catch (System.Exception ex)
-            {
-                return $"Error kicking player '{_playerName}': {ex.Message}";
-            }
-        }
 
         private string ListPlayers(GameCommandContext context)
         {
@@ -124,8 +85,6 @@ namespace MultiplayerProject.Source.Commands
             var sb = new StringBuilder();
             sb.Append($"=== PLAYER INFORMATION: {player.Name} ===|");
             sb.Append($"Player ID: {player.ID}|");
-            sb.Append($"Connected: Yes|");
-            sb.Append($"Socket Status: {(player.ClientSocket?.Connected ?? false ? "Connected" : "Disconnected")}|");
             
             var inGame = context.CurrentGameInstance?.ComponentClients.Contains(player) ?? false;
             sb.Append($"In Game: {(inGame ? "Yes" : "No")}|");
