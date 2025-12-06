@@ -13,7 +13,6 @@ namespace MultiplayerProject.Source.Visitors
         public int LaserCount { get; private set; }
         public int ExplosionCount { get; private set; }
 
-        // Recent activity tracking (last 5 seconds) - event totals that reset every 5 seconds
         private DateTime _windowStartTime;
         private DateTime _lastLogTime;
         private const double WINDOW_SIZE_SECONDS = 5.0;

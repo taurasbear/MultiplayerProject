@@ -10,7 +10,6 @@ namespace MultiplayerProject.Source
 {
     public sealed class LaserManager : EntityManagerBase<Laser>, INetworkedObject
     {
-        // Laser-specific properties
         public string NetworkID { get; set; }
 
         private Texture2D _laserTexture;
@@ -31,42 +30,26 @@ namespace MultiplayerProject.Source
         }
 
 
-        /// <summary>
-        /// Implements abstract method: Initalise laser-specific resources.
-        /// </summary>
         public override void Initalise(ContentManager content)
         {
             _laserTexture = content.Load<Texture2D>("laser");
         }
 
-        /// <summary>
-        /// Implements abstract method: Update single laser entity.
-        /// </summary>
         protected override void UpdateEntity(Laser laser, GameTime gameTime)
         {
             laser.Update(gameTime);
         }
 
-        /// <summary>
-        /// Implements abstract method: Laser removal criteria.
-        /// </summary>
         protected override bool ShouldRemoveEntity(Laser laser)
         {
-            // Remove if laser is not active
             return !laser.Active;
         }
 
-        /// <summary>
-        /// Implements abstract method: Draw single laser entity.
-        /// </summary>
         protected override void DrawEntity(Laser laser, SpriteBatch spriteBatch)
         {
             laser.Draw(spriteBatch);
         }
 
-        /// <summary>
-        /// Property to access lasers (maintains backward compatibility).
-        /// </summary>
         public List<Laser> Lasers => GetEntities();
 
         public Laser FireLocalLaserClient(GameObjectFactory factory, GameTime gameTime, Vector2 position, float rotation)
