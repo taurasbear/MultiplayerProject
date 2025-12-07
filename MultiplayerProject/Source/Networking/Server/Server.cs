@@ -165,10 +165,12 @@ _waitingRoom.AddClientToWaitingRoom(client);
 {
     ChatMessagePacket chat = (ChatMessagePacket)recievedPacket;
 
+string senderName = client.Name;
+
     if (chat.Type == ChatMessageType.Global)
-        Server.ChatMediator.SendGlobalMessage(chat.SenderId, chat.Message);
+        Server.ChatMediator.SendGlobalMessage(chat.SenderId, senderName, chat.Message);
     else if (chat.Type == ChatMessageType.Private)
-        Server.ChatMediator.SendPrivateMessage(chat.SenderId, chat.ReceiverId, chat.Message);
+        Server.ChatMediator.SendPrivateMessage(chat.SenderId, senderName, chat.ReceiverId, chat.Message);
 
     break;
 }

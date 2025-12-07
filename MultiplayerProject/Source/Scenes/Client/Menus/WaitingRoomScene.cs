@@ -119,23 +119,24 @@ foreach (var key in pressedKeys)
 
 
             if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Enter) && !string.IsNullOrWhiteSpace(_currentChatInput))
-            {
-                var packet = new ChatMessagePacket
-                {
-                    Type = ChatMessageType.Global,
-                    SenderId = Client.ClientId,
-                    Message = _currentChatInput
-                };
-                SendMessageToTheServer(packet, MessageType.ChatMessage);
-                _currentChatInput = "";
-            }
+{
+    var packet = new ChatMessagePacket
+    {
+        Type = ChatMessageType.Global,
+        SenderId = Client.ClientId,
+        SenderName = Client.Name, // <-- Use the human-readable name
+        Message = _currentChatInput
+    };
+    SendMessageToTheServer(packet, MessageType.ChatMessage);
+    _currentChatInput = "";
+}
+
         }
 
         public void Update(GameTime gameTime)
         {
 
         }
-
         public void Draw(SpriteBatch spriteBatch)
         {
             // Draw title
@@ -186,9 +187,10 @@ public void RecieveChatMessage(ChatMessagePacket chatPacket)
     lock (_chatMessages)
     {
         if (chatPacket.Type == ChatMessageType.Global)
-            _chatMessages.Add($"[Global] {chatPacket.SenderId}: {chatPacket.Message}");
-        else if (chatPacket.Type == ChatMessageType.Private)
-            _chatMessages.Add($"[DM] {chatPacket.SenderId} -> {chatPacket.ReceiverId}: {chatPacket.Message}");
+    _chatMessages.Add($"[Global] {chatPacket.SenderName}: {chatPacket.Message}");
+else if (chatPacket.Type == ChatMessageType.Private)
+    _chatMessages.Add($"[DM] {chatPacket.SenderName} -> {chatPacket.ReceiverId}: {chatPacket.Message}");
+
 
         // Keep list manageable
         if (_chatMessages.Count > 50)

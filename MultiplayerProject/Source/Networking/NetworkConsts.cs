@@ -183,21 +183,25 @@ namespace MultiplayerProject.Source
         public int RoomCount { get; set; }
     }
 
-  [ProtoContract]
-    public class ChatMessagePacket : BasePacket
-    {
-        [ProtoMember(1)]
-        public ChatMessageType Type { get; set; }
+ [ProtoContract]
+public class ChatMessagePacket : BasePacket
+{
+    [ProtoMember(1)]
+    public ChatMessageType Type { get; set; }
 
-        [ProtoMember(2)]
-        public string SenderId { get; set; }
+    [ProtoMember(2)]
+    public string SenderId { get; set; }
 
-        [ProtoMember(3)]
-        public string ReceiverId { get; set; } // For private messages
+    [ProtoMember(3)]
+    public string ReceiverId { get; set; } // For private messages
 
-        [ProtoMember(4)]
-        public string Message { get; set; }
-    }
+    [ProtoMember(4)]
+    public string Message { get; set; }
+
+    [ProtoMember(5)] // Add a new unique number
+    public string SenderName { get; set; } // Human-readable name
+}
+
 
     public enum ChatMessageType
     {

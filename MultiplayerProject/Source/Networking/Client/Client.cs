@@ -30,6 +30,8 @@ namespace MultiplayerProject
         private BinaryReader _reader;
         private Thread _thread;
 
+        public string Name { get; set; }
+
         private IScene _currentScene;
 
          public string ClientId { get; private set; }

@@ -76,12 +76,13 @@ namespace MultiplayerProject
             }
         }
 
-        public void SendGlobalMessage(string senderId, string message)
+    public void SendGlobalMessage(string senderId, string senderName, string message)
 {
     var packet = new ChatMessagePacket
     {
         Type = ChatMessageType.Global,
         SenderId = senderId,
+        SenderName = senderName, // ✅ include the human-readable name
         Message = message
     };
 
@@ -94,26 +95,26 @@ namespace MultiplayerProject
     }
 }
 
-public void SendPrivateMessage(string senderId, string receiverId, string message)
+public void SendPrivateMessage(string senderId, string senderName, string receiverId, string message)
 {
+    var packet = new ChatMessagePacket
+    {
+        Type = ChatMessageType.Private,
+        SenderId = senderId,
+        SenderName = senderName, // ✅ include the human-readable name
+        ReceiverId = receiverId,
+        Message = message
+    };
+
     lock (_lock)
     {
+        // Send to receiver
         if (_clients.TryGetValue(receiverId, out var receiver))
-        {
-            var packet = new ChatMessagePacket
-            {
-                Type = ChatMessageType.Private,
-                SenderId = senderId,
-                ReceiverId = receiverId,
-                Message = message
-            };
             receiver.SendPacketToClient(packet, MessageType.ChatMessage);
-            // Also send to sender so they see their own DM
-            if (_clients.TryGetValue(senderId, out var sender))
-            {
-                sender.SendPacketToClient(packet, MessageType.ChatMessage);
-            }
-        }
+
+        // Send back to sender so they see their own DM
+        if (_clients.TryGetValue(senderId, out var sender))
+            sender.SendPacketToClient(packet, MessageType.ChatMessage);
     }
 }
     }
