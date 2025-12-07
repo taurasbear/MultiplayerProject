@@ -23,6 +23,9 @@ namespace MultiplayerProject
         public MessageableComponent ComponentType { get; set; }
         public List<ServerConnection> ComponentClients { get; set; }
 
+        private Dictionary<string, string> _playerNameToId = new Dictionary<string, string>();
+
+
         private TcpListener _tcpListener;
         private Thread _listenForClientsThread;
 
@@ -155,17 +158,21 @@ _waitingRoom.AddClientToWaitingRoom(client);
                     client.StopAll();
                     break;
 
-                case MessageType.Client_SendPlayerName:
-                    StringPacket namePacket = (StringPacket)recievedPacket;
-                    client.SetPlayerName(namePacket.String);
-                    Logger.Instance.Info("New player connected : " + client.Name);
-                    break;
+               case MessageType.Client_SendPlayerName:
+    StringPacket namePacket = (StringPacket)recievedPacket;
+    client.SetPlayerName(namePacket.String);
+    Logger.Instance.Info("New player connected: " + client.Name);
 
-                case MessageType.ChatMessage:
+    // Add mapping for name -> client ID
+    _playerNameToId[client.Name] = client.ID;
+    break;
+
+
+   case MessageType.ChatMessage:
 {
     ChatMessagePacket chat = (ChatMessagePacket)recievedPacket;
 
-string senderName = client.Name;
+    string senderName = client.Name; // ✅ get human-readable name
 
     if (chat.Type == ChatMessageType.Global)
         Server.ChatMediator.SendGlobalMessage(chat.SenderId, senderName, chat.Message);
@@ -175,13 +182,19 @@ string senderName = client.Name;
     break;
 }
 
+
             }
         }
 
-        public void RemoveClient(ServerConnection client)
-        {
-            ComponentClients.Remove(client);
-        }
+      public void RemoveClient(ServerConnection client)
+{
+    ComponentClients.Remove(client);
+
+    // Remove name mapping
+    if (!string.IsNullOrEmpty(client.Name))
+        _playerNameToId.Remove(client.Name);
+}
+
 
         public void Update(GameTime gameTime)
         {

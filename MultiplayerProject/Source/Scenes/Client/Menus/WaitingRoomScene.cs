@@ -38,6 +38,9 @@ namespace MultiplayerProject.Source
         private GraphicsDevice _device;
         private bool _waitingForResponseFromServer;
 
+        public Dictionary<string, string> ClientIdToNameMap = new Dictionary<string, string>();
+
+
         // Title
         private Vector2 _titlePosition;
         private const string _titleText = "WAITING ROOM";
@@ -57,15 +60,19 @@ namespace MultiplayerProject.Source
 
         public Client Client { get; set; }
 
-        public WaitingRoomScene(Client client)
-        {
-            Client = client;
+       public WaitingRoomScene(Client client)
+{
+    Client = client;
 
-            _waitingForResponseFromServer = false;
-            _state = WaitingRoomState.NotInRoomAbleToCreate;
+    // Subscribe to waiting room updates
+    Client.OnWaitingRoomInformationRecieved += Client_OnWaitingRoomInformationRecieved;
 
-            _roomUIItems = new List<GameRoomUIItem>();
-        }
+    _waitingForResponseFromServer = false;
+    _state = WaitingRoomState.NotInRoomAbleToCreate;
+
+    _roomUIItems = new List<GameRoomUIItem>();
+}
+
 
         public void Initalise(ContentManager content, GraphicsDevice graphicsDevice)
         {
@@ -87,14 +94,15 @@ namespace MultiplayerProject.Source
 
             CheckRoomClicked(inputInfo);
 
-// Capture typed keys
 Keys[] pressedKeys = inputInfo.CurrentKeyboardState.GetPressedKeys();
 Keys[] previousKeys = inputInfo.PreviousKeyboardState.GetPressedKeys();
 
 foreach (var key in pressedKeys)
 {
-    if (Array.IndexOf(previousKeys, key) == -1)
+    if (Array.IndexOf(previousKeys, key) == -1) // Only new key presses
     {
+        bool shift = inputInfo.CurrentKeyboardState.IsKeyDown(Keys.LeftShift) || inputInfo.CurrentKeyboardState.IsKeyDown(Keys.RightShift);
+
         if (key == Keys.Back && _currentChatInput.Length > 0)
         {
             _currentChatInput = _currentChatInput.Substring(0, _currentChatInput.Length - 1);
@@ -105,31 +113,129 @@ foreach (var key in pressedKeys)
         }
         else if (key >= Keys.A && key <= Keys.Z)
         {
-            bool shift = inputInfo.CurrentKeyboardState.IsKeyDown(Keys.LeftShift) || inputInfo.CurrentKeyboardState.IsKeyDown(Keys.RightShift);
             char c = (char)((shift ? 'A' : 'a') + (key - Keys.A));
             _currentChatInput += c;
         }
         else if (key >= Keys.D0 && key <= Keys.D9)
         {
-            _currentChatInput += (char)('0' + (key - Keys.D0));
+            // Top-row numbers with shift for symbols
+            char c = shift ? ")!@#$%^&*("[key - Keys.D0] : (char)('0' + (key - Keys.D0));
+            _currentChatInput += c;
+        }
+        else if (key >= Keys.NumPad0 && key <= Keys.NumPad9)
+        {
+            _currentChatInput += (char)('0' + (key - Keys.NumPad0));
+        }
+        else
+        {
+            // Special keys
+            switch (key)
+            {
+                case Keys.OemPeriod:
+                    _currentChatInput += ".";
+                    break;
+                case Keys.OemMinus:
+                    _currentChatInput += shift ? "_" : "-";
+                    break;
+                case Keys.OemQuestion:
+                    _currentChatInput += shift ? "?" : "/";
+                    break;
+                case Keys.OemComma:
+                    _currentChatInput += shift ? "<" : ",";
+                    break;
+                case Keys.OemSemicolon:
+                    _currentChatInput += shift ? ":" : ";";
+                    break;
+                case Keys.OemQuotes:
+                    _currentChatInput += shift ? "\"" : "'";
+                    break;
+                case Keys.OemPlus:
+                    _currentChatInput += shift ? "+" : "=";
+                    break;
+                case Keys.OemPipe:
+                    _currentChatInput += shift ? "|" : "\\";
+                    break;
+            }
         }
     }
 }
 
 
 
-            if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Enter) && !string.IsNullOrWhiteSpace(_currentChatInput))
+
+       if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Enter) && !string.IsNullOrWhiteSpace(_currentChatInput))
+{
+    string message = _currentChatInput.Trim();
+
+   if (message.StartsWith("dm ", StringComparison.OrdinalIgnoreCase))
+{
+    // Syntax: dm <recipientName> <message>
+    string[] parts = message.Split(new char[] { ' ' }, 3);
+    if (parts.Length < 3)
+    {
+        _chatMessages.Add("[System] Invalid DM format. Use: dm <player> <message>");
+    }
+    else
+    {
+        string receiverName = parts[1];
+        string dmMessage = parts[2];
+
+       // Find receiver ID by name
+// Try to get receiver ID from the dictionary
+if (ClientIdToNameMap.TryGetValue(receiverName, out string receiverId))
 {
     var packet = new ChatMessagePacket
     {
-        Type = ChatMessageType.Global,
+        Type = ChatMessageType.Private,
         SenderId = Client.ClientId,
-        SenderName = Client.Name, // <-- Use the human-readable name
-        Message = _currentChatInput
+        SenderName = Client.Name,
+        ReceiverId = receiverId,
+        Message = dmMessage
     };
     SendMessageToTheServer(packet, MessageType.ChatMessage);
+}
+else
+{
+    _chatMessages.Add($"[System] Player '{receiverName}' not found.");
+}
+
+
+if (receiverId != null)
+{
+    var packet = new ChatMessagePacket
+    {
+        Type = ChatMessageType.Private,
+        SenderId = Client.ClientId,
+        SenderName = Client.Name,
+        ReceiverId = receiverId,
+        Message = dmMessage
+    };
+    SendMessageToTheServer(packet, MessageType.ChatMessage);
+}
+else
+{
+    _chatMessages.Add($"[System] Player '{receiverName}' not found.");
+}
+
+    }
+}
+
+    else
+    {
+        // Global message
+        var packet = new ChatMessagePacket
+        {
+            Type = ChatMessageType.Global,
+            SenderId = Client.ClientId,
+            SenderName = Client.Name,
+            Message = message
+        };
+        SendMessageToTheServer(packet, MessageType.ChatMessage);
+    }
+
     _currentChatInput = "";
 }
+
 
         }
 
@@ -224,108 +330,142 @@ else if (chatPacket.Type == ChatMessageType.Private)
             _waitingForResponseFromServer = false;
         }
 
-        private void Client_OnWaitingRoomInformationRecieved(WaitingRoomInformation packet)
+private void Client_OnWaitingRoomInformationRecieved(WaitingRoomInformation packet)
+{
+    // Update local waiting room info
+    _waitingRoom = packet;
+
+    // Clear previous mapping
+    ClientIdToNameMap.Clear();
+
+    // Populate ClientIdToNameMap from all rooms
+    if (_waitingRoom != null && _waitingRoom.Rooms != null)
+    {
+        foreach (var room in _waitingRoom.Rooms)
         {
-            WaitingRoomInformation waitingRoom = packet;
-
-            _waitingRoom = waitingRoom;
-
-            List<GameRoomUIItem> newItems = new List<GameRoomUIItem>();
-
-            RoomInformation joinedRoom = null;
-            if (_waitingRoom != null && _waitingRoom.Rooms != null)
+            if (room.ConnectionIDs != null && room.ConnectionNames != null)
             {
-                int startYPos = _roomStartYPos;
-                foreach (var room in _waitingRoom.Rooms)
+                for (int i = 0; i < room.ConnectionIDs.Length && i < room.ConnectionNames.Length; i++)
                 {
-                    GameRoomUIItem uiItem = new GameRoomUIItem();
-                    uiItem.Rect = new Rectangle(50, startYPos, 500, 50);
+                    string clientId = room.ConnectionIDs[i];
+                    string playerName = room.ConnectionNames[i];
 
-                    switch ((GameRoomState)room.RoomState)
-                    {
-                        case GameRoomState.Waiting:
-                            uiItem.Text = room.RoomName + " : " + room.ConnectionCount + "/" + WaitingRoom.MAX_PEOPLE_PER_ROOM + " Players";
-                            break;
-
-                        case GameRoomState.InSession:
-                            uiItem.Text = room.RoomName + " : PLAYING";
-                            break;
-
-                        case GameRoomState.Leaderboards:
-                            uiItem.Text = room.RoomName + " : GAME FINISHING";
-                            break;
-                    }
-
-                    Vector2 size = _font.MeasureString(uiItem.Text);
-                    float xScale = (uiItem.Rect.Width / size.X);
-                    float yScale = (uiItem.Rect.Height / size.Y);
-                    float scale = Math.Min(xScale, yScale);
-
-                    // Figure out the location to absolutely-center it in the boundaries rectangle.
-                    int strWidth = (int)Math.Round(size.X * scale);
-                    int strHeight = (int)Math.Round(size.Y * scale);
-
-                    // Set Position
-                    uiItem.Position = new Vector2
-                    {
-                        X = (((uiItem.Rect.Width - strWidth) / 2) + uiItem.Rect.X),
-                        Y = (((uiItem.Rect.Height - strHeight) / 2) + uiItem.Rect.Y)
-                    };
-
-                    // Set border options
-                    uiItem.BorderColour = Color.Blue;
-                    uiItem.BorderWidth = 1;
-
-                    newItems.Add(uiItem);
-                    startYPos += 50;
-
-                    if (room.RoomID == _joinedRoomID)
-                    {
-                        joinedRoom = room;
-                    }
+                    // Only add non-empty names
+                    if (!string.IsNullOrWhiteSpace(clientId) && !string.IsNullOrWhiteSpace(playerName))
+                        ClientIdToNameMap[clientId] = playerName;
                 }
             }
+        }
+    }
 
-            _roomUIItems = newItems;
+    // DEBUG: display all players in the console
+    Console.WriteLine("=== Current players in rooms ===");
+    if (ClientIdToNameMap.Count == 0)
+    {
+        Console.WriteLine("No players found!");
+    }
+    else
+    {
+        foreach (var kvp in ClientIdToNameMap)
+        {
+            Console.WriteLine($"ID: {kvp.Key}, Name: {kvp.Value}");
+        }
+    }
+    Console.WriteLine("================================");
 
-            if (joinedRoom != null)
+    // Build UI room list
+    List<GameRoomUIItem> newItems = new List<GameRoomUIItem>();
+    RoomInformation joinedRoom = null;
+
+    if (_waitingRoom != null && _waitingRoom.Rooms != null)
+    {
+        int startYPos = _roomStartYPos;
+
+        foreach (var room in _waitingRoom.Rooms)
+        {
+            GameRoomUIItem uiItem = new GameRoomUIItem();
+            uiItem.Rect = new Rectangle(50, startYPos, 500, 50);
+
+            switch ((GameRoomState)room.RoomState)
             {
-                if (joinedRoom.ConnectionCount == 1)
-                {
-                    _buttonText = "WAITING FOR MORE PLAYERS";
-                    _state = WaitingRoomState.InRoomWaitingForPlayers;
-                    _readyToPlay = false;
-                }
-                else
-                {
-                    if (!_readyToPlay)
-                    {
-                        _buttonText = "CLICK TO READY (" + joinedRoom.ReadyCount + "/" + joinedRoom.ConnectionCount + ")";
-                        _state = WaitingRoomState.InRoomNotReady;
-                    }
-                    else
-                    {
-                        _buttonText = "READY TO PLAY! (" + joinedRoom.ReadyCount + "/" + joinedRoom.ConnectionCount + ")";
-                        _state = WaitingRoomState.InRoomReady;
-                    }
-                }
+                case GameRoomState.Waiting:
+                    uiItem.Text = room.RoomName + " : " + room.ConnectionCount + "/" + WaitingRoom.MAX_PEOPLE_PER_ROOM + " Players";
+                    break;
+                case GameRoomState.InSession:
+                    uiItem.Text = room.RoomName + " : PLAYING";
+                    break;
+                case GameRoomState.Leaderboards:
+                    uiItem.Text = room.RoomName + " : GAME FINISHING";
+                    break;
+            }
+
+            Vector2 size = _font.MeasureString(uiItem.Text);
+            float xScale = (uiItem.Rect.Width / size.X);
+            float yScale = (uiItem.Rect.Height / size.Y);
+            float scale = Math.Min(xScale, yScale);
+
+            int strWidth = (int)Math.Round(size.X * scale);
+            int strHeight = (int)Math.Round(size.Y * scale);
+
+            uiItem.Position = new Vector2
+            {
+                X = (((uiItem.Rect.Width - strWidth) / 2) + uiItem.Rect.X),
+                Y = (((uiItem.Rect.Height - strHeight) / 2) + uiItem.Rect.Y)
+            };
+
+            uiItem.BorderColour = Color.Blue;
+            uiItem.BorderWidth = 1;
+
+            newItems.Add(uiItem);
+            startYPos += 50;
+
+            if (room.RoomID == _joinedRoomID)
+                joinedRoom = room;
+        }
+    }
+
+    _roomUIItems = newItems;
+
+    // Update bottom button text based on joined room state
+    if (joinedRoom != null)
+    {
+        if (joinedRoom.ConnectionCount == 1)
+        {
+            _buttonText = "WAITING FOR MORE PLAYERS";
+            _state = WaitingRoomState.InRoomWaitingForPlayers;
+            _readyToPlay = false;
+        }
+        else
+        {
+            if (!_readyToPlay)
+            {
+                _buttonText = "CLICK TO READY (" + joinedRoom.ReadyCount + "/" + joinedRoom.ConnectionCount + ")";
+                _state = WaitingRoomState.InRoomNotReady;
             }
             else
             {
-                if (_roomUIItems.Count < Server.MAX_ROOMS)
-                {
-                    _buttonText = "CREATE NEW ROOM";
-                    _state = WaitingRoomState.NotInRoomAbleToCreate;
-                }
-                else
-                {
-                    _buttonText = "UNABLE TO CREATE NEW ROOM";
-                    _state = WaitingRoomState.NotInRoomUnableToCreate;
-                }
+                _buttonText = "READY TO PLAY! (" + joinedRoom.ReadyCount + "/" + joinedRoom.ConnectionCount + ")";
+                _state = WaitingRoomState.InRoomReady;
             }
-
-            ReformatButton();
         }
+    }
+    else
+    {
+        if (_roomUIItems.Count < Server.MAX_ROOMS)
+        {
+            _buttonText = "CREATE NEW ROOM";
+            _state = WaitingRoomState.NotInRoomAbleToCreate;
+        }
+        else
+        {
+            _buttonText = "UNABLE TO CREATE NEW ROOM";
+            _state = WaitingRoomState.NotInRoomUnableToCreate;
+        }
+    }
+
+    ReformatButton();
+}
+
 
         private void ReformatButton()
         {

@@ -24,6 +24,9 @@ namespace MultiplayerProject
         public static event BasePacketDelegate OnLoadNewGame;
         public static event BasePacketDelegate OnGameOver;
 
+        public event Action<WaitingRoomInformation> OnWaitingRoomInformationRecieved;
+
+
         private TcpClient _tcpClient;
         private NetworkStream _stream;
         private BinaryWriter _writer;
@@ -162,6 +165,11 @@ namespace MultiplayerProject
         case MessageType.GI_ServerSend_GameOver:
             OnGameOver?.Invoke(packet);
             break;
+        case MessageType.WR_ServerSend_WaitingRoomFullInfo:
+    var waitingRooms = (WaitingRoomInformation)packet;
+    OnWaitingRoomInformationRecieved?.Invoke(waitingRooms);
+    break;
+
 
        case MessageType.ChatMessage:
     var chat = (ChatMessagePacket)packet;
