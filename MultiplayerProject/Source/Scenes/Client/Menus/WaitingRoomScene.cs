@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using MultiplayerProject.Source.Networking.Chat;
 
 namespace MultiplayerProject.Source
 {
@@ -51,6 +52,9 @@ namespace MultiplayerProject.Source
         private List<GameRoomUIItem> _roomUIItems;
         private const int _roomStartYPos = 50;
 
+        private List<string> _chatMessages = new List<string>();
+        private string _currentChatInput = "";
+
         public Client Client { get; set; }
 
         public WaitingRoomScene(Client client)
@@ -82,6 +86,49 @@ namespace MultiplayerProject.Source
             CheckBottomButtonClicked(inputInfo);
 
             CheckRoomClicked(inputInfo);
+
+// Capture typed keys
+Keys[] pressedKeys = inputInfo.CurrentKeyboardState.GetPressedKeys();
+Keys[] previousKeys = inputInfo.PreviousKeyboardState.GetPressedKeys();
+
+foreach (var key in pressedKeys)
+{
+    if (Array.IndexOf(previousKeys, key) == -1)
+    {
+        if (key == Keys.Back && _currentChatInput.Length > 0)
+        {
+            _currentChatInput = _currentChatInput.Substring(0, _currentChatInput.Length - 1);
+        }
+        else if (key == Keys.Space)
+        {
+            _currentChatInput += " ";
+        }
+        else if (key >= Keys.A && key <= Keys.Z)
+        {
+            bool shift = inputInfo.CurrentKeyboardState.IsKeyDown(Keys.LeftShift) || inputInfo.CurrentKeyboardState.IsKeyDown(Keys.RightShift);
+            char c = (char)((shift ? 'A' : 'a') + (key - Keys.A));
+            _currentChatInput += c;
+        }
+        else if (key >= Keys.D0 && key <= Keys.D9)
+        {
+            _currentChatInput += (char)('0' + (key - Keys.D0));
+        }
+    }
+}
+
+
+
+            if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.Enter) && !string.IsNullOrWhiteSpace(_currentChatInput))
+            {
+                var packet = new ChatMessagePacket
+                {
+                    Type = ChatMessageType.Global,
+                    SenderId = Client.ClientId,
+                    Message = _currentChatInput
+                };
+                SendMessageToTheServer(packet, MessageType.ChatMessage);
+                _currentChatInput = "";
+            }
         }
 
         public void Update(GameTime gameTime)
@@ -115,12 +162,39 @@ namespace MultiplayerProject.Source
                         spriteBatch.Draw(texture, _roomUIItems[i].Position, Color.White);
                 }
             }
+
+           int chatY = 400;
+lock (_chatMessages)
+{
+    foreach (var msg in _chatMessages)
+    {
+        spriteBatch.DrawString(_font, msg, new Vector2(20, chatY), Color.White);
+        chatY += 20;
+    }
+}
+spriteBatch.DrawString(_font, "Chat: " + _currentChatInput, new Vector2(20, chatY), Color.LightGray);
+
         }
 
         public void RequestWaitingRoomUpdate()
         {
             SendMessageToTheServer(new BasePacket(), MessageType.WR_ClientRequest_WaitingRoomInfo);
         }
+
+public void RecieveChatMessage(ChatMessagePacket chatPacket)
+{
+    lock (_chatMessages)
+    {
+        if (chatPacket.Type == ChatMessageType.Global)
+            _chatMessages.Add($"[Global] {chatPacket.SenderId}: {chatPacket.Message}");
+        else if (chatPacket.Type == ChatMessageType.Private)
+            _chatMessages.Add($"[DM] {chatPacket.SenderId} -> {chatPacket.ReceiverId}: {chatPacket.Message}");
+
+        // Keep list manageable
+        if (_chatMessages.Count > 50)
+            _chatMessages.RemoveAt(0);
+    }
+}
 
         private void ClientMessenger_OnRoomSuccessfullyUnready()
         {
@@ -517,7 +591,25 @@ namespace MultiplayerProject.Source
                         ClientMessenger_OnRoomSuccessfullyUnready();
                         break;
                     }
+
+               
             }
+            // ✅ Chat handling goes OUTSIDE the switch
+    if (recievedPacket is ChatMessagePacket chatPacket)
+{
+    lock (_chatMessages)
+    {
+        if (chatPacket.Type == ChatMessageType.Global)
+            _chatMessages.Add($"[Global] {chatPacket.SenderId}: {chatPacket.Message}");
+        else if (chatPacket.Type == ChatMessageType.Private)
+            _chatMessages.Add($"[DM] {chatPacket.SenderId} -> {chatPacket.ReceiverId}: {chatPacket.Message}");
+
+        // Optional: keep only last 50 messages
+        if (_chatMessages.Count > 50)
+            _chatMessages.RemoveAt(0);
+    }
+}
+
         }
 
         public void SendMessageToTheServer(BasePacket packet, MessageType messageType)

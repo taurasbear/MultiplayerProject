@@ -7,12 +7,18 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Linq;
+using MultiplayerProject.Source.Networking;
+
+
 
 namespace MultiplayerProject
 {
     public class Server : IMessageable
     {
         public const int MAX_ROOMS = 6;
+
+        public static ServerChatMediator ChatMediator = new ServerChatMediator();
+
 
         public MessageableComponent ComponentType { get; set; }
         public List<ServerConnection> ComponentClients { get; set; }
@@ -116,15 +122,18 @@ namespace MultiplayerProject
                 {
                     Socket socket = _tcpListener.AcceptSocket();
 
-                    // Create a new client instance
                     ServerConnection client = new ServerConnection(socket);
-                    ComponentClients.Add(client);
+ComponentClients.Add(client);
 
-                    client.StartListeningForMessages();
-                    client.AddServerComponent(this);
+client.StartListeningForMessages();
+client.AddServerComponent(this);
 
-                    // Add this client to the waiting room
-                    _waitingRoom.AddClientToWaitingRoom(client);
+// ✅ Register with chat mediator
+Server.ChatMediator.RegisterClient(client.ID, client);
+
+// Add this client to the waiting room
+_waitingRoom.AddClientToWaitingRoom(client);
+
                 }
             }
             catch (Exception e)
@@ -151,6 +160,19 @@ namespace MultiplayerProject
                     client.SetPlayerName(namePacket.String);
                     Logger.Instance.Info("New player connected : " + client.Name);
                     break;
+
+                case MessageType.ChatMessage:
+{
+    ChatMessagePacket chat = (ChatMessagePacket)recievedPacket;
+
+    if (chat.Type == ChatMessageType.Global)
+        Server.ChatMediator.SendGlobalMessage(chat.SenderId, chat.Message);
+    else if (chat.Type == ChatMessageType.Private)
+        Server.ChatMediator.SendPrivateMessage(chat.SenderId, chat.ReceiverId, chat.Message);
+
+    break;
+}
+
             }
         }
 

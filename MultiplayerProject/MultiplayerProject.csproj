@@ -124,6 +124,10 @@
     <Compile Include="Source\Helpers\LaserMemoryBenchmark.cs" />
     <Compile Include="Source\Helpers\ExplosionMemoryBenchmark.cs" />
     <Compile Include="Source\Helpers\FlyweightBenchmarkRunner.cs" />
+    <Compile Include="Source\Networking\Chat\ChatMessagePacket.cs" />
+    <Compile Include="Source\Networking\Chat\ChatClient.cs" />
+    <Compile Include="Source\Networking\Chat\IChatMediator.cs" />
+    <Compile Include="Source\Networking\Chat\ServerChatMediator.cs" />
     <Compile Include="Source\Helpers\Logger.cs" />
     <Compile Include="Source\Helpers\PlayerColour.cs" />
     <Compile Include="Source\Interpreter\CommandInterpreter.cs" />

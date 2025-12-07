@@ -24,7 +24,9 @@ namespace MultiplayerProject.Source
         BaseServer,
         WaitingRoom,
         GameRoom,
-        Game
+        Game,
+
+        Chat
     }
 
     public enum MessageType : byte
@@ -90,7 +92,9 @@ namespace MultiplayerProject.Source
         LB_ClientSend_RematchUnready,
         LB_ClientSend_ReturnToWaitingRoom,
 
-        LB_ServerSend_UpdateLeaderboard
+        LB_ServerSend_UpdateLeaderboard,
+
+        ChatMessage
     }
 
     public enum GameRoomState : byte
@@ -112,7 +116,7 @@ namespace MultiplayerProject.Source
         public MouseState PreviousMouseState;
     }
 
-    [ProtoContract]
+     [ProtoContract]
     [ProtoInclude(51, typeof(StringPacket))]
     [ProtoInclude(52, typeof(IntPacket))]
     [ProtoInclude(53, typeof(RoomInformation))]
@@ -127,10 +131,12 @@ namespace MultiplayerProject.Source
     [ProtoInclude(62, typeof(LeaderboardUpdatePacket))]
     [ProtoInclude(63, typeof(EnemyClonePacket))]
     [ProtoInclude(64, typeof(EnemyEventPacket))]
+    [ProtoInclude(65, typeof(ChatMessagePacket))] // ✅ Added ChatMessagePacket
     public class BasePacket
     {
         [ProtoMember(1)]
         public DateTime SendDate { get; set; }
+
         [ProtoMember(2)]
         public int MessageType { get; set; }
     }
@@ -175,6 +181,28 @@ namespace MultiplayerProject.Source
         public RoomInformation[] Rooms { get; set; }
         [ProtoMember(2)]
         public int RoomCount { get; set; }
+    }
+
+  [ProtoContract]
+    public class ChatMessagePacket : BasePacket
+    {
+        [ProtoMember(1)]
+        public ChatMessageType Type { get; set; }
+
+        [ProtoMember(2)]
+        public string SenderId { get; set; }
+
+        [ProtoMember(3)]
+        public string ReceiverId { get; set; } // For private messages
+
+        [ProtoMember(4)]
+        public string Message { get; set; }
+    }
+
+    public enum ChatMessageType
+    {
+        Global,
+        Private
     }
 
     [ProtoContract]

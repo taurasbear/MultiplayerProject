@@ -32,9 +32,12 @@ namespace MultiplayerProject
 
         private IScene _currentScene;
 
+         public string ClientId { get; private set; }
+
         public Client()
         {
             _tcpClient = new TcpClient();
+             ClientId = Guid.NewGuid().ToString(); // generate a unique ID for this client
         }
 
         public bool Connect(string hostname, int port)
@@ -142,35 +145,37 @@ namespace MultiplayerProject
             }
         }
 
-        private void ProcessServerPacket(BasePacket packet)
-        {
-            switch ((MessageType)packet.MessageType)
-            {
-                case MessageType.Server_Disconnect:
-                    OnServerForcedDisconnect();
-                    break;
+      private void ProcessServerPacket(BasePacket packet)
+{
+    switch ((MessageType)packet.MessageType)
+    {
+        case MessageType.Server_Disconnect:
+            OnServerForcedDisconnect?.Invoke();
+            break;
 
-                case MessageType.GI_ServerSend_LoadNewGame:
-                    {
-                        OnLoadNewGame(packet);
-                        break;
-                    }
+        case MessageType.GI_ServerSend_LoadNewGame:
+            OnLoadNewGame?.Invoke(packet);
+            break;
 
-                case MessageType.GI_ServerSend_GameOver:
-                    {
-                        OnGameOver(packet);
-                        break;
-                    }
+        case MessageType.GI_ServerSend_GameOver:
+            OnGameOver?.Invoke(packet);
+            break;
 
-                default:
-                    {
-                        // Let the current scene handle the message
-                        if (_currentScene != null)
-                            _currentScene.RecieveServerResponse(packet);
-                        break;
+       case MessageType.ChatMessage:
+    var chat = (ChatMessagePacket)packet;
+    if (_currentScene is WaitingRoomScene waitingRoomScene)
+    {
+        waitingRoomScene.RecieveChatMessage(chat);
+    }
+    break;
 
-                    }
-            }
-        }
+
+        default:
+            if (_currentScene != null)
+                _currentScene.RecieveServerResponse(packet);
+            break;
+    }
+}
+
     }
 }
