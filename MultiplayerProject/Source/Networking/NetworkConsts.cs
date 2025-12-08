@@ -73,6 +73,7 @@ namespace MultiplayerProject.Source
         
         GI_ClientSend_PlayerUpdate,
         GI_ClientSend_PlayerFired,
+        GI_ClientSend_PlayerRespawn,
 
         GI_ServerSend_RemotePlayerFired,
         GI_ServerSend_EnemySpawn,
@@ -80,6 +81,7 @@ namespace MultiplayerProject.Source
         GI_ServerSend_EnemyDefeated,
         GI_ServerSend_EnemyClone,
         GI_ServerSend_PlayerDefeated,
+        GI_ServerSend_PlayerRespawned,
 
 
         GI_ServerSend_PlayerScoreSet, // New: Sent when /set_score is used

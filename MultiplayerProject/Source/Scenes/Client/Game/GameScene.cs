@@ -393,6 +393,19 @@ namespace MultiplayerProject.Source
                 framesSinceLastSend = 0;
             }
 
+            // Check for respawn input for local player (R key)
+            if (_localPlayer != null)
+            {
+                bool didRespawn = _localPlayer.CheckRespawnInput(inputInfo.CurrentKeyboardState, inputInfo.PreviousKeyboardState);
+                if (didRespawn)
+                {
+                    // Notify server that player respawned
+                    BasePacket respawnPacket = new BasePacket();
+                    SendMessageToTheServer(respawnPacket, MessageType.GI_ClientSend_PlayerRespawn);
+                    Console.WriteLine("[CLIENT] Sent respawn request to server");
+                }
+            }
+
             // Process and fetch input from local player
             KeyboardMovementInput condensedInput = ProcessInputForLocalPlayer(gameTime, inputInfo);
 
@@ -490,8 +503,8 @@ namespace MultiplayerProject.Source
 
             KeyboardMovementInput input = inputAdapter.GetMovementInput(inputInfo);
 
-            // Fire logic (unchanged, but now uses input.FirePressed)
-            if (input.FirePressed)
+            // Fire logic - only allow shooting if player can fire (NormalState and RespawnState)
+            if (input.FirePressed && _localPlayer.CanFire())
             {
                 // Use the local player's factory based on their elemental type
                 GameObjectFactory factory = GetFactoryFromPlayer(_localPlayer);
@@ -674,6 +687,26 @@ namespace MultiplayerProject.Source
             _explosionManager.AddExplosion(enemy.Position, factory, explosionColor);
         }
 
+        private void ClientMessenger_OnPlayerRespawnedPacket(BasePacket packet)
+        {
+            PlayerDefeatedPacket respawnPacket = (PlayerDefeatedPacket)packet;
+            
+            // Transition the respawned player to RespawnState on all clients
+            var player = _players[respawnPacket.CollidedPlayerID];
+            var basePlayer = GetBasePlayer<Player>(player);
+            
+            basePlayer.ChangeState(new GameObjects.Players.States.RespawnState());
+            
+            // If this is a remote player, snap position immediately to avoid interpolation lag
+            if (basePlayer is RemotePlayer remotePlayer)
+            {
+                Vector2 spawnPosition = new Vector2(100, 100); // Top-left corner
+                remotePlayer.SetPositionImmediate(spawnPosition);
+            }
+            
+            Console.WriteLine($"[CLIENT] Player {basePlayer.PlayerName} respawned - transitioning to RespawnState");
+        }
+
         private void ClientMessenger_OnPlayerDefeatedPacket(BasePacket packet)
         {
             PlayerDefeatedPacket playerDefeatedPacket = (PlayerDefeatedPacket)packet;
@@ -684,6 +717,11 @@ namespace MultiplayerProject.Source
 
             var player = _players[playerDefeatedPacket.CollidedPlayerID];
             var basePlayer = GetBasePlayer<Player>(player);
+
+            // Transition the defeated player to DeadState on the client side
+            // Note: Don't set health to 0 here, the server manages health
+            basePlayer.ChangeState(new GameObjects.Players.States.DeadState());
+            Console.WriteLine($"[CLIENT] Player {basePlayer.PlayerName} defeated - transitioning to DeadState");
 
             // Use the defeated player's factory to create an explosion of their own element
             GameObjectFactory factory = GetFactoryFromPlayer(basePlayer);
@@ -811,6 +849,13 @@ namespace MultiplayerProject.Source
                     {
                         var enemyPacket = (PlayerDefeatedPacket)recievedPacket;
                         ClientMessenger_OnPlayerDefeatedPacket(enemyPacket);
+                        break;
+                    }
+
+                case MessageType.GI_ServerSend_PlayerRespawned:
+                    {
+                        var respawnPacket = (PlayerDefeatedPacket)recievedPacket;
+                        ClientMessenger_OnPlayerRespawnedPacket(respawnPacket);
                         break;
                     }
 

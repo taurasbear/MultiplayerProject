@@ -19,10 +19,10 @@ namespace MultiplayerProject
         public const bool APPLY_SERVER_RECONCILLIATION = true;
         public const bool APPLY_ENTITY_INTERPOLATION = true;
 
-        public const int SERVER_UPDATE_RATE = 60 / 5; // Number of frames between packets
+        public const int SERVER_UPDATE_RATE = 60 / 10; // Number of frames between packets (10 updates/sec)
         public const int CLIENT_UPDATE_RATE = 60 / 30;
 
-        public const int PLAYER_STARTING_HEALTH = 100;
+        public const int PLAYER_STARTING_HEALTH = 120;
         public const float PLAYER_ACCELERATION_SPEED = 12f;
         public const float PLAYER_ROTATION_SPEED = 2f;
         public const float PLAYER_MAX_SPEED = 15f;

@@ -56,42 +56,8 @@ namespace MultiplayerProject.Source
 
         public override void TakeDamage(int damage)
         {
-            if (shieldActive && currentShieldHealth > 0)
-            {
-                // Shield absorbs the damage
-                currentShieldHealth -= damage;
-                
-                Logger.Instance?.Info($"Shield absorbed {damage} damage for player {PlayerName}. Shield health: {currentShieldHealth}");
-                
-                if (currentShieldHealth <= 0)
-                {
-                    // Shield is destroyed
-                    shieldActive = false;
-                    currentShieldHealth = 0;
-                    
-                    Logger.Instance?.Info($"Shield destroyed for player {PlayerName}");
-                    
-                    // If damage exceeds shield, pass overflow to base player
-                    int overflowDamage = -currentShieldHealth;
-                    if (overflowDamage > 0)
-                    {
-                        base.TakeDamage(overflowDamage);
-                    }
-                    
-                    // Could trigger shield break effects here
-                    OnShieldBreak();
-                }
-                else
-                {
-                    // Shield absorbed all damage, trigger hit effect
-                    OnShieldHit();
-                }
-            }
-            else
-            {
-                // No shield protection, pass damage to base player
-                base.TakeDamage(damage);
-            }
+            // Shield is just visual - pass damage through to base player
+            base.TakeDamage(damage);
         }
 
         private void UpdateShieldEffects(GameTime gameTime)

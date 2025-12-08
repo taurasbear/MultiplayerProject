@@ -157,6 +157,11 @@
     <Compile Include="Source\Effects\ParallaxingBackground.cs" />
     <Compile Include="Source\GameObjects\Players\Player.cs" />
     <Compile Include="Source\GameObjects\Players\IPlayer.cs" />
+    <Compile Include="Source\GameObjects\Players\States\IPlayerState.cs" />
+    <Compile Include="Source\GameObjects\Players\States\IdleState.cs" />
+    <Compile Include="Source\GameObjects\Players\States\NormalState.cs" />
+    <Compile Include="Source\GameObjects\Players\States\DeadState.cs" />
+    <Compile Include="Source\GameObjects\Players\States\RespawnState.cs" />
     <Compile Include="Source\GameObjects\Players\Decorators\PlayerDecorator.cs" />
     <Compile Include="Source\GameObjects\Players\Decorators\NameTagDecorator.cs" />
     <Compile Include="Source\GameObjects\Players\Decorators\RapidFireDecorator.cs" />

@@ -19,7 +19,8 @@ namespace MultiplayerProject.Source
         public enum CollisionType
         {
             LaserToPlayer,
-            LaserToEnemy
+            LaserToEnemy,
+            EnemyToPlayer // New collision type for enemy-player contact
         }
 
         public struct Collision
@@ -29,6 +30,7 @@ namespace MultiplayerProject.Source
             public string AttackingPlayerID { get; set; }
             public string DefeatedPlayerID { get; set; } // Null if enemy was shot
             public string DefeatedEnemyID { get; set; } // Null if player was shot
+            public string EnemyID { get; set; } // For EnemyToPlayer collisions
 
             public Collision(CollisionType collisionType, string laserID, string attackingPlayerID, string defeatedPlayerID, string defeatedEnemyID)
             {
@@ -37,6 +39,17 @@ namespace MultiplayerProject.Source
                 AttackingPlayerID = attackingPlayerID;
                 DefeatedPlayerID = defeatedPlayerID;
                 DefeatedEnemyID = defeatedEnemyID;
+                EnemyID = null;
+            }
+
+            public Collision(CollisionType collisionType, string playerID, string enemyID)
+            {
+                CollisionType = collisionType;
+                LaserID = null;
+                AttackingPlayerID = null;
+                DefeatedPlayerID = playerID;
+                DefeatedEnemyID = null;
+                EnemyID = enemyID;
             }
         }
 
@@ -59,6 +72,10 @@ namespace MultiplayerProject.Source
 
                 for (int iPlayer = 0; iPlayer < players.Count; iPlayer++) // Loop through every active player
                 {
+                    // Skip if player is invincible
+                    if (players[iPlayer].IsInvincible())
+                        continue;
+
                     Rectangle playerRectangle = new Rectangle(
                     (int)players[iPlayer].Position.X,
                     (int)players[iPlayer].Position.Y,
@@ -69,7 +86,12 @@ namespace MultiplayerProject.Source
                         && laserRectangle.Intersects(playerRectangle)) 
                     {
                         collisions.Add(new Collision(CollisionType.LaserToPlayer, lasers[iLaser].LaserID, lasers[iLaser].PlayerFiredID, players[iPlayer].NetworkID, ""));
-                        Console.WriteLine("SUCCESSFULL LASER/PLAYER INTERSECTION");
+                        
+                        // Apply laser damage through state pattern
+                        int laserDamage = (int)lasers[iLaser].Damage;
+                        players[iPlayer].HandleLaserCollision(laserDamage);
+                        Console.WriteLine($"SUCCESSFUL LASER/PLAYER INTERSECTION - Player took {laserDamage} damage");
+                        
                         laserStillActive = false;
                         break; // If collided don't check for more player collisions
                     }
@@ -112,7 +134,77 @@ namespace MultiplayerProject.Source
                 }
             }
 
+            // Check enemy-to-player collisions
+            CheckEnemyToPlayerCollisions(players, enemies, collisions);
+
             return collisions;
+        }
+
+        /// <summary>
+        /// Check for enemy-to-player collisions. Players take damage when touching enemies.
+        /// </summary>
+        private void CheckEnemyToPlayerCollisions(List<Player> players, List<Enemy> enemies, List<Collision> collisions)
+        {
+            const int ENEMY_CONTACT_DAMAGE = 20; // Damage dealt by touching an enemy
+
+            foreach (var player in players)
+            {
+                // Skip if player is inactive
+                if (!player.Active)
+                    continue;
+
+                // Skip collision check if player is invincible
+                if (player.IsInvincible())
+                    continue;
+
+                Rectangle playerRectangle = new Rectangle(
+                    (int)player.Position.X,
+                    (int)player.Position.Y,
+                    player.Width,
+                    player.Height);
+
+                // Check collision with all parent enemies
+                foreach (var enemy in enemies)
+                {
+                    if (!enemy.Active)
+                        continue;
+
+                    Rectangle enemyRectangle = new Rectangle(
+                        (int)enemy.Position.X,
+                        (int)enemy.Position.Y,
+                        enemy.Width,
+                        enemy.Height);
+
+                    if (playerRectangle.Intersects(enemyRectangle))
+                    {
+                        collisions.Add(new Collision(CollisionType.EnemyToPlayer, player.NetworkID, enemy.EnemyID));
+                        player.HandleEnemyCollision(ENEMY_CONTACT_DAMAGE);
+                        Console.WriteLine($"Player {player.PlayerName} collided with enemy - took {ENEMY_CONTACT_DAMAGE} damage");
+                        break; // Only one enemy collision per frame per player
+                    }
+
+                    // Check minions
+                    foreach (var minion in enemy.Minions)
+                    {
+                        if (!minion.Active)
+                            continue;
+
+                        Rectangle minionRectangle = new Rectangle(
+                            (int)minion.Position.X,
+                            (int)minion.Position.Y,
+                            minion.Width,
+                            minion.Height);
+
+                        if (playerRectangle.Intersects(minionRectangle))
+                        {
+                            collisions.Add(new Collision(CollisionType.EnemyToPlayer, player.NetworkID, minion.EnemyID));
+                            player.HandleEnemyCollision(ENEMY_CONTACT_DAMAGE);
+                            Console.WriteLine($"Player {player.PlayerName} collided with minion - took {ENEMY_CONTACT_DAMAGE} damage");
+                            break;
+                        }
+                    }
+                }
+            }
         }
 
         public void Draw(GraphicsDevice device, SpriteBatch spriteBatch, List<Enemy> enemies, List<Laser> lasers)

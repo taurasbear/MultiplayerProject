@@ -161,6 +161,34 @@ namespace MultiplayerProject.Source
                         }
                         break;
                     }
+
+                case MessageType.GI_ClientSend_PlayerRespawn:
+                    {
+                        // Client requested respawn - transition server-side player to RespawnState
+                        Player player = _players[client.ID];
+                        if (player != null)
+                        {
+                            // Reset score to 0 on respawn
+                            _playerScores[client.ID] = 0;
+                            player.Score = 0;
+                            
+                            // Transition to RespawnState (which sets position and health)
+                            player.ChangeState(new GameObjects.Players.States.RespawnState());
+                            
+                            Console.WriteLine($"[SERVER] Player {client.Name} respawned - Score reset to 0");
+                            
+                            // Broadcast respawn to all clients so they can update their visual state
+                            BasePacket respawnBroadcast = new BasePacket();
+                            respawnBroadcast.MessageType = (int)MessageType.GI_ServerSend_PlayerRespawned;
+                            for (int i = 0; i < ComponentClients.Count; i++)
+                            {
+                                // Create a packet with the player ID who respawned
+                                PlayerDefeatedPacket respawnPacket = NetworkPacketFactory.Instance.MakePlayerDefeatedPacket("", client.ID, 0);
+                                ComponentClients[i].SendPacketToClient(respawnPacket, MessageType.GI_ServerSend_PlayerRespawned);
+                            }
+                        }
+                        break;
+                    }
             }
         }
 
@@ -224,6 +252,12 @@ namespace MultiplayerProject.Source
             // Apply the inputs recieved from the clients to the simulation running on the server
             foreach (KeyValuePair<string, Player> player in _players)
             {
+                // Update state machine for all players (must be called every frame to update state timers)
+                player.Value.Update(gameTime);
+                
+                // Check for respawn input from players (server needs to handle respawn too)
+                // Note: We'd need keyboard state from client for this, for now respawn is client-side only
+                
                 if (_playerUpdates[player.Key] != null)
                 {
                     player.Value.ApplyInputToPlayer(_playerUpdates[player.Key].Input, (float)gameTime.ElapsedGameTime.TotalSeconds);
@@ -414,7 +448,11 @@ namespace MultiplayerProject.Source
             {
                 for (int iCollision = 0; iCollision < collisions.Count; iCollision++)
                 {
-                    _gameFacade.DeactivateLaser(collisions[iCollision].AttackingPlayerID, collisions[iCollision].LaserID); // Deactivate collided laser
+                    // Only deactivate laser if this is a laser collision (not enemy-to-player contact)
+                    if (collisions[iCollision].CollisionType != CollisionManager.CollisionType.EnemyToPlayer)
+                    {
+                        _gameFacade.DeactivateLaser(collisions[iCollision].AttackingPlayerID, collisions[iCollision].LaserID); // Deactivate collided laser
+                    }
 
                     if (collisions[iCollision].CollisionType == CollisionManager.CollisionType.LaserToEnemy)
                     {                      
@@ -477,7 +515,7 @@ namespace MultiplayerProject.Source
                             ComponentClients[iClient].SendPacketToClient(packet, MessageType.GI_ServerSend_EnemyDefeated);
                         }
                     }
-                    else
+                    else if (collisions[iCollision].CollisionType == CollisionManager.CollisionType.LaserToPlayer)
                     {
                         // DECCREMENT PLAYER SCORE HERE
                         if (_playerScores[collisions[iCollision].DefeatedPlayerID] > 0)
@@ -517,6 +555,35 @@ namespace MultiplayerProject.Source
                         for (int iClient = 0; iClient < ComponentClients.Count; iClient++)
                         {
                             ComponentClients[iClient].SendPacketToClient(packet, MessageType.GI_ServerSend_PlayerDefeated);
+                        }
+                    }
+                    else if (collisions[iCollision].CollisionType == CollisionManager.CollisionType.EnemyToPlayer)
+                    {
+                        // Enemy-to-player collision - damage already applied in CollisionManager
+                        // Check if player died from this collision
+                        var player = _players[collisions[iCollision].DefeatedPlayerID];
+                        if (player.Health <= 0)
+                        {
+                            // Player died from enemy contact
+                            Console.WriteLine($"Player {player.PlayerName} defeated by enemy contact!");
+                            
+                            // Create explosion on server for visitor pattern tracking
+                            GameObjectFactory factory = GetFactoryFromPlayer(player);
+                            Color explosionColor = Color.Orange; // Enemy collision = orange explosion
+                            
+                            var explosion = _gameFacade.CreateExplosion(player.Position, factory, explosionColor);
+                            if (explosion != null)
+                            {
+                                explosion.Accept(_lifetimeStatsVisitor);
+                                _activeStatsVisitor.AddRecentEvents(0, 1, 0);
+                            }
+
+                            // Send defeat packet to clients (no attacking player since it was enemy)
+                            PlayerDefeatedPacket packet = NetworkPacketFactory.Instance.MakePlayerDefeatedPacket("", collisions[iCollision].DefeatedPlayerID, _playerScores[collisions[iCollision].DefeatedPlayerID]);
+                            for (int iClient = 0; iClient < ComponentClients.Count; iClient++)
+                            {
+                                ComponentClients[iClient].SendPacketToClient(packet, MessageType.GI_ServerSend_PlayerDefeated);
+                            }
                         }
                     }
                 }

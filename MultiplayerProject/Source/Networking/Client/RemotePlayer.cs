@@ -47,6 +47,32 @@ namespace MultiplayerProject.Source
             //ApplyPrediction(gameTime, latency, packetSendTime);
         }
 
+        /// <summary>
+        /// Immediately snap to a position without interpolation (used for respawn/teleport).
+        /// </summary>
+        public void SetPositionImmediate(Vector2 position)
+        {
+            // Set all position states to the same value
+            // This ensures smooth interpolation from this point forward
+            simulationState.Position = position;
+            simulationState.Speed = 0;
+            simulationState.Velocity = Vector2.Zero;
+            simulationState.Rotation = 0;
+            
+            previousState.Position = position;
+            previousState.Speed = 0;
+            previousState.Velocity = Vector2.Zero;
+            previousState.Rotation = 0;
+            
+            PlayerState.Position = position;
+            PlayerState.Speed = 0;
+            PlayerState.Velocity = Vector2.Zero;
+            PlayerState.Rotation = 0;
+            
+            // Reset smoothing - next update will start fresh interpolation from this position
+            _currentSmoothing = 0;
+        }
+
         public void UpdateRemote(int framesBetweenPackets, float deltaTime)
         {
             // Update the smoothing amount, which interpolates from the previous
