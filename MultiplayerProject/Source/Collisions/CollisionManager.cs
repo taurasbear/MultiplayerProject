@@ -1,12 +1,14 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MultiplayerProject.Source.Helpers;
-using System;
-using System.Collections.Generic;
 //using MultiplayerProject.Source.Networking.Server;
 using MultiplayerProject.Source.GameObjects;
-using MultiplayerProject.Source.Helpers.Factories;
 using MultiplayerProject.Source.GameObjects.Enemy;
+using MultiplayerProject.Source.GameObjects.Iterator;
+using MultiplayerProject.Source.GameObjects.Iterator.Laser;
+using MultiplayerProject.Source.Helpers;
+using MultiplayerProject.Source.Helpers.Factories;
+using System;
+using System.Collections.Generic;
 
 
 namespace MultiplayerProject.Source
@@ -53,107 +55,109 @@ namespace MultiplayerProject.Source
             }
         }
 
-        // NOTE: The explosion-handling overload was removed - use the main CheckCollision(players, enemies, lasers)
-        // if you need explosion creation, call ExplosionManager from the caller with player lookup available.
-
-        public List<Collision> CheckCollision(List<Player> players, List<Enemy> enemies, List<Laser> lasers)
+        /// <summary>
+        /// Check collisions using GameObjectCollection and Iterator pattern
+        /// </summary>
+        public List<Collision> CheckCollision(GameObjectCollection gameObjectCollection)
         {
             List<Collision> collisions = new List<Collision>();
-            bool laserStillActive;
 
-            for (int iLaser = 0; iLaser < lasers.Count; iLaser++) // Loop through every active laser
-            {
-                Rectangle laserRectangle = new Rectangle(
-                    (int)lasers[iLaser].Position.X,
-                    (int)lasers[iLaser].Position.Y,
-                    lasers[iLaser].Width,
-                    lasers[iLaser].Height);
-                laserStillActive = true;
-
-                for (int iPlayer = 0; iPlayer < players.Count; iPlayer++) // Loop through every active player
-                {
-                    // Skip if player is invincible
-                    if (players[iPlayer].IsInvincible())
-                        continue;
-
-                    Rectangle playerRectangle = new Rectangle(
-                    (int)players[iPlayer].Position.X,
-                    (int)players[iPlayer].Position.Y,
-                    players[iPlayer].Width,
-                    players[iPlayer].Height);
-
-                    if (lasers[iLaser].PlayerFiredID != players[iPlayer].NetworkID // Make sure we don't check for collisions which the player that fired it
-                        && laserRectangle.Intersects(playerRectangle)) 
-                    {
-                        collisions.Add(new Collision(CollisionType.LaserToPlayer, lasers[iLaser].LaserID, lasers[iLaser].PlayerFiredID, players[iPlayer].NetworkID, ""));
-                        
-                        // Apply laser damage through state pattern
-                        int laserDamage = (int)lasers[iLaser].Damage;
-                        players[iPlayer].HandleLaserCollision(laserDamage);
-                        Console.WriteLine($"SUCCESSFUL LASER/PLAYER INTERSECTION - Player took {laserDamage} damage");
-                        
-                        laserStillActive = false;
-                        break; // If collided don't check for more player collisions
-                    }
-                }
-
-                if (laserStillActive)
-                {
-                    // Loop through every parent enemy
-                    for (int iParentEnemy = 0; iParentEnemy < enemies.Count; iParentEnemy++)
-                    {
-                        Enemy currentEnemy = enemies[iParentEnemy];
-
-                        // Check collision with parent enemy
-                        Rectangle parentEnemyRectangle = new Rectangle(
-                            (int)currentEnemy.Position.X,
-                            (int)currentEnemy.Position.Y,
-                            currentEnemy.Width,
-                            currentEnemy.Height);
-
-                        if (laserRectangle.Intersects(parentEnemyRectangle))
-                        {
-                            collisions.Add(new Collision(CollisionType.LaserToEnemy, lasers[iLaser].LaserID, lasers[iLaser].PlayerFiredID, "", currentEnemy.EnemyID));
-                            laserStillActive = false; // Laser is used up
-                            break; // Stop checking this laser against other enemies
-                        }
-
-                        // Check collision with minions of the current parent enemy
-                        foreach (var minion in currentEnemy.Minions)
-                        {
-                            Rectangle minionRectangle = new Rectangle((int)minion.Position.X, (int)minion.Position.Y, minion.Width, minion.Height);
-                            if (laserRectangle.Intersects(minionRectangle))
-                            {
-                                collisions.Add(new Collision(CollisionType.LaserToEnemy, lasers[iLaser].LaserID, lasers[iLaser].PlayerFiredID, "", minion.EnemyID));
-                                laserStillActive = false; // Laser is used up
-                                break; // Stop checking this laser against other enemies
-                            }
-                        }
-                        if (!laserStillActive) break; // If minion hit, stop checking this laser
-                    }
-                }
-            }
-
-            // Check enemy-to-player collisions
-            CheckEnemyToPlayerCollisions(players, enemies, collisions);
+            CheckLaserCollisions(gameObjectCollection, collisions);
+            CheckEnemyToPlayerCollisions(gameObjectCollection, collisions);
 
             return collisions;
         }
 
         /// <summary>
-        /// Check for enemy-to-player collisions. Players take damage when touching enemies.
+        /// Check laser-to-player and laser-to-enemy collisions using iterators
         /// </summary>
-        private void CheckEnemyToPlayerCollisions(List<Player> players, List<Enemy> enemies, List<Collision> collisions)
+        private void CheckLaserCollisions(GameObjectCollection gameObjectCollection, List<Collision> collisions)
+        {
+            var laserIterator = gameObjectCollection.CreateLaserIterator();
+            
+            while (laserIterator.HasMore())
+            {
+                Laser laser = laserIterator.GetNext();
+                if (laser == null || !laser.Active)
+                    continue;
+
+                Rectangle laserRectangle = new Rectangle(
+                    (int)laser.Position.X,
+                    (int)laser.Position.Y,
+                    laser.Width,
+                    laser.Height);
+
+                bool laserStillActive = true;
+
+                var playerIterator = gameObjectCollection.CreatePlayerIterator();
+                while (playerIterator.HasMore() && laserStillActive)
+                {
+                    Player player = playerIterator.GetNext();
+                    if (player == null || !player.Active)
+                        continue;
+
+                    if (player.IsInvincible())
+                        continue;
+
+                    Rectangle playerRectangle = new Rectangle(
+                        (int)player.Position.X,
+                        (int)player.Position.Y,
+                        player.Width,
+                        player.Height);
+
+                    if (laser.PlayerFiredID != player.NetworkID && laserRectangle.Intersects(playerRectangle))
+                    {
+                        collisions.Add(new Collision(CollisionType.LaserToPlayer, laser.LaserID, laser.PlayerFiredID, player.NetworkID, ""));
+                        
+                        int laserDamage = (int)laser.Damage;
+                        player.HandleLaserCollision(laserDamage);
+                        
+                        laserStillActive = false;
+                        break;
+                    }
+                }
+
+                if (laserStillActive)
+                {
+                    var enemyIterator = gameObjectCollection.CreateEnemyIterator();
+                    while (enemyIterator.HasMore() && laserStillActive)
+                    {
+                        Enemy enemy = enemyIterator.GetNext();
+                        if (enemy == null || !enemy.Active)
+                            continue;
+
+                        Rectangle enemyRectangle = new Rectangle(
+                            (int)enemy.Position.X,
+                            (int)enemy.Position.Y,
+                            enemy.Width,
+                            enemy.Height);
+
+                        if (laserRectangle.Intersects(enemyRectangle))
+                        {
+                            collisions.Add(new Collision(CollisionType.LaserToEnemy, laser.LaserID, laser.PlayerFiredID, "", enemy.EnemyID));
+                            laserStillActive = false;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Check for enemy-to-player collisions using iterators. Players take damage when touching enemies.
+        /// </summary>
+        private void CheckEnemyToPlayerCollisions(GameObjectCollection gameObjectCollection, List<Collision> collisions)
         {
             const int ENEMY_CONTACT_DAMAGE = 20; // Damage dealt by touching an enemy
 
-            foreach (var player in players)
+            var playerIterator = gameObjectCollection.CreatePlayerIterator();
+            
+            while (playerIterator.HasMore())
             {
-                // Skip if player is inactive
-                if (!player.Active)
+                Player player = playerIterator.GetNext();
+                if (player == null || !player.Active)
                     continue;
 
-                // Skip collision check if player is invincible
                 if (player.IsInvincible())
                     continue;
 
@@ -163,10 +167,13 @@ namespace MultiplayerProject.Source
                     player.Width,
                     player.Height);
 
-                // Check collision with all parent enemies
-                foreach (var enemy in enemies)
+                var enemyIterator = gameObjectCollection.CreateEnemyIterator();
+                bool playerHitEnemy = false;
+                
+                while (enemyIterator.HasMore() && !playerHitEnemy)
                 {
-                    if (!enemy.Active)
+                    Enemy enemy = enemyIterator.GetNext();
+                    if (enemy == null || !enemy.Active)
                         continue;
 
                     Rectangle enemyRectangle = new Rectangle(
@@ -179,29 +186,8 @@ namespace MultiplayerProject.Source
                     {
                         collisions.Add(new Collision(CollisionType.EnemyToPlayer, player.NetworkID, enemy.EnemyID));
                         player.HandleEnemyCollision(ENEMY_CONTACT_DAMAGE);
-                        Console.WriteLine($"Player {player.PlayerName} collided with enemy - took {ENEMY_CONTACT_DAMAGE} damage");
-                        break; // Only one enemy collision per frame per player
-                    }
-
-                    // Check minions
-                    foreach (var minion in enemy.Minions)
-                    {
-                        if (!minion.Active)
-                            continue;
-
-                        Rectangle minionRectangle = new Rectangle(
-                            (int)minion.Position.X,
-                            (int)minion.Position.Y,
-                            minion.Width,
-                            minion.Height);
-
-                        if (playerRectangle.Intersects(minionRectangle))
-                        {
-                            collisions.Add(new Collision(CollisionType.EnemyToPlayer, player.NetworkID, minion.EnemyID));
-                            player.HandleEnemyCollision(ENEMY_CONTACT_DAMAGE);
-                            Console.WriteLine($"Player {player.PlayerName} collided with minion - took {ENEMY_CONTACT_DAMAGE} damage");
-                            break;
-                        }
+                        playerHitEnemy = true;
+                        break;
                     }
                 }
             }

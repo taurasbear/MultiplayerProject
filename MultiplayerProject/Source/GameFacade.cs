@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using MultiplayerProject.Source.GameObjects;
 using MultiplayerProject.Source.GameObjects.Enemy;
+using MultiplayerProject.Source.GameObjects.Iterator;
 using MultiplayerProject.Source.Helpers.Factories;
 using MultiplayerProject.Source.Visitors;
 using System;
@@ -53,8 +54,8 @@ namespace MultiplayerProject.Source
 
         public List<CollisionManager.Collision> CheckCollisions(List<Player> players)
         {
-            var activeLasers = _playerLasers.Values.SelectMany(lm => lm.Lasers).ToList();
-            return _collisionManager.CheckCollision(players, EnemyManager.Enemies, activeLasers);
+            var gameObjectCollection = new GameObjectCollection(players, _playerLasers, EnemyManager);
+            return _collisionManager.CheckCollision(gameObjectCollection);
         }
 
         public void DeactivateLaser(string playerId, string laserId) => _playerLasers[playerId].DeactivateLaser(laserId);

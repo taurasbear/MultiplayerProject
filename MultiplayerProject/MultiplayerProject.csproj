@@ -88,6 +88,11 @@
     <Compile Include="Source\GameObjects\Explosions\FireExplosion.cs" />
     <Compile Include="Source\GameObjects\Explosions\ElectricExplosion.cs" />
     <Compile Include="Source\GameObjects\GameObject.cs" />
+    <Compile Include="Source\GameObjects\Iterator\Enemy\EnemyIterator.cs" />
+    <Compile Include="Source\GameObjects\Iterator\GameObjectCollection.cs" />
+    <Compile Include="Source\GameObjects\Iterator\IGameObjectIterator.cs" />
+    <Compile Include="Source\GameObjects\Iterator\Laser\LaserIterator.cs" />
+    <Compile Include="Source\GameObjects\Iterator\Player\PlayerIterator.cs" />
     <Compile Include="Source\GameObjects\Lasers\ElectricLaser.cs" />
     <Compile Include="Source\GameObjects\Lasers\WaterLaser.cs" />
     <Compile Include="Source\GameObjects\Lasers\Laser.cs" />
