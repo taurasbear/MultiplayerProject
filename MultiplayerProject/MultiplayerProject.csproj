@@ -148,6 +148,13 @@
     <Compile Include="Source\Networking\Client\Client.cs" />
     <Compile Include="Source\Networking\Client\INetworkedObject.cs" />
     <Compile Include="Source\Networking\Client\LocalPlayer.cs" />
+    <Compile Include="Source\Networking\Client\Pipeline\BaseHandler.cs" />
+    <Compile Include="Source\Networking\Client\Pipeline\DeserializeHandler.cs" />
+    <Compile Include="Source\Networking\Client\Pipeline\ExceptionHandler.cs" />
+    <Compile Include="Source\Networking\Client\Pipeline\FinalHandler.cs" />
+    <Compile Include="Source\Networking\Client\Pipeline\LoggingHandler.cs" />
+    <Compile Include="Source\Networking\Client\Pipeline\RequestContext.cs" />
+    <Compile Include="Source\Networking\Client\Pipeline\ValidationHandler.cs" />
     <Compile Include="Source\Networking\Client\RemotePlayer.cs" />
     <Compile Include="Source\Networking\Client\RollingAverage.cs" />
     <Compile Include="Source\Networking\NetworkConsts.cs" />

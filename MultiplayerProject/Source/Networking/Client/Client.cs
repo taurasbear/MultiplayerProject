@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 
 using ProtoBuf;
+using MultiplayerProject.Source.Networking.Client.Pipeline;
 
 namespace MultiplayerProject
 {
@@ -118,17 +119,33 @@ namespace MultiplayerProject
 
         private void ProcessServerResponse()
         {
+            var finalHandler = new FinalHandler();
+
+            var loggingHandler = new LoggingHandler();
+            loggingHandler.SetNext(finalHandler);
+
+            var validationHandler = new ValidationHandler();
+            validationHandler.SetNext(loggingHandler);
+
+            var deserializeHandler = new DeserializeHandler();
+            deserializeHandler.SetNext(validationHandler);
+
+            var exceptionHandler = new ExceptionHandler();
+            exceptionHandler.SetNext(deserializeHandler);
+
+            var requestContext = new RequestContext 
+            {
+                Client = this
+            };
+
             try
             {
                 using (_stream)
                 {
                     while (true)
                     {
-                        BasePacket packet = Serializer.DeserializeWithLengthPrefix<BasePacket>(_stream, PrefixStyle.Base128);
-                        if (packet != null)
-                        {
-                            ProcessServerPacket(packet);
-                        }
+                        requestContext.RawStream = _stream;
+                        exceptionHandler.Handle(requestContext);
                     }
                 }
             }
@@ -142,7 +159,7 @@ namespace MultiplayerProject
             }
         }
 
-        private void ProcessServerPacket(BasePacket packet)
+        public void ProcessServerPacket(BasePacket packet)
         {
             switch ((MessageType)packet.MessageType)
             {
@@ -171,6 +188,21 @@ namespace MultiplayerProject
 
                     }
             }
+        }
+
+        public static void RaiseServerForcedDisconnect()
+        {
+            OnServerForcedDisconnect?.Invoke();
+        }
+
+        public static void RaiseLoadNewGame(BasePacket packet)
+        {
+            OnLoadNewGame?.Invoke(packet);
+        }
+
+        public static void RaiseGameOver(BasePacket packet)
+        {
+            OnGameOver?.Invoke(packet);
         }
     }
 }
