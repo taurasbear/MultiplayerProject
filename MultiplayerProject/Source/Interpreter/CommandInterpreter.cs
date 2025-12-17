@@ -73,10 +73,14 @@ namespace MultiplayerProject.Source
                 }
 
                 var command = _parser.Parse(commandText);
-                var result = command.Interpret(_context);
                 
-                // Log ALL commands to the command log (for history display)
-                _historyManager.LogCommand(commandText);
+                // Only log valid commands to history (skip InvalidCommand)
+                if (!(command is InvalidCommand))
+                {
+                    _historyManager.LogCommand(commandText);
+                }
+                
+                var result = command.Interpret(_context);
                 
                 return result;
             }

@@ -131,6 +131,7 @@ namespace MultiplayerProject.Source
         /// <summary>
         /// Restores game state from a memento.
         /// This is called during undo operations.
+        /// Only the Originator can access the memento's internal state through friend methods.
         /// </summary>
         public bool RestoreFromMemento(CommandMemento memento)
         {
@@ -139,8 +140,12 @@ namespace MultiplayerProject.Source
 
             try
             {
+                // Use friend method to get copies of data (prevents external modification)
+                var playerScores = memento.GetPlayerScoresForRestore();
+                var contextVariables = memento.GetContextVariablesForRestore();
+
                 // Restore player scores to context variables
-                foreach (var kvp in memento.PlayerScores)
+                foreach (var kvp in playerScores)
                 {
                     SetVariable($"score_{kvp.Key}", kvp.Value);
                 }
@@ -156,7 +161,7 @@ namespace MultiplayerProject.Source
                         var gamePlayerScores = playerScoresField.GetValue(CurrentGameInstance) as System.Collections.IDictionary;
                         if (gamePlayerScores != null)
                         {
-                            foreach (var kvp in memento.PlayerScores)
+                            foreach (var kvp in playerScores)
                             {
                                 if (gamePlayerScores.Contains(kvp.Key))
                                 {
@@ -184,7 +189,7 @@ namespace MultiplayerProject.Source
                 }
 
                 // Restore other context variables
-                foreach (var kvp in memento.ContextVariables)
+                foreach (var kvp in contextVariables)
                 {
                     if (!kvp.Key.StartsWith("score_")) // Don't restore scores twice
                     {
