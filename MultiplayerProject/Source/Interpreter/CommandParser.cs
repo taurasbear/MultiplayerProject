@@ -33,7 +33,11 @@ namespace MultiplayerProject.Source
                 { "set_score", args => new GameCommand(GameCommand.GameAction.SetScore,
                     args.Length > 0 ? args[0] : "",
                     args.Length > 1 ? ParseInt(args[1], 0) : 0) },
-                { "help", args => new HelpCommand() }
+                { "help", args => new HelpCommand() },
+                { "undo", args => new HistoryCommand(HistoryCommand.HistoryAction.Undo) },
+                { "history", args => new HistoryCommand(HistoryCommand.HistoryAction.ShowHistory,
+                    args.Length > 0 ? ParseInt(args[0], 10) : 10) },
+                { "clear_history", args => new HistoryCommand(HistoryCommand.HistoryAction.ClearHistory) }
             };
         }
 

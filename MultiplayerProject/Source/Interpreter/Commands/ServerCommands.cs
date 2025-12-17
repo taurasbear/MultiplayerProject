@@ -39,6 +39,9 @@ namespace MultiplayerProject.Source.Commands
             sb.Append("  /list                       - Show connected players|");
             sb.Append("  /info <player>              - Show player details|");
             sb.Append("  /set_score <player> <score> - Set player score|");
+            sb.Append("  /undo                       - Undo last state-changing command|");
+            sb.Append("  /history [count]            - Show command history (default: 10)|");
+            sb.Append("  /clear_history              - Clear command history|");
             sb.Append("|");
             sb.Append("Controls: ~ or / (toggle), Enter (execute), Escape (cancel)|");
             return sb.ToString();
