@@ -41,7 +41,26 @@ namespace MultiplayerProject.Source
             get => wrappedPlayer.Colour; 
             set => wrappedPlayer.Colour = value; 
         }
-        
+
+        public virtual int Score
+        {
+            get => wrappedPlayer.Score;
+            set => wrappedPlayer.Score = value;
+        }
+
+        public virtual float Speed
+        {
+            get => wrappedPlayer.Speed;
+            set => wrappedPlayer.Speed = value;
+        }
+
+        public virtual float FireRate
+        {
+            get => wrappedPlayer.FireRate;
+            set => wrappedPlayer.FireRate = value;
+        }
+
+
         public virtual string PlayerName 
         { 
             get => wrappedPlayer.PlayerName; 

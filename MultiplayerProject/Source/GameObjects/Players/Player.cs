@@ -25,7 +25,20 @@ namespace MultiplayerProject.Source
 
         public Vector2 Position { get { return PlayerState.Position; } }
         public float Rotation { get { return PlayerState.Rotation; } }
-        public float Speed { get { return PlayerState.Speed; } }
+
+        // Add FireRate backing field and property:
+        private float _fireRate = 1.0f; // default fire rate
+        public float FireRate
+        {
+            get { return _fireRate; }
+            set { _fireRate = value; }
+        }
+
+        public float Speed
+        {
+            get { return PlayerState.Speed; }
+            set { PlayerState.Speed = value; }  // <-- Add setter here
+        }
 
         public string NetworkID { get; set; }
         public int LastSequenceNumberProcessed { get; set; }
@@ -64,6 +77,8 @@ namespace MultiplayerProject.Source
         {
             Colour = colour;
         }
+
+
 
         public void Initialize(ContentManager content)
         {

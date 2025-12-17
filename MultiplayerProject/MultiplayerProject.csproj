@@ -167,6 +167,12 @@
     <Compile Include="Source\Networking\Server\IMessageable.cs" />
     <Compile Include="Source\Networking\Server\GameRoom.cs" />
     <Compile Include="Source\Networking\Server\ServerLeaderboard.cs" />
+    <Compile Include="Source\PowerUps\PowerUpBase.cs" />
+    <Compile Include="Source\PowerUps\SpeedPowerUp.cs" />
+    <Compile Include="Source\PowerUps\SlowFireRatePowerUp.cs" />
+    <Compile Include="Source\PowerUps\ScoreBoostPowerUp.cs" />
+    <Compile Include="Source\PowerUps\SlowFireDecorator.cs" />
+    <Compile Include="Source\PowerUps\GameSceneAccessor.cs" />
     <Compile Include="Source\Networking\Server\WaitingRoom.cs" />
     <Compile Include="Source\Networking\Server\ServerConnection.cs" />
     <Compile Include="Source\Networking\Server\Server.cs" />

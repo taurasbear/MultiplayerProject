@@ -24,6 +24,11 @@ namespace MultiplayerProject.Source
         int LastSequenceNumberProcessed { get; set; }
         KeyboardMovementInput LastKeyboardMovementInput { get; set; }
 
+        // Added properties for power-ups
+        int Score { get; set; }
+        float Speed { get; set; }
+        float FireRate { get; set; }
+
         // Core methods
         void Initialize(ContentManager content);
         void Initialize(ContentManager content, PlayerColour colour);

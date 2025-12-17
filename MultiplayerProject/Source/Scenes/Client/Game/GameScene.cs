@@ -9,6 +9,10 @@ using MultiplayerProject.Source.Helpers.Factories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using MultiplayerProject.Source.PowerUps;
+
+
+
 
 namespace MultiplayerProject.Source
 {
@@ -104,6 +108,8 @@ namespace MultiplayerProject.Source
             
             // Initialize audio controller
             _audioController = new ScoreBasedAudioController();
+
+            GameSceneAccessor.Instance = this;
         }
 
         /// <summary>
@@ -436,6 +442,42 @@ namespace MultiplayerProject.Source
             {
                 UndoLastCommand();
             }
+
+// DEBUG / TEST POWERUPS
+if (_localPlayer != null)
+{
+    string id = _localPlayer.NetworkID;
+    var currentPlayer = _players[id];
+
+    // 1 = Speed boost
+    if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.D1) &&
+        !inputInfo.PreviousKeyboardState.IsKeyDown(Keys.D1))
+    {
+        var speedPowerUp = new SpeedPowerUp();
+        speedPowerUp.Activate(currentPlayer); // Apply the effect
+    }
+
+    // 2 = Slow fire rate
+    if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.D2) &&
+        !inputInfo.PreviousKeyboardState.IsKeyDown(Keys.D2))
+    {
+        var slowFirePowerUp = new SlowFireRatePowerUp();
+        slowFirePowerUp.Activate(currentPlayer); // Apply the effect
+    }
+
+    // 3 = Score boost
+    if (inputInfo.CurrentKeyboardState.IsKeyDown(Keys.D3) &&
+        !inputInfo.PreviousKeyboardState.IsKeyDown(Keys.D3))
+    {
+        var scoreBoost = new ScoreBoostPowerUp();
+        scoreBoost.Activate(currentPlayer); // Apply the effect
+    }
+}
+
+
+
+
+
         }
 
         // 1. Command interface and concrete commands
@@ -950,5 +992,13 @@ namespace MultiplayerProject.Source
                 Logger.Instance?.Info("No commands to undo");
             }
         }
+
+
+    public void ReplacePlayerInternal(string networkId, IPlayer newPlayer)
+{
+    // Always keep NameTagDecorator as the outermost decorator
+    _players[networkId] = new NameTagDecorator(newPlayer, showEnhancements: true);
+}
+
     }
 }
